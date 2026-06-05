@@ -1,0 +1,21 @@
+# Vite / React
+node_modules/
+dist/
+.vite/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Local overrides
+*.local
+
+# OS
+.DS_Store
+
+# Logs & tooling
+*.log
+.eslintcache
+coverage/
+*.tsbuildinfo
