@@ -1,39 +1,33 @@
-import { useState, type FormEvent } from "react";
-import "./App.css";
+import { useEffect } from "react";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { Layout } from "./components/Layout";
+import { Landing } from "./pages/Landing";
+import { Privacy } from "./pages/Privacy";
+import { Support } from "./pages/Support";
+
+function PageTitle() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    if (pathname === "/") {
+      document.title = "Donna";
+    }
+  }, [pathname]);
+
+  return null;
+}
 
 export default function App() {
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-
-  function handleWaitlist(e: FormEvent) {
-    e.preventDefault();
-    if (email.trim()) setSubmitted(true);
-  }
-
   return (
-    <div className="page">
-      <main className="landing">
-        <h1>
-          AI Second Brain, but the <em>BEST</em>
-        </h1>
-        <form className="waitlist-form" onSubmit={handleWaitlist}>
-          {submitted ? (
-            <p className="waitlist-success">You&apos;re on the list.</p>
-          ) : (
-            <>
-              <input
-                type="email"
-                placeholder="you@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                aria-label="Email for waitlist"
-              />
-              <button type="submit">Join waitlist</button>
-            </>
-          )}
-        </form>
-      </main>
-    </div>
+    <BrowserRouter>
+      <PageTitle />
+      <Routes>
+        <Route element={<Layout />}>
+          <Route index element={<Landing />} />
+          <Route path="privacy" element={<Privacy />} />
+          <Route path="support" element={<Support />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
