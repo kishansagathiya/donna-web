@@ -93,8 +93,36 @@ export function Privacy() {
         <h2>Data retention</h2>
         <p>
           Voice audio and conversation data are retained on our servers as needed
-          to operate the service. You can request deletion of your account and
-          associated data by contacting us at the email below.
+          to operate the service until you delete your account or we no longer
+          need the data to provide Donna.
+        </p>
+
+        <h2>Account deletion</h2>
+        <p>
+          You can delete your Donna account and the personal data we store for
+          you at any time in the iOS app:
+        </p>
+        <ol>
+          <li>Open Donna and sign in</li>
+          <li>Tap the gear icon in the top-left corner</li>
+          <li>Choose <strong>Delete account</strong> and confirm</li>
+        </ol>
+        <p>
+          Account deletion is permanent. When you confirm, we delete your sign-in
+          account and remove the data associated with it from our systems,
+          including:
+        </p>
+        <ul>
+          <li>Your account identifier and profile summary</li>
+          <li>Voice conversation transcripts and stored audio</li>
+          <li>Links, documents, photos, and other content saved to memory</li>
+          <li>Derived facts and knowledge compiled from your conversations</li>
+        </ul>
+        <p>
+          Deletion applies to data stored on our servers and in Supabase. It does
+          not remove copies already processed by third-party AI providers under
+          their own retention policies. If you cannot access the app, contact us
+          using the email below and we will help delete your account.
         </p>
 
         <h2>Microphone and photo access</h2>
@@ -119,7 +147,7 @@ export function Privacy() {
 
         <h2>Contact</h2>
         <p>
-          Questions about privacy? Email{" "}
+          Questions about privacy or account deletion? Email{" "}
           <a href="mailto:kishansagathiya@gmail.com">kishansagathiya@gmail.com</a>
           .
         </p>
