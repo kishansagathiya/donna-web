@@ -10,7 +10,7 @@ export function Privacy() {
     <div className="doc-page">
       <article className="doc">
         <h1>Privacy Policy</h1>
-        <p className="doc-updated">Last updated: June 5, 2026</p>
+        <p className="doc-updated">Last updated: June 12, 2026</p>
 
         <p>
           Donna (&ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) is a
@@ -20,10 +20,26 @@ export function Privacy() {
 
         <h2>Information we collect</h2>
         <p>
+          <strong>Account information.</strong> When you sign in with Apple, we
+          receive an account identifier and, if you choose to share it, your
+          email address and name. This is used to keep your data separate from
+          other users and to maintain your session.
+        </p>
+        <p>
           <strong>Voice audio.</strong> When you tap the microphone and speak,
           Donna records audio only during that active session. Audio is sent to
           our servers to transcribe your speech, generate a reply, and return
           spoken audio to the app.
+        </p>
+        <p>
+          <strong>Transcripts and replies.</strong> Text transcripts of what you
+          say and Donna&apos;s responses may be stored on our servers to
+          operate the service and improve reliability.
+        </p>
+        <p>
+          <strong>Memory content.</strong> Links, documents, and photos you add
+          to Donna&apos;s memory are uploaded to our servers so Donna can recall
+          them in future conversations.
         </p>
         <p>
           <strong>Website waitlist.</strong> If you join the waitlist on this
@@ -31,42 +47,62 @@ export function Privacy() {
           about Donna.
         </p>
         <p>
-          We do not require an account to use the Donna app. We do not collect
-          your name, contacts, location, or photos.
+          We do not collect your contacts or precise location.
         </p>
 
         <h2>How we use information</h2>
         <ul>
+          <li>To authenticate you and maintain your account</li>
           <li>To transcribe your speech and generate AI responses</li>
           <li>To deliver spoken replies through the app</li>
+          <li>To store and recall content you add to memory</li>
           <li>To send waitlist updates, if you signed up on this site</li>
           <li>To maintain, secure, and improve Donna</li>
         </ul>
         <p>
-          We do not use your voice data for advertising. We do not sell your
-          personal information.
+          We do not use your data for advertising. We do not sell your personal
+          information. We do not track you across other companies&apos; apps or
+          websites for advertising purposes.
         </p>
 
         <h2>Third-party services</h2>
         <p>
-          Donna uses third-party AI and speech services to process voice input
-          and generate responses. Audio and derived text may be transmitted to
-          these providers only as needed to operate the app. Those providers
-          process data under their own privacy policies.
+          Donna uses the following third-party services to operate the app. Data
+          is sent to these providers only as needed to provide the service:
+        </p>
+        <ul>
+          <li>
+            <strong>OpenRouter</strong> — speech transcription and AI text
+            generation
+          </li>
+          <li>
+            <strong>OpenAI, Cartesia, or ElevenLabs</strong> — text-to-speech
+            synthesis (one provider is used depending on configuration)
+          </li>
+          <li>
+            <strong>Supabase</strong> — authentication, database, and file
+            storage
+          </li>
+        </ul>
+        <p>
+          These providers process data under their own privacy policies. Before
+          your first use of voice or memory features, the Donna app asks for
+          your permission to share data with these services.
         </p>
 
         <h2>Data retention</h2>
         <p>
-          Voice audio is processed to complete each conversation turn. We do
-          not design Donna to build a long-term archive of your conversations on
-          your device. Server-side retention is limited to what is needed to
-          operate and secure the service.
+          Voice audio and conversation data are retained on our servers as needed
+          to operate the service. You can request deletion of your account and
+          associated data by contacting us at the email below.
         </p>
 
-        <h2>Microphone access</h2>
+        <h2>Microphone and photo access</h2>
         <p>
-          The Donna app requests microphone access only when you start a voice
-          session. You can revoke microphone access at any time in iOS Settings.
+          The Donna app requests microphone access when you start a voice
+          session. Photo library access is requested only when you choose to add
+          a photo to memory. You can revoke these permissions at any time in
+          iOS Settings.
         </p>
 
         <h2>Children</h2>
