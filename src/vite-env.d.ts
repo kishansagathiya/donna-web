@@ -5,6 +5,7 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_ANON_KEY?: string;
   readonly VITE_API_BASE_URL?: string;
   readonly VITE_PRIVACY_POLICY_URL?: string;
+  readonly VITE_APPLE_CLIENT_ID?: string;
 }
 
 interface ImportMeta {
