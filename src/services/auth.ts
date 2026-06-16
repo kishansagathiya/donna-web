@@ -89,6 +89,11 @@ export async function signInWithApple(): Promise<void> {
         "Apple Sign In is not enabled in Supabase. Go to Authentication → Providers → Apple, turn it on, and add your Services ID to Client IDs.",
       );
     }
+    if (error.message.toLowerCase().includes("unacceptable audience")) {
+      throw new Error(
+        `Add ${APPLE_CLIENT_ID} to Supabase → Authentication → Providers → Apple → Client IDs (comma-separated with com.kishansagathiya.donna).`,
+      );
+    }
     if (error.message.toLowerCase().includes("nonces mismatch")) {
       throw new Error(
         "Apple Sign In nonce verification failed. Contact support or retry sign-in.",
