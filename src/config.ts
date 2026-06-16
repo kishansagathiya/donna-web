@@ -16,4 +16,8 @@ export const API_BASE_URL =
 export const PRIVACY_POLICY_URL =
   import.meta.env.VITE_PRIVACY_POLICY_URL ?? "/privacy";
 
+/** Apple Services ID for Sign in with Apple JS (web). */
+export const APPLE_CLIENT_ID =
+  import.meta.env.VITE_APPLE_CLIENT_ID ?? "com.kishansagathiya.donna.web";
+
 export const AI_DATA_CONSENT_KEY = "donna.ai_data_consent.v1";
