@@ -4,13 +4,16 @@ import { AccountModal } from "../components/AccountModal";
 import { ChatInput } from "../components/ChatInput";
 import { ChatMessages } from "../components/ChatMessages";
 import { IngestToast } from "../components/IngestToast";
+import { ModeToggle } from "../components/ModeToggle";
 import { useAssetIngest } from "../hooks/useAssetIngest";
 import { useChatSession } from "../hooks/useChatSession";
+import type { DonnaMode } from "../types/mode";
 import "./ChatApp.css";
 
 export function ChatApp() {
+  const [mode, setMode] = useState<DonnaMode>("talk");
   const { messages, sendMessage, busy, phase, error, dismissError } =
-    useChatSession();
+    useChatSession(mode);
   const { toast, busy: ingestBusy, addLink, addFile } = useAssetIngest();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -27,6 +30,7 @@ export function ChatApp() {
           ⚙
         </button>
         <span className="chat-header-title">Donna</span>
+        <ModeToggle mode={mode} onChange={setMode} disabled={busy} />
         <button
           type="button"
           className="icon-button"
@@ -38,7 +42,7 @@ export function ChatApp() {
         </button>
       </header>
 
-      <ChatMessages messages={messages} phase={phase} />
+      <ChatMessages messages={messages} phase={phase} mode={mode} />
 
       {error ? (
         <div className="chat-error-banner" role="alert">
@@ -49,7 +53,15 @@ export function ChatApp() {
         </div>
       ) : null}
 
-      <ChatInput onSend={(text) => void sendMessage(text)} disabled={busy} />
+      <ChatInput
+        onSend={(text) => void sendMessage(text)}
+        disabled={busy}
+        placeholder={
+          mode === "listen"
+            ? "Share something for Donna to remember…"
+            : "Message Donna…"
+        }
+      />
 
       <AddMemorySheet
         open={sheetOpen}

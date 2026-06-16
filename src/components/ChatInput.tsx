@@ -4,9 +4,10 @@ import "./ChatInput.css";
 type Props = {
   onSend: (text: string) => void;
   disabled?: boolean;
+  placeholder?: string;
 };
 
-export function ChatInput({ onSend, disabled }: Props) {
+export function ChatInput({ onSend, disabled, placeholder = "Message Donna…" }: Props) {
   const [text, setText] = useState("");
 
   function submit() {
@@ -35,10 +36,10 @@ export function ChatInput({ onSend, disabled }: Props) {
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Message Donna…"
+        placeholder={placeholder}
         rows={1}
         disabled={disabled}
-        aria-label="Message Donna"
+        aria-label={placeholder}
       />
       <button
         type="submit"

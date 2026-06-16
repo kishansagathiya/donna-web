@@ -3,6 +3,7 @@ import {
   streamChatMessage,
   type ChatMessage,
 } from "../services/chatApi";
+import type { DonnaMode } from "../types/mode";
 
 export type UiMessage = {
   id: string;
@@ -15,7 +16,7 @@ function nextId(): string {
   return crypto.randomUUID();
 }
 
-export function useChatSession() {
+export function useChatSession(mode: DonnaMode) {
   const [messages, setMessages] = useState<UiMessage[]>([]);
   const [sessionId, setSessionId] = useState<string | undefined>();
   const [busy, setBusy] = useState(false);
@@ -31,7 +32,7 @@ export function useChatSession() {
       abortRef.current = false;
       setError(null);
       setBusy(true);
-      setPhase("generating");
+      setPhase(mode === "listen" ? "saving" : "generating");
 
       const userMessage: UiMessage = {
         id: nextId(),
@@ -44,19 +45,23 @@ export function useChatSession() {
         role: m.role,
         content: m.content,
       }));
+      const isListenMode = mode === "listen";
 
       setMessages((prev) => [
         ...prev,
         userMessage,
-        { id: assistantId, role: "assistant", content: "", streaming: true },
+        ...(isListenMode
+          ? []
+          : [{ id: assistantId, role: "assistant" as const, content: "", streaming: true }]),
       ]);
 
       try {
         await streamChatMessage(trimmed, history, sessionId, {
+          mode,
           onSessionId: (id) => setSessionId(id),
           onPhase: (p) => setPhase(p),
           onChunk: (partial) => {
-            if (abortRef.current) return;
+            if (abortRef.current || isListenMode) return;
             setMessages((prev) =>
               prev.map((m) =>
                 m.id === assistantId
@@ -67,6 +72,7 @@ export function useChatSession() {
           },
           onDone: (reply, newSessionId) => {
             setSessionId(newSessionId);
+            if (isListenMode) return;
             setMessages((prev) =>
               prev.map((m) =>
                 m.id === assistantId
@@ -81,13 +87,15 @@ export function useChatSession() {
         const message =
           err instanceof Error ? err.message : "Something went wrong";
         setError(message);
-        setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+        if (!isListenMode) {
+          setMessages((prev) => prev.filter((m) => m.id !== assistantId));
+        }
       } finally {
         setBusy(false);
         setPhase(null);
       }
     },
-    [busy, messages, sessionId],
+    [busy, messages, mode, sessionId],
   );
 
   const clearChat = useCallback(() => {

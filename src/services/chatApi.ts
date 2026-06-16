@@ -1,5 +1,6 @@
 import { API_BASE_URL } from "../config";
 import { getAccessToken } from "./auth";
+import type { DonnaMode } from "../types/mode";
 
 export type ChatMessage = {
   role: "user" | "assistant" | "system";
@@ -35,6 +36,7 @@ export async function sendChatMessage(
   message: string,
   history: ChatMessage[],
   sessionId?: string,
+  mode: DonnaMode = "talk",
 ): Promise<ChatReply> {
   const res = await authorizedFetch("/chat", {
     method: "POST",
@@ -43,6 +45,7 @@ export async function sendChatMessage(
       message,
       history: history.filter((m) => m.role === "user" || m.role === "assistant"),
       session_id: sessionId,
+      mode,
     }),
   });
 
@@ -69,6 +72,7 @@ export async function streamChatMessage(
   history: ChatMessage[],
   sessionId: string | undefined,
   callbacks: {
+    mode?: DonnaMode;
     onSessionId?: (id: string) => void;
     onChunk?: (partial: string) => void;
     onPhase?: (phase: string) => void;
@@ -92,6 +96,7 @@ export async function streamChatMessage(
       message,
       history: history.filter((m) => m.role === "user" || m.role === "assistant"),
       session_id: sessionId,
+      mode: callbacks.mode ?? "talk",
     }),
   });
 
