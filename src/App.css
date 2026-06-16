@@ -26,6 +26,50 @@
   color: var(--accent);
 }
 
+.landing-tagline {
+  font-size: 1rem;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+  line-height: 1.5;
+}
+
+.landing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+.landing-cta {
+  padding: 0.85rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--bg-deep);
+  background: var(--accent);
+  border-radius: 100px;
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+
+.landing-cta:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px var(--accent-glow);
+}
+
+.landing-secondary {
+  padding: 0.85rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  transition: border-color 0.2s;
+}
+
+.landing-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .waitlist-form {
   display: flex;
   flex-wrap: wrap;

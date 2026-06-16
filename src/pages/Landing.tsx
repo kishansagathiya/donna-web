@@ -1,38 +1,24 @@
-import { useState, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import "../App.css";
 
 export function Landing() {
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-
-  function handleWaitlist(e: FormEvent) {
-    e.preventDefault();
-    if (email.trim()) setSubmitted(true);
-  }
-
   return (
     <div className="page">
       <main className="landing">
         <h1>
           AI Second Brain, but the <em>BEST</em>
         </h1>
-        <form className="waitlist-form" onSubmit={handleWaitlist}>
-          {submitted ? (
-            <p className="waitlist-success">You&apos;re on the list.</p>
-          ) : (
-            <>
-              <input
-                type="email"
-                placeholder="you@email.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                aria-label="Email for waitlist"
-              />
-              <button type="submit">Join waitlist</button>
-            </>
-          )}
-        </form>
+        <p className="landing-tagline">
+          Talk on iOS. Chat on the web. Donna remembers what matters.
+        </p>
+        <div className="landing-actions">
+          <Link to="/app" className="landing-cta">
+            Open Donna
+          </Link>
+          <Link to="/login" className="landing-secondary">
+            Sign in
+          </Link>
+        </div>
       </main>
     </div>
   );
