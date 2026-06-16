@@ -34,6 +34,23 @@ export async function signInWithEmail(
   }
 }
 
+export async function signInWithApple(): Promise<void> {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "apple",
+    options: {
+      redirectTo: `${window.location.origin}/login`,
+    },
+  });
+  if (error) {
+    if (error.message.toLowerCase().includes("not enabled")) {
+      throw new Error(
+        "Apple Sign In is not enabled in Supabase. Go to Authentication → Providers → Apple, add a Services ID for web, and save.",
+      );
+    }
+    throw new Error(error.message);
+  }
+}
+
 export async function signUpWithEmail(
   email: string,
   password: string,
