@@ -45,7 +45,7 @@ export function SearchContextPage() {
   };
 
   return (
-    <div className="flex h-dvh w-full flex-col bg-white">
+    <div className="flex h-full min-h-0 w-full flex-col bg-white">
       <AppPageHeader
         title="Search context"
         action={

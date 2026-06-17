@@ -33,7 +33,7 @@ export function ChatApp() {
   }, [location, navigate, showToast]);
 
   return (
-    <div className={cn("flex h-dvh w-full flex-col")}>
+    <div className={cn("flex h-full min-h-0 w-full flex-col")}>
       <header className="grid shrink-0 grid-cols-[2.75rem_1fr_auto] items-center gap-2 border-b border-donna-border bg-white px-5 py-3">
         <IconButton
           onClick={() => setAccountOpen(true)}

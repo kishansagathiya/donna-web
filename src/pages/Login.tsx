@@ -48,7 +48,7 @@ export function Login() {
   }
 
   return (
-    <div className="flex min-h-dvh w-full flex-col justify-between px-6 pb-8 pt-12">
+    <div className="flex h-full min-h-0 w-full flex-col justify-between overflow-y-auto px-6 pb-8 pt-12">
       <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
         <div
           className="mb-2 flex h-24 w-24 items-center justify-center rounded-full border border-donna-border bg-donna-surface text-4xl font-bold text-donna-gold"

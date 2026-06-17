@@ -12,7 +12,7 @@ export function Consent() {
   }
 
   return (
-    <div className="flex min-h-dvh w-full flex-col px-6 pt-6">
+    <div className="flex h-full min-h-0 w-full flex-col px-6 pt-6">
       <div className="flex-1 overflow-y-auto pb-4">
         <h1 className="mb-3 text-[1.75rem] font-bold tracking-tight text-donna-text">
           How Donna uses your data

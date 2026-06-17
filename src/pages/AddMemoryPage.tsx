@@ -50,7 +50,7 @@ export function AddMemoryPage() {
   }
 
   return (
-    <div className="relative flex h-dvh w-full flex-col bg-white">
+    <div className="relative flex h-full min-h-0 w-full flex-col bg-white">
       {busy ? (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70">
           <Spinner />

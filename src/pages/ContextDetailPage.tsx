@@ -89,7 +89,7 @@ export function ContextDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex h-dvh w-full flex-col bg-white">
+      <div className="flex h-full min-h-0 w-full flex-col bg-white">
         <AppPageHeader
           title="Context"
           action={
@@ -111,7 +111,7 @@ export function ContextDetailPage() {
 
   if (!item) {
     return (
-      <div className="flex h-dvh w-full flex-col bg-white">
+      <div className="flex h-full min-h-0 w-full flex-col bg-white">
         <AppPageHeader
           title="Context"
           action={
@@ -131,7 +131,7 @@ export function ContextDetailPage() {
   }
 
   return (
-    <div className="flex h-dvh w-full flex-col bg-white">
+    <div className="flex h-full min-h-0 w-full flex-col bg-white">
       <AppPageHeader
         title="Context"
         action={
