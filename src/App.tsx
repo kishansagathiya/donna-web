@@ -8,6 +8,9 @@ import { Support } from "./pages/Support";
 import { Login } from "./pages/Login";
 import { Consent } from "./pages/Consent";
 import { ChatApp } from "./pages/ChatApp";
+import { NoteDetailPage } from "./pages/NoteDetailPage";
+import { NotesListPage } from "./pages/NotesListPage";
+import { SearchNotesPage } from "./pages/SearchNotesPage";
 import { AppShell, ConsentShell, LoginShell } from "./pages/AppShell";
 
 function PageTitle() {
@@ -19,6 +22,8 @@ function PageTitle() {
       "/login": "Sign in — Donna",
       "/consent": "Data consent — Donna",
       "/app": "Donna",
+      "/app/notes": "Notes — Donna",
+      "/app/search": "Search — Donna",
       "/privacy": "Privacy — Donna",
       "/support": "Support — Donna",
     };
@@ -50,6 +55,9 @@ export default function App() {
 
           <Route element={<AppShell />}>
             <Route path="app" element={<ChatApp />} />
+            <Route path="app/notes" element={<NotesListPage />} />
+            <Route path="app/notes/:id" element={<NoteDetailPage />} />
+            <Route path="app/search" element={<SearchNotesPage />} />
           </Route>
         </Routes>
       </AuthProvider>

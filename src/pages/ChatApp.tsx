@@ -5,6 +5,7 @@ import { ChatInput } from "../components/ChatInput";
 import { ChatMessages } from "../components/ChatMessages";
 import { IngestToast } from "../components/IngestToast";
 import { ModeToggle } from "../components/ModeToggle";
+import { AppNav } from "../components/AppNav";
 import { useAssetIngest } from "../hooks/useAssetIngest";
 import { useChatSession } from "../hooks/useChatSession";
 import type { DonnaMode } from "../types/mode";
@@ -41,6 +42,8 @@ export function ChatApp() {
           +
         </button>
       </header>
+
+      <AppNav />
 
       <ChatMessages messages={messages} phase={phase} mode={mode} />
 

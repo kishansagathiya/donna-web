@@ -1,0 +1,25 @@
+.app-nav {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--donna-warm-border);
+  background: var(--donna-warm-surface);
+  flex-shrink: 0;
+}
+
+.app-nav a {
+  flex: 1;
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--donna-radius-pill);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--donna-text-secondary);
+  text-decoration: none;
+}
+
+.app-nav a.active {
+  background: var(--donna-bg);
+  color: var(--donna-gold);
+  border: 1px solid var(--donna-warm-border);
+}
