@@ -9,6 +9,7 @@ import { Login } from "./pages/Login";
 import { Consent } from "./pages/Consent";
 import { ChatApp } from "./pages/ChatApp";
 import { ContextDetailPage } from "./pages/ContextDetailPage";
+import { SearchContextPage } from "./pages/SearchContextPage";
 import { AppShell, ConsentShell, LoginShell } from "./pages/AppShell";
 
 function PageTitle() {
@@ -20,6 +21,7 @@ function PageTitle() {
       "/login": "Sign in — Donna",
       "/consent": "Data consent — Donna",
       "/app": "Donna",
+      "/app/search": "Search — Donna",
       "/privacy": "Privacy — Donna",
       "/support": "Support — Donna",
     };
@@ -56,11 +58,11 @@ export default function App() {
 
           <Route element={<AppShell />}>
             <Route path="app" element={<ChatApp />} />
+            <Route path="app/search" element={<SearchContextPage />} />
             <Route path="app/context/:id" element={<ContextDetailPage />} />
             <Route path="app/context" element={<Navigate to="/app" replace />} />
             <Route path="app/notes" element={<Navigate to="/app" replace />} />
             <Route path="app/notes/:id" element={<LegacyNotesRedirect />} />
-            <Route path="app/search" element={<Navigate to="/app" replace />} />
           </Route>
         </Routes>
       </AuthProvider>

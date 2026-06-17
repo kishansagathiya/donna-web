@@ -96,7 +96,7 @@ export function ContextDetailPage() {
       <div className="context-page context-detail-page">
         <div className="context-content">
           <p className="context-empty">{error ?? "Context not found"}</p>
-          <Link to="/app">← Back</Link>
+          <Link to="/app/search">← Back to search</Link>
         </div>
       </div>
     );
@@ -105,10 +105,7 @@ export function ContextDetailPage() {
   return (
     <div className="context-page context-detail-page">
       <div className="context-content">
-        <Link
-          to="/app"
-          style={{ fontSize: "0.875rem", color: "var(--donna-text-secondary)" }}
-        >
+          <Link to="/app/search" style={{ fontSize: "0.875rem", color: "var(--donna-text-secondary)" }}>
           ← Back
         </Link>
 

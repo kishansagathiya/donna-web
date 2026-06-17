@@ -1,23 +1,23 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { AddMemorySheet } from "../components/AddMemorySheet";
 import { AccountModal } from "../components/AccountModal";
 import { ChatInput } from "../components/ChatInput";
 import { ChatMessages } from "../components/ChatMessages";
 import { IngestToast } from "../components/IngestToast";
 import { ModeToggle } from "../components/ModeToggle";
-import { SearchContextModal } from "../components/SearchContextModal";
 import { useAssetIngest } from "../hooks/useAssetIngest";
 import { useChatSession } from "../hooks/useChatSession";
 import type { DonnaMode } from "../types/mode";
 import "./ChatApp.css";
 
 export function ChatApp() {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<DonnaMode>("talk");
   const { messages, sendMessage, busy, phase, error, dismissError } =
     useChatSession(mode);
   const { toast, busy: ingestBusy, addLink, addFile } = useAssetIngest();
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
 
   return (
@@ -41,7 +41,7 @@ export function ChatApp() {
           <button
             type="button"
             className="icon-button icon-button-search"
-            onClick={() => setSearchOpen(true)}
+            onClick={() => navigate("/app/search")}
             aria-label="Search context"
           >
             ⌕
@@ -88,10 +88,6 @@ export function ChatApp() {
       />
 
       <AccountModal open={accountOpen} onClose={() => setAccountOpen(false)} />
-      <SearchContextModal
-        open={searchOpen}
-        onClose={() => setSearchOpen(false)}
-      />
       <IngestToast toast={toast} />
     </div>
   );
