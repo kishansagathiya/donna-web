@@ -1,3 +1,4 @@
+/** Context API — backed by /notes endpoints; UI treats these as context items. */
 import { API_BASE_URL } from "../config";
 import { getAccessToken } from "./auth";
 

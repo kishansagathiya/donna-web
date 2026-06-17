@@ -8,16 +8,10 @@ export function AppNav() {
         Chat
       </NavLink>
       <NavLink
-        to="/app/notes"
+        to="/app/context"
         className={({ isActive }) => (isActive ? "active" : "")}
       >
-        Notes
-      </NavLink>
-      <NavLink
-        to="/app/search"
-        className={({ isActive }) => (isActive ? "active" : "")}
-      >
-        Search
+        Context
       </NavLink>
     </nav>
   );

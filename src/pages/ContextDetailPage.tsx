@@ -10,12 +10,12 @@ import {
   updateNote,
   type Note,
 } from "../services/notesApi";
-import "./NotesPages.css";
+import "./ContextPages.css";
 
-export function NoteDetailPage() {
+export function ContextDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [note, setNote] = useState<Note | null>(null);
+  const [item, setItem] = useState<Note | null>(null);
   const [content, setContent] = useState("");
   const [noteDate, setNoteDate] = useState("");
   const [loading, setLoading] = useState(true);
@@ -28,18 +28,18 @@ export function NoteDetailPage() {
     }
     void getNote(id)
       .then((loaded) => {
-        setNote(loaded);
+        setItem(loaded);
         setContent(loaded.content);
         setNoteDate(toDatetimeLocalValue(loaded.note_date));
       })
       .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : "Note not found");
+        setError(err instanceof Error ? err.message : "Context not found");
       })
       .finally(() => setLoading(false));
   }, [id]);
 
   const handleSave = async () => {
-    if (!note || !id) {
+    if (!item || !id) {
       return;
     }
     setSaving(true);
@@ -49,7 +49,7 @@ export function NoteDetailPage() {
         content,
         note_date: noteDate ? fromDatetimeLocalValue(noteDate) : undefined,
       });
-      setNote(updated);
+      setItem(updated);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to save");
     } finally {
@@ -58,25 +58,25 @@ export function NoteDetailPage() {
   };
 
   const toggleFlag = async (field: "is_urgent" | "is_important") => {
-    if (!note || !id) {
+    if (!item || !id) {
       return;
     }
-    const next = !note[field];
+    const next = !item[field];
     try {
       const updated = await updateNote(id, { [field]: next });
-      setNote(updated);
+      setItem(updated);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to update");
     }
   };
 
   const handleDelete = async () => {
-    if (!id || !window.confirm("Delete this note?")) {
+    if (!id || !window.confirm("Delete this context item?")) {
       return;
     }
     try {
       await deleteNote(id);
-      navigate("/app/notes");
+      navigate("/app/context");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to delete");
     }
@@ -84,51 +84,54 @@ export function NoteDetailPage() {
 
   if (loading) {
     return (
-      <div className="notes-page note-detail-page">
+      <div className="context-page context-detail-page">
         <AppNav />
-        <div className="notes-content">
-          <p className="notes-empty">Loading…</p>
+        <div className="context-content">
+          <p className="context-empty">Loading…</p>
         </div>
       </div>
     );
   }
 
-  if (!note) {
+  if (!item) {
     return (
-      <div className="notes-page note-detail-page">
+      <div className="context-page context-detail-page">
         <AppNav />
-        <div className="notes-content">
-          <p className="notes-empty">{error ?? "Note not found"}</p>
-          <Link to="/app/notes">← Back to notes</Link>
+        <div className="context-content">
+          <p className="context-empty">{error ?? "Context not found"}</p>
+          <Link to="/app/context">← Back to context</Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="notes-page note-detail-page">
+    <div className="context-page context-detail-page">
       <AppNav />
-      <div className="notes-content">
-        <Link to="/app/notes" style={{ fontSize: "0.875rem", color: "var(--donna-text-secondary)" }}>
+      <div className="context-content">
+        <Link
+          to="/app/context"
+          style={{ fontSize: "0.875rem", color: "var(--donna-text-secondary)" }}
+        >
           ← Back
         </Link>
 
-        <div className="note-detail-toolbar">
+        <div className="context-detail-toolbar">
           <button
             type="button"
-            className={`note-flag-button ${note.is_urgent ? "active-urgent" : ""}`}
+            className={`context-flag-button ${item.is_urgent ? "active-urgent" : ""}`}
             onClick={() => void toggleFlag("is_urgent")}
           >
-            {note.is_urgent ? "🔥 Urgent" : "Mark urgent"}
+            {item.is_urgent ? "🔥 Urgent" : "Mark urgent"}
           </button>
           <button
             type="button"
-            className={`note-flag-button ${note.is_important ? "active-important" : ""}`}
+            className={`context-flag-button ${item.is_important ? "active-important" : ""}`}
             onClick={() => void toggleFlag("is_important")}
           >
-            {note.is_important ? "⭐ Important" : "Mark important"}
+            {item.is_important ? "⭐ Important" : "Mark important"}
           </button>
-          <label className="note-date-field">
+          <label className="context-date-field">
             Date
             <input
               type="datetime-local"
@@ -139,25 +142,29 @@ export function NoteDetailPage() {
         </div>
 
         <textarea
-          className="note-editor"
+          className="context-editor"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Note content…"
+          placeholder="Context…"
         />
 
-        {error ? <p role="alert" style={{ color: "var(--donna-destructive)" }}>{error}</p> : null}
+        {error ? (
+          <p className="context-error" role="alert">
+            {error}
+          </p>
+        ) : null}
 
-        <div className="note-detail-actions">
+        <div className="context-detail-actions">
           <button
             type="button"
-            className="note-danger-button"
+            className="context-danger-button"
             onClick={() => void handleDelete()}
           >
             Delete
           </button>
           <button
             type="button"
-            className="notes-primary-button"
+            className="context-primary-button"
             onClick={() => void handleSave()}
             disabled={saving}
           >
@@ -166,8 +173,10 @@ export function NoteDetailPage() {
         </div>
 
         <p style={{ fontSize: "0.75rem", color: "var(--donna-text-muted)" }}>
-          Created {formatNoteDate(note.created_at)}
-          {note.source_type !== "manual" ? ` · from ${note.source_type.replace("_", " ")}` : ""}
+          Created {formatNoteDate(item.created_at)}
+          {item.source_type !== "manual"
+            ? ` · from ${item.source_type.replace("_", " ")}`
+            : ""}
         </p>
       </div>
     </div>
