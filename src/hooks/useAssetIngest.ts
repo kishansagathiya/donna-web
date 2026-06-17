@@ -24,12 +24,14 @@ export function useAssetIngest() {
       setBusy(true);
       try {
         const result = await ingestUrl(url);
-        showToast(ingestMessageForKind(result.asset_kind));
+        const message = ingestMessageForKind(result.asset_kind);
+        showToast(message);
+        return { ok: true as const, message };
       } catch (err) {
-        showToast(
-          err instanceof Error ? err.message : "Could not save link",
-          true,
-        );
+        const message =
+          err instanceof Error ? err.message : "Could not save link";
+        showToast(message, true);
+        return { ok: false as const, message };
       } finally {
         setBusy(false);
       }
@@ -42,12 +44,14 @@ export function useAssetIngest() {
       setBusy(true);
       try {
         const result = await ingestFile(file);
-        showToast(ingestMessageForKind(result.asset_kind));
+        const message = ingestMessageForKind(result.asset_kind);
+        showToast(message);
+        return { ok: true as const, message };
       } catch (err) {
-        showToast(
-          err instanceof Error ? err.message : "Could not save file",
-          true,
-        );
+        const message =
+          err instanceof Error ? err.message : "Could not save file";
+        showToast(message, true);
+        return { ok: false as const, message };
       } finally {
         setBusy(false);
       }

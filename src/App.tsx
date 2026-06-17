@@ -9,6 +9,7 @@ import { Login } from "./pages/Login";
 import { Consent } from "./pages/Consent";
 import { ChatApp } from "./pages/ChatApp";
 import { ContextDetailPage } from "./pages/ContextDetailPage";
+import { AddMemoryPage } from "./pages/AddMemoryPage";
 import { SearchContextPage } from "./pages/SearchContextPage";
 import { AppShell, ConsentShell, LoginShell } from "./pages/AppShell";
 
@@ -22,6 +23,7 @@ function PageTitle() {
       "/consent": "Data consent — Donna",
       "/app": "Donna",
       "/app/search": "Search — Donna",
+      "/app/add": "Add — Donna",
       "/privacy": "Privacy — Donna",
       "/support": "Support — Donna",
     };
@@ -59,6 +61,7 @@ export default function App() {
           <Route element={<AppShell />}>
             <Route path="app" element={<ChatApp />} />
             <Route path="app/search" element={<SearchContextPage />} />
+            <Route path="app/add" element={<AddMemoryPage />} />
             <Route path="app/context/:id" element={<ContextDetailPage />} />
             <Route path="app/context" element={<Navigate to="/app" replace />} />
             <Route path="app/notes" element={<Navigate to="/app" replace />} />

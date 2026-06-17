@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { AddMemorySheet } from "../components/AddMemorySheet";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { AccountModal } from "../components/AccountModal";
 import { ChatInput } from "../components/ChatInput";
 import { ChatMessages } from "../components/ChatMessages";
@@ -13,12 +12,22 @@ import "./ChatApp.css";
 
 export function ChatApp() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [mode, setMode] = useState<DonnaMode>("talk");
   const { messages, sendMessage, busy, phase, error, dismissError } =
     useChatSession(mode);
-  const { toast, busy: ingestBusy, addLink, addFile } = useAssetIngest();
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const { toast, showToast } = useAssetIngest();
   const [accountOpen, setAccountOpen] = useState(false);
+
+  useEffect(() => {
+    const state = location.state as {
+      ingestToast?: { message: string; isError: boolean };
+    } | null;
+    if (state?.ingestToast) {
+      showToast(state.ingestToast.message, state.ingestToast.isError);
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location, navigate, showToast]);
 
   return (
     <div className="chat-app">
@@ -49,9 +58,8 @@ export function ChatApp() {
           <button
             type="button"
             className="icon-button"
-            onClick={() => setSheetOpen(true)}
+            onClick={() => navigate("/app/add")}
             aria-label="Add to memory"
-            disabled={ingestBusy}
           >
             +
           </button>
@@ -77,14 +85,6 @@ export function ChatApp() {
             ? "Share something for Donna to remember…"
             : "Message Donna…"
         }
-      />
-
-      <AddMemorySheet
-        open={sheetOpen}
-        busy={ingestBusy}
-        onClose={() => setSheetOpen(false)}
-        onAddLink={(url) => void addLink(url)}
-        onAddFile={(file) => void addFile(file)}
       />
 
       <AccountModal open={accountOpen} onClose={() => setAccountOpen(false)} />
