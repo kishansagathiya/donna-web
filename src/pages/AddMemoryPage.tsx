@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { FileUp, Link2 } from "lucide-react";
 import { IngestToast } from "../components/IngestToast";
 import { useAssetIngest } from "../hooks/useAssetIngest";
-import { AppPageHeader, HeaderTextButton } from "../components/ui/AppPageHeader";
+import { AppPageHeader } from "../components/ui/AppPageHeader";
 import { Button } from "../components/ui/Button";
 import { TextInput } from "../components/ui/TextInput";
 import { Spinner } from "../components/ui/Spinner";
@@ -59,11 +59,8 @@ export function AddMemoryPage() {
 
       <AppPageHeader
         title="Add to memory"
-        action={
-          <HeaderTextButton onClick={() => navigate("/app")} disabled={busy}>
-            Done
-          </HeaderTextButton>
-        }
+        onBack={() => navigate("/app")}
+        backDisabled={busy}
       />
 
       <div className="flex-1 overflow-y-auto px-5 py-5">

@@ -10,7 +10,10 @@ type Props = {
 export function ModeToggle({ mode, onChange, disabled }: Props) {
   return (
     <div
-      className="flex gap-1 rounded-full border border-donna-border bg-donna-surface p-0.5"
+      className={cn(
+        "flex gap-1 rounded-full border border-donna-border bg-donna-surface p-1",
+        disabled && "opacity-60",
+      )}
       role="tablist"
       aria-label="Interaction mode"
     >
@@ -20,12 +23,12 @@ export function ModeToggle({ mode, onChange, disabled }: Props) {
           type="button"
           role="tab"
           className={cn(
-            "rounded-full px-3.5 py-1.5 text-[0.8125rem] font-semibold capitalize transition-colors duration-150",
+            "rounded-full px-4 py-1.5 text-[0.8125rem] font-semibold capitalize transition-colors duration-150",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-gold-ring",
+            "disabled:cursor-not-allowed",
             mode === value
-              ? "bg-donna-gold text-white"
-              : "text-donna-gold hover:bg-donna-surface",
-            disabled && "cursor-not-allowed opacity-60",
+              ? "bg-donna-gold text-white shadow-sm"
+              : "text-donna-muted hover:text-donna-text",
           )}
           aria-selected={mode === value}
           disabled={disabled}

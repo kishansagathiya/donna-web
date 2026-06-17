@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, Flame, Star } from "lucide-react";
+import { Flame, Star } from "lucide-react";
 import {
   deleteNote,
   formatNoteDate,
@@ -10,7 +10,7 @@ import {
   updateNote,
   type Note,
 } from "../services/notesApi";
-import { AppPageHeader, HeaderTextButton } from "../components/ui/AppPageHeader";
+import { AppPageHeader } from "../components/ui/AppPageHeader";
 import { Button } from "../components/ui/Button";
 import { TextArea } from "../components/ui/TextArea";
 import { Spinner } from "../components/ui/Spinner";
@@ -90,17 +90,7 @@ export function ContextDetailPage() {
   if (loading) {
     return (
       <div className="flex h-full min-h-0 w-full flex-col bg-white">
-        <AppPageHeader
-          title="Context"
-          action={
-            <HeaderTextButton onClick={() => navigate("/app/search")}>
-              <span className="flex items-center gap-1">
-                <ChevronLeft className="h-4 w-4" />
-                Back
-              </span>
-            </HeaderTextButton>
-          }
-        />
+        <AppPageHeader title="Context" onBack={() => navigate("/app/search")} />
         <div className="flex flex-1 flex-col gap-3 px-5 py-5">
           <div className="h-8 w-48 animate-pulse rounded-donna bg-donna-surface" />
           <div className="flex-1 animate-pulse rounded-donna bg-donna-surface" />
@@ -112,17 +102,7 @@ export function ContextDetailPage() {
   if (!item) {
     return (
       <div className="flex h-full min-h-0 w-full flex-col bg-white">
-        <AppPageHeader
-          title="Context"
-          action={
-            <HeaderTextButton onClick={() => navigate("/app/search")}>
-              <span className="flex items-center gap-1">
-                <ChevronLeft className="h-4 w-4" />
-                Back
-              </span>
-            </HeaderTextButton>
-          }
-        />
+        <AppPageHeader title="Context" onBack={() => navigate("/app/search")} />
         <div className="flex flex-1 flex-col items-center justify-center px-5">
           <p className="text-donna-muted">{error ?? "Context not found"}</p>
         </div>
@@ -132,17 +112,7 @@ export function ContextDetailPage() {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col bg-white">
-      <AppPageHeader
-        title="Context"
-        action={
-          <HeaderTextButton onClick={() => navigate("/app/search")}>
-            <span className="flex items-center gap-1">
-              <ChevronLeft className="h-4 w-4" />
-              Back
-            </span>
-          </HeaderTextButton>
-        }
-      />
+      <AppPageHeader title="Context" onBack={() => navigate("/app/search")} />
 
       <div className="flex flex-1 flex-col overflow-y-auto px-5 py-4">
         <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -174,11 +144,11 @@ export function ContextDetailPage() {
             <Star className="h-3.5 w-3.5" />
             {item.is_important ? "Important" : "Mark important"}
           </button>
-          <label className="flex flex-col gap-1 text-[0.8125rem] text-donna-muted">
+          <label className="flex min-w-0 basis-full flex-col gap-1 text-[0.8125rem] text-donna-muted sm:basis-auto">
             Date
             <input
               type="datetime-local"
-              className="rounded-donna border border-donna-border px-2 py-2 text-sm text-donna-text focus:border-donna-gold-ring focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30"
+              className="w-full max-w-full rounded-donna border border-donna-border px-3 py-2 text-sm text-donna-text focus:border-donna-gold-ring focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30 sm:w-auto"
               value={noteDate}
               onChange={(e) => setNoteDate(e.target.value)}
             />
@@ -205,13 +175,17 @@ export function ContextDetailPage() {
       </div>
 
       <div className="flex shrink-0 gap-2 border-t border-donna-border px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
-        <Button
-          variant="ghost"
-          className="!w-auto border border-donna-destructive/30 text-donna-destructive"
+        <button
+          type="button"
+          className={cn(
+            "inline-flex shrink-0 items-center justify-center rounded-donna border border-donna-destructive/30 px-4 py-3.5 text-base font-semibold text-donna-destructive",
+            "transition-colors duration-150 hover:bg-donna-destructive/10",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-gold-ring focus-visible:ring-offset-2",
+          )}
           onClick={() => void handleDelete()}
         >
           Delete
-        </Button>
+        </button>
         <Button
           className="flex-1"
           onClick={() => void handleSave()}

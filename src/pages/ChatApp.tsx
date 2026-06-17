@@ -34,20 +34,19 @@ export function ChatApp() {
 
   return (
     <div className={cn("flex h-full min-h-0 w-full flex-col")}>
-      <header className="grid shrink-0 grid-cols-[2.75rem_1fr_auto] items-center gap-2 border-b border-donna-border bg-white px-5 py-3">
-        <IconButton
-          onClick={() => setAccountOpen(true)}
-          aria-label="Account settings"
-        >
-          <Settings className="h-5 w-5" strokeWidth={2} />
-        </IconButton>
-
-        <div className="flex min-w-0 items-center justify-center gap-3">
-          <span className="text-[1.0625rem] font-semibold text-donna-gold">Donna</span>
-          <ModeToggle mode={mode} onChange={setMode} disabled={busy} />
+      <header className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-donna-border bg-white px-3 py-2.5">
+        <div className="justify-self-start">
+          <IconButton
+            onClick={() => setAccountOpen(true)}
+            aria-label="Account settings"
+          >
+            <Settings className="h-5 w-5" strokeWidth={2} />
+          </IconButton>
         </div>
 
-        <div className="flex items-center justify-end gap-1.5">
+        <ModeToggle mode={mode} onChange={setMode} disabled={busy} />
+
+        <div className="flex items-center gap-1.5 justify-self-end">
           <IconButton
             onClick={() => navigate("/app/search")}
             aria-label="Search context"

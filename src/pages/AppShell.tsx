@@ -20,8 +20,10 @@ function AppShellFrame({ children }: { children: ReactNode }) {
   useAppRouteBody();
 
   return (
-    <div className="app-shell fixed inset-0 flex flex-col overflow-hidden bg-white text-donna-text">
-      {children}
+    <div className="app-shell fixed inset-0 flex justify-center bg-[#ece7da]">
+      <div className="flex h-full w-full max-w-[600px] flex-col overflow-hidden bg-white text-donna-text shadow-[0_0_40px_rgba(0,0,0,0.05)] sm:border-x sm:border-donna-border">
+        {children}
+      </div>
     </div>
   );
 }
@@ -30,8 +32,10 @@ function LoadingScreen() {
   useAppRouteBody();
 
   return (
-    <div className="app-shell fixed inset-0 flex items-center justify-center bg-white">
-      <Spinner />
+    <div className="app-shell fixed inset-0 flex justify-center bg-[#ece7da]">
+      <div className="flex h-full w-full max-w-[600px] items-center justify-center bg-white sm:border-x sm:border-donna-border">
+        <Spinner />
+      </div>
     </div>
   );
 }

@@ -1,43 +1,46 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ReactNode } from "react";
+import { ChevronLeft } from "lucide-react";
 import { cn } from "../../lib/cn";
 
 type HeaderProps = {
   title: string;
+  onBack?: () => void;
+  backDisabled?: boolean;
   action?: ReactNode;
-  className?: string;
 };
 
-export function AppPageHeader({ title, action, className }: HeaderProps) {
+export function AppPageHeader({
+  title,
+  onBack,
+  backDisabled,
+  action,
+}: HeaderProps) {
   return (
-    <header
-      className={cn(
-        "flex shrink-0 items-center justify-between border-b border-donna-border px-5 py-3",
-        className,
-      )}
-    >
-      <h1 className="text-lg font-semibold text-donna-text">{title}</h1>
-      {action}
-    </header>
-  );
-}
+    <header className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-donna-border bg-white px-3 py-2.5">
+      <div className="flex justify-self-start">
+        {onBack ? (
+          <button
+            type="button"
+            onClick={onBack}
+            disabled={backDisabled}
+            aria-label="Back"
+            className={cn(
+              "inline-flex h-11 min-w-11 items-center justify-center rounded-donna px-2 text-donna-muted",
+              "transition-colors duration-150 hover:text-donna-gold",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-gold-ring",
+              "disabled:cursor-not-allowed disabled:opacity-55",
+            )}
+          >
+            <ChevronLeft className="h-6 w-6" strokeWidth={2} />
+          </button>
+        ) : null}
+      </div>
 
-export function HeaderTextButton({
-  children,
-  className,
-  ...props
-}: ButtonHTMLAttributes<HTMLButtonElement>) {
-  return (
-    <button
-      type="button"
-      className={cn(
-        "min-h-11 px-2 text-base text-donna-muted transition-colors duration-150 hover:text-donna-gold",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-gold-ring focus-visible:ring-offset-2",
-        "disabled:cursor-not-allowed disabled:opacity-55",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </button>
+      <h1 className="truncate px-1 text-center text-[1.0625rem] font-semibold text-donna-text">
+        {title}
+      </h1>
+
+      <div className="flex items-center justify-self-end">{action}</div>
+    </header>
   );
 }

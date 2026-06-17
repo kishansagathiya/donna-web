@@ -6,7 +6,7 @@ import {
   searchNotes,
   type NoteSummary,
 } from "../services/notesApi";
-import { AppPageHeader, HeaderTextButton } from "../components/ui/AppPageHeader";
+import { AppPageHeader } from "../components/ui/AppPageHeader";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Spinner } from "../components/ui/Spinner";
@@ -46,14 +46,7 @@ export function SearchContextPage() {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col bg-white">
-      <AppPageHeader
-        title="Search context"
-        action={
-          <HeaderTextButton onClick={() => navigate("/app")}>
-            Done
-          </HeaderTextButton>
-        }
-      />
+      <AppPageHeader title="Search context" onBack={() => navigate("/app")} />
 
       <form
         className="flex shrink-0 gap-2 border-b border-donna-border px-5 py-4"
@@ -79,13 +72,13 @@ export function SearchContextPage() {
         </Button>
       </form>
 
-      <div className="flex-1 overflow-y-auto py-3">
+      <div className="flex flex-1 flex-col overflow-y-auto">
         {error ? (
-          <AlertBanner className="mx-5">{error}</AlertBanner>
+          <AlertBanner className="mx-5 mt-3">{error}</AlertBanner>
         ) : null}
 
         {searching ? (
-          <div className="flex justify-center py-12">
+          <div className="flex flex-1 items-center justify-center py-12">
             <Spinner />
           </div>
         ) : null}
@@ -95,15 +88,18 @@ export function SearchContextPage() {
             icon={Search}
             title="Search your memories"
             description="Search your saved context from voice, links, and documents."
-            className="py-12"
           />
         ) : null}
 
         {!searching && searched && results.length === 0 && !error ? (
-          <p className="px-5 py-2 text-[0.9375rem] text-donna-muted">No matches found</p>
+          <EmptyState
+            icon={Search}
+            title="No matches found"
+            description="Try a different word or phrase."
+          />
         ) : null}
 
-        <ul className="flex flex-col gap-3 px-5">
+        <ul className="flex flex-col gap-3 px-5 py-3 pb-6">
           {results.map((item) => (
             <li key={item.id}>
               <Card onClick={() => handleSelect(item.id)}>

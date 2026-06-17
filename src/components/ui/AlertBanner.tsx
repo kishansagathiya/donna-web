@@ -11,12 +11,12 @@ export function AlertBanner({ children, onDismiss, className }: Props) {
   return (
     <div
       className={cn(
-        "mx-4 mb-2 flex items-center justify-between gap-3 rounded-donna border border-donna-destructive/20 bg-donna-destructive/8 px-3.5 py-2.5 text-sm text-donna-destructive",
+        "mx-4 mb-2 flex items-start justify-between gap-3 rounded-donna border border-donna-destructive/20 bg-donna-destructive/10 px-3.5 py-2.5 text-sm text-donna-destructive",
         className,
       )}
       role="alert"
     >
-      <span>{children}</span>
+      <span className="min-w-0 break-words">{children}</span>
       {onDismiss ? (
         <button
           type="button"
