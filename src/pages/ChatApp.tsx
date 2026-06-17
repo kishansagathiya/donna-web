@@ -3,9 +3,9 @@ import { AddMemorySheet } from "../components/AddMemorySheet";
 import { AccountModal } from "../components/AccountModal";
 import { ChatInput } from "../components/ChatInput";
 import { ChatMessages } from "../components/ChatMessages";
-import { HeaderContextSearch } from "../components/HeaderContextSearch";
 import { IngestToast } from "../components/IngestToast";
 import { ModeToggle } from "../components/ModeToggle";
+import { SearchContextModal } from "../components/SearchContextModal";
 import { useAssetIngest } from "../hooks/useAssetIngest";
 import { useChatSession } from "../hooks/useChatSession";
 import type { DonnaMode } from "../types/mode";
@@ -22,7 +22,7 @@ export function ChatApp() {
 
   return (
     <div className="chat-app">
-      <header className={`chat-header ${searchOpen ? "chat-header-search-open" : ""}`}>
+      <header className="chat-header">
         <button
           type="button"
           className="icon-button"
@@ -33,16 +33,19 @@ export function ChatApp() {
         </button>
 
         <div className="chat-header-center">
-          {!searchOpen ? (
-            <>
-              <span className="chat-header-title">Donna</span>
-              <ModeToggle mode={mode} onChange={setMode} disabled={busy} />
-            </>
-          ) : null}
+          <span className="chat-header-title">Donna</span>
+          <ModeToggle mode={mode} onChange={setMode} disabled={busy} />
         </div>
 
         <div className="chat-header-right">
-          <HeaderContextSearch open={searchOpen} onOpenChange={setSearchOpen} />
+          <button
+            type="button"
+            className="icon-button icon-button-search"
+            onClick={() => setSearchOpen(true)}
+            aria-label="Search context"
+          >
+            ⌕
+          </button>
           <button
             type="button"
             className="icon-button"
@@ -85,6 +88,10 @@ export function ChatApp() {
       />
 
       <AccountModal open={accountOpen} onClose={() => setAccountOpen(false)} />
+      <SearchContextModal
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+      />
       <IngestToast toast={toast} />
     </div>
   );
