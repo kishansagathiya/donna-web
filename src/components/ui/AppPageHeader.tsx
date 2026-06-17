@@ -15,7 +15,7 @@ export function AppPageHeader({ title, action, className }: HeaderProps) {
         className,
       )}
     >
-      <h1 className="text-lg font-semibold text-donna-gold">{title}</h1>
+      <h1 className="text-lg font-semibold text-donna-text">{title}</h1>
       {action}
     </header>
   );

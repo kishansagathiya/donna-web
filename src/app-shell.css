@@ -15,6 +15,15 @@
 }
 
 @layer base {
+  html.app-route,
+  body.app-route,
+  body.app-route #root {
+    background: #ffffff;
+    color: #1a1a1a;
+    min-height: 100dvh;
+    width: 100%;
+  }
+
   .app-shell {
     font-family: var(--font-donna);
     -webkit-font-smoothing: antialiased;

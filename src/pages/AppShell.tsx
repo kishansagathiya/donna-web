@@ -1,22 +1,42 @@
+import { useEffect, type ReactNode } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { hasAiDataConsent } from "../services/privacyConsent";
 import "../app-shell.css";
 import { Spinner } from "../components/ui/Spinner";
-import { cn } from "../lib/cn";
 
-function LoadingScreen() {
+function useAppRouteBody() {
+  useEffect(() => {
+    document.documentElement.classList.add("app-route");
+    document.body.classList.add("app-route");
+    return () => {
+      document.documentElement.classList.remove("app-route");
+      document.body.classList.remove("app-route");
+    };
+  }, []);
+}
+
+function AppShellFrame({ children }: { children: ReactNode }) {
+  useAppRouteBody();
+
   return (
-    <div className="app-shell flex min-h-dvh flex-col items-center justify-center bg-white">
-      <Spinner />
+    <div className="app-shell flex min-h-dvh w-full flex-col bg-white text-donna-text">
+      <div className="mx-auto flex min-h-dvh w-full max-w-3xl flex-1 flex-col">
+        {children}
+      </div>
     </div>
   );
 }
 
-const shellClassName = cn(
-  "app-shell isolate flex min-h-dvh w-full flex-col bg-white text-donna-text",
-  "mx-auto max-w-2xl sm:shadow-[0_0_40px_rgba(0,0,0,0.06)]",
-);
+function LoadingScreen() {
+  useAppRouteBody();
+
+  return (
+    <div className="app-shell flex min-h-dvh w-full flex-col items-center justify-center bg-white">
+      <Spinner />
+    </div>
+  );
+}
 
 export function AppShell() {
   const { isAuthenticated, loading } = useAuth();
@@ -34,9 +54,9 @@ export function AppShell() {
   }
 
   return (
-    <div className={shellClassName}>
+    <AppShellFrame>
       <Outlet />
-    </div>
+    </AppShellFrame>
   );
 }
 
@@ -56,9 +76,9 @@ export function ConsentShell() {
   }
 
   return (
-    <div className={shellClassName}>
+    <AppShellFrame>
       <Outlet />
-    </div>
+    </AppShellFrame>
   );
 }
 
@@ -77,8 +97,8 @@ export function LoginShell() {
   }
 
   return (
-    <div className={shellClassName}>
+    <AppShellFrame>
       <Outlet />
-    </div>
+    </AppShellFrame>
   );
 }
