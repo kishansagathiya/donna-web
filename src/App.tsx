@@ -9,7 +9,6 @@ import { Login } from "./pages/Login";
 import { Consent } from "./pages/Consent";
 import { ChatApp } from "./pages/ChatApp";
 import { ContextDetailPage } from "./pages/ContextDetailPage";
-import { ContextPage } from "./pages/ContextPage";
 import { AppShell, ConsentShell, LoginShell } from "./pages/AppShell";
 
 function PageTitle() {
@@ -21,7 +20,6 @@ function PageTitle() {
       "/login": "Sign in — Donna",
       "/consent": "Data consent — Donna",
       "/app": "Donna",
-      "/app/context": "Context — Donna",
       "/privacy": "Privacy — Donna",
       "/support": "Support — Donna",
     };
@@ -33,7 +31,7 @@ function PageTitle() {
 
 function LegacyNotesRedirect() {
   const { id } = useParams<{ id?: string }>();
-  return <Navigate to={id ? `/app/context/${id}` : "/app/context"} replace />;
+  return <Navigate to={id ? `/app/context/${id}` : "/app"} replace />;
 }
 
 export default function App() {
@@ -58,11 +56,11 @@ export default function App() {
 
           <Route element={<AppShell />}>
             <Route path="app" element={<ChatApp />} />
-            <Route path="app/context" element={<ContextPage />} />
             <Route path="app/context/:id" element={<ContextDetailPage />} />
-            <Route path="app/notes" element={<Navigate to="/app/context" replace />} />
+            <Route path="app/context" element={<Navigate to="/app" replace />} />
+            <Route path="app/notes" element={<Navigate to="/app" replace />} />
             <Route path="app/notes/:id" element={<LegacyNotesRedirect />} />
-            <Route path="app/search" element={<Navigate to="/app/context" replace />} />
+            <Route path="app/search" element={<Navigate to="/app" replace />} />
           </Route>
         </Routes>
       </AuthProvider>

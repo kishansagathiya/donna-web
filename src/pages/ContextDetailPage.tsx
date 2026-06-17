@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { AppNav } from "../components/AppNav";
 import {
   deleteNote,
   formatNoteDate,
@@ -76,7 +75,7 @@ export function ContextDetailPage() {
     }
     try {
       await deleteNote(id);
-      navigate("/app/context");
+      navigate("/app");
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to delete");
     }
@@ -85,7 +84,6 @@ export function ContextDetailPage() {
   if (loading) {
     return (
       <div className="context-page context-detail-page">
-        <AppNav />
         <div className="context-content">
           <p className="context-empty">Loading…</p>
         </div>
@@ -96,10 +94,9 @@ export function ContextDetailPage() {
   if (!item) {
     return (
       <div className="context-page context-detail-page">
-        <AppNav />
         <div className="context-content">
           <p className="context-empty">{error ?? "Context not found"}</p>
-          <Link to="/app/context">← Back to context</Link>
+          <Link to="/app">← Back</Link>
         </div>
       </div>
     );
@@ -107,10 +104,9 @@ export function ContextDetailPage() {
 
   return (
     <div className="context-page context-detail-page">
-      <AppNav />
       <div className="context-content">
         <Link
-          to="/app/context"
+          to="/app"
           style={{ fontSize: "0.875rem", color: "var(--donna-text-secondary)" }}
         >
           ← Back

@@ -5,7 +5,7 @@ import { ChatInput } from "../components/ChatInput";
 import { ChatMessages } from "../components/ChatMessages";
 import { IngestToast } from "../components/IngestToast";
 import { ModeToggle } from "../components/ModeToggle";
-import { AppNav } from "../components/AppNav";
+import { SearchContextSheet } from "../components/SearchContextSheet";
 import { useAssetIngest } from "../hooks/useAssetIngest";
 import { useChatSession } from "../hooks/useChatSession";
 import type { DonnaMode } from "../types/mode";
@@ -17,6 +17,7 @@ export function ChatApp() {
     useChatSession(mode);
   const { toast, busy: ingestBusy, addLink, addFile } = useAssetIngest();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
 
   return (
@@ -32,18 +33,26 @@ export function ChatApp() {
         </button>
         <span className="chat-header-title">Donna</span>
         <ModeToggle mode={mode} onChange={setMode} disabled={busy} />
-        <button
-          type="button"
-          className="icon-button"
-          onClick={() => setSheetOpen(true)}
-          aria-label="Add to memory"
-          disabled={ingestBusy}
-        >
-          +
-        </button>
+        <div className="chat-header-actions">
+          <button
+            type="button"
+            className="icon-button icon-button-search"
+            onClick={() => setSearchOpen(true)}
+            aria-label="Search context"
+          >
+            ⌕
+          </button>
+          <button
+            type="button"
+            className="icon-button"
+            onClick={() => setSheetOpen(true)}
+            aria-label="Add to memory"
+            disabled={ingestBusy}
+          >
+            +
+          </button>
+        </div>
       </header>
-
-      <AppNav />
 
       <ChatMessages messages={messages} phase={phase} mode={mode} />
 
@@ -75,6 +84,10 @@ export function ChatApp() {
       />
 
       <AccountModal open={accountOpen} onClose={() => setAccountOpen(false)} />
+      <SearchContextSheet
+        open={searchOpen}
+        onClose={() => setSearchOpen(false)}
+      />
       <IngestToast toast={toast} />
     </div>
   );
