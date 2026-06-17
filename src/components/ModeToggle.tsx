@@ -1,5 +1,5 @@
 import type { DonnaMode } from "../types/mode";
-import "./ModeToggle.css";
+import { cn } from "../lib/cn";
 
 type Props = {
   mode: DonnaMode;
@@ -9,27 +9,31 @@ type Props = {
 
 export function ModeToggle({ mode, onChange, disabled }: Props) {
   return (
-    <div className="mode-toggle" role="tablist" aria-label="Interaction mode">
-      <button
-        type="button"
-        role="tab"
-        className={`mode-toggle-segment${mode === "talk" ? " mode-toggle-segment--active" : ""}`}
-        aria-selected={mode === "talk"}
-        disabled={disabled}
-        onClick={() => onChange("talk")}
-      >
-        Talk
-      </button>
-      <button
-        type="button"
-        role="tab"
-        className={`mode-toggle-segment${mode === "listen" ? " mode-toggle-segment--active" : ""}`}
-        aria-selected={mode === "listen"}
-        disabled={disabled}
-        onClick={() => onChange("listen")}
-      >
-        Listen
-      </button>
+    <div
+      className="flex gap-1 rounded-full border border-donna-border bg-donna-surface p-0.5"
+      role="tablist"
+      aria-label="Interaction mode"
+    >
+      {(["talk", "listen"] as const).map((value) => (
+        <button
+          key={value}
+          type="button"
+          role="tab"
+          className={cn(
+            "rounded-full px-3.5 py-1.5 text-[0.8125rem] font-semibold capitalize transition-colors duration-150",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-gold-ring",
+            mode === value
+              ? "bg-donna-gold text-white"
+              : "text-donna-gold hover:bg-donna-surface",
+            disabled && "cursor-not-allowed opacity-60",
+          )}
+          aria-selected={mode === value}
+          disabled={disabled}
+          onClick={() => onChange(value)}
+        >
+          {value}
+        </button>
+      ))}
     </div>
   );
 }

@@ -1,13 +1,19 @@
 import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FileUp, Link2 } from "lucide-react";
 import { IngestToast } from "../components/IngestToast";
 import { useAssetIngest } from "../hooks/useAssetIngest";
-import "./AddMemoryPage.css";
+import { AppPageHeader, HeaderTextButton } from "../components/ui/AppPageHeader";
+import { Button } from "../components/ui/Button";
+import { TextInput } from "../components/ui/TextInput";
+import { Spinner } from "../components/ui/Spinner";
+import { cn } from "../lib/cn";
 
 export function AddMemoryPage() {
   const navigate = useNavigate();
   const { toast, busy, addLink, addFile } = useAssetIngest();
   const [url, setUrl] = useState("");
+  const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleAddLink() {
@@ -25,12 +31,7 @@ export function AddMemoryPage() {
     setUrl(trimmed);
   }
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-    if (!file) {
-      return;
-    }
+  async function handleFile(file: File) {
     const result = await addFile(file);
     if (result.ok) {
       navigate("/app", {
@@ -39,57 +40,100 @@ export function AddMemoryPage() {
     }
   }
 
-  return (
-    <div className="add-memory-page">
-      <header className="add-memory-page-header">
-        <h1 className="add-memory-page-title">Add to memory</h1>
-        <button
-          type="button"
-          className="add-memory-page-done"
-          onClick={() => navigate("/app")}
-          disabled={busy}
-        >
-          Done
-        </button>
-      </header>
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) {
+      return;
+    }
+    await handleFile(file);
+  }
 
-      <div className="add-memory-page-body">
-        <p className="add-memory-page-subtitle">
+  return (
+    <div className="relative flex h-dvh w-full flex-col bg-white">
+      {busy ? (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70">
+          <Spinner />
+        </div>
+      ) : null}
+
+      <AppPageHeader
+        title="Add to memory"
+        action={
+          <HeaderTextButton onClick={() => navigate("/app")} disabled={busy}>
+            Done
+          </HeaderTextButton>
+        }
+      />
+
+      <div className="flex-1 overflow-y-auto px-5 py-5">
+        <p className="mb-5 text-sm leading-relaxed text-donna-muted">
           Links and files you add are sent to our servers and third-party AI
           services so Donna can recall them later.
         </p>
 
-        <label className="add-memory-page-label" htmlFor="memory-url">
-          Paste a link
-        </label>
-        <input
-          id="memory-url"
-          className="add-memory-page-input"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="https://…"
-          disabled={busy}
-          autoFocus
-        />
-        <button
-          type="button"
-          className="btn-primary add-memory-page-action"
-          onClick={() => void handleAddLink()}
-          disabled={busy || !url.trim()}
-        >
-          Save link
-        </button>
+        <div className="mb-5">
+          <label
+            className="mb-2 flex items-center gap-2 text-[0.8125rem] font-medium text-donna-muted"
+            htmlFor="memory-url"
+          >
+            <Link2 className="h-4 w-4" />
+            Paste a link
+          </label>
+          <TextInput
+            id="memory-url"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="https://…"
+            disabled={busy}
+            autoFocus
+          />
+          <Button
+            className="mt-3"
+            fullWidth
+            onClick={() => void handleAddLink()}
+            disabled={busy || !url.trim()}
+          >
+            Save link
+          </Button>
+        </div>
 
-        <div className="add-memory-page-divider" />
+        <div className="my-5 h-px bg-donna-border" />
 
-        <button
-          type="button"
-          className="btn-secondary add-memory-page-action"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={busy}
+        <div
+          className={cn(
+            "rounded-donna border-2 border-dashed p-8 text-center transition-colors duration-150",
+            dragOver
+              ? "border-donna-gold bg-donna-surface"
+              : "border-donna-border bg-donna-surface/50",
+          )}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragOver(false);
+            const file = e.dataTransfer.files[0];
+            if (file && !busy) {
+              void handleFile(file);
+            }
+          }}
         >
-          Choose file or photo
-        </button>
+          <FileUp className="mx-auto mb-3 h-8 w-8 text-donna-gold" strokeWidth={1.75} />
+          <p className="mb-3 text-sm text-donna-muted">
+            Drop a file here, or choose from your device
+          </p>
+          <Button
+            variant="secondary"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={busy}
+          >
+            Choose file or photo
+          </Button>
+        </div>
+
         <input
           ref={fileInputRef}
           type="file"

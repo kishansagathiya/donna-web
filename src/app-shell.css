@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  --color-donna-gold: #9a7b2f;
+  --color-donna-gold-ring: #b89446;
+  --color-donna-surface: #f2efe6;
+  --color-donna-border: #e0d8c4;
+  --color-donna-text: #1a1a1a;
+  --color-donna-muted: #666666;
+  --color-donna-destructive: #b42318;
+  --color-donna-toast: rgba(30, 30, 30, 0.92);
+  --color-donna-toast-error: rgba(140, 40, 40, 0.95);
+  --radius-donna: 12px;
+  --font-donna: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+@layer base {
+  .app-shell {
+    font-family: var(--font-donna);
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 1rem);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}

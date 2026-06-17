@@ -1,11 +1,18 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Flame, Search, Star } from "lucide-react";
 import {
   formatNoteDate,
   searchNotes,
   type NoteSummary,
 } from "../services/notesApi";
-import "./SearchContextPage.css";
+import { AppPageHeader, HeaderTextButton } from "../components/ui/AppPageHeader";
+import { Card } from "../components/ui/Card";
+import { EmptyState } from "../components/ui/EmptyState";
+import { Spinner } from "../components/ui/Spinner";
+import { TextInput } from "../components/ui/TextInput";
+import { Button } from "../components/ui/Button";
+import { AlertBanner } from "../components/ui/AlertBanner";
 
 export function SearchContextPage() {
   const navigate = useNavigate();
@@ -38,81 +45,96 @@ export function SearchContextPage() {
   };
 
   return (
-    <div className="search-page">
-      <header className="search-page-header">
-        <h1 className="search-page-title">Search context</h1>
-        <button
-          type="button"
-          className="search-page-done"
-          onClick={() => navigate("/app")}
-        >
-          Done
-        </button>
-      </header>
+    <div className="flex h-dvh w-full flex-col bg-white">
+      <AppPageHeader
+        title="Search context"
+        action={
+          <HeaderTextButton onClick={() => navigate("/app")}>
+            Done
+          </HeaderTextButton>
+        }
+      />
 
       <form
-        className="search-page-row"
+        className="flex shrink-0 gap-2 border-b border-donna-border px-5 py-4"
         onSubmit={(e) => {
           e.preventDefault();
           void handleSearch();
         }}
       >
-        <input
+        <TextInput
           type="search"
-          className="search-page-input"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search context…"
           autoFocus
+          className="flex-1"
         />
-        <button
+        <Button
           type="submit"
-          className="search-page-submit"
+          className="!w-auto shrink-0 px-4 py-2.5 text-[0.9375rem]"
           disabled={searching || !query.trim()}
         >
           {searching ? "…" : "Search"}
-        </button>
+        </Button>
       </form>
 
-      <div className="search-page-body">
+      <div className="flex-1 overflow-y-auto py-3">
         {error ? (
-          <p className="search-page-error" role="alert">
-            {error}
-          </p>
+          <AlertBanner className="mx-5">{error}</AlertBanner>
         ) : null}
 
-        {searched && results.length === 0 && !error ? (
-          <p className="search-page-empty">No matches found</p>
+        {searching ? (
+          <div className="flex justify-center py-12">
+            <Spinner />
+          </div>
         ) : null}
 
-        {!searched && !error ? (
-          <p className="search-page-empty">Search your saved context from voice, links, and documents.</p>
+        {!searching && !searched && !error ? (
+          <EmptyState
+            icon={Search}
+            title="Search your memories"
+            description="Search your saved context from voice, links, and documents."
+            className="py-12"
+          />
         ) : null}
 
-        <ul className="search-page-results">
+        {!searching && searched && results.length === 0 && !error ? (
+          <p className="px-5 py-2 text-[0.9375rem] text-donna-muted">No matches found</p>
+        ) : null}
+
+        <ul className="flex flex-col gap-3 px-5">
           {results.map((item) => (
             <li key={item.id}>
-              <button
-                type="button"
-                className="search-page-card"
-                onClick={() => handleSelect(item.id)}
-              >
-                <div className="search-page-card-header">
-                  <span className="search-page-card-title">{item.title}</span>
-                  <span className="search-page-card-flags">
-                    {item.is_urgent ? <span aria-label="Urgent">🔥</span> : null}
+              <Card onClick={() => handleSelect(item.id)}>
+                <div className="flex items-start justify-between gap-2">
+                  <span className="text-base font-semibold text-donna-text">
+                    {item.title}
+                  </span>
+                  <span className="flex shrink-0 gap-1">
+                    {item.is_urgent ? (
+                      <Flame
+                        className="h-4 w-4 text-donna-destructive"
+                        aria-label="Urgent"
+                      />
+                    ) : null}
                     {item.is_important ? (
-                      <span aria-label="Important">⭐</span>
+                      <Star
+                        className="h-4 w-4 fill-donna-gold text-donna-gold"
+                        aria-label="Important"
+                      />
                     ) : null}
                   </span>
                 </div>
                 {item.preview ? (
-                  <p className="search-page-card-preview">{item.preview}</p>
+                  <p className="mt-1.5 line-clamp-3 text-sm leading-snug text-donna-muted">
+                    {item.preview}
+                  </p>
                 ) : null}
-                <p className="search-page-card-date">
+                <p className="mt-2 text-xs text-donna-muted">
                   {formatNoteDate(item.note_date)}
                 </p>
-              </button>
+              </Card>
             </li>
           ))}
         </ul>

@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Plus, Search, Settings } from "lucide-react";
 import { AccountModal } from "../components/AccountModal";
 import { ChatInput } from "../components/ChatInput";
 import { ChatMessages } from "../components/ChatMessages";
 import { IngestToast } from "../components/IngestToast";
 import { ModeToggle } from "../components/ModeToggle";
+import { AlertBanner } from "../components/ui/AlertBanner";
+import { IconButton } from "../components/ui/IconButton";
 import { useAssetIngest } from "../hooks/useAssetIngest";
 import { useChatSession } from "../hooks/useChatSession";
 import type { DonnaMode } from "../types/mode";
-import "./ChatApp.css";
+import { cn } from "../lib/cn";
 
 export function ChatApp() {
   const navigate = useNavigate();
@@ -30,51 +33,40 @@ export function ChatApp() {
   }, [location, navigate, showToast]);
 
   return (
-    <div className="chat-app">
-      <header className="chat-header">
-        <button
-          type="button"
-          className="icon-button"
+    <div className={cn("flex h-dvh w-full flex-col")}>
+      <header className="grid shrink-0 grid-cols-[2.75rem_1fr_auto] items-center gap-2 border-b border-donna-border bg-white px-5 py-3">
+        <IconButton
           onClick={() => setAccountOpen(true)}
           aria-label="Account settings"
         >
-          ⚙
-        </button>
+          <Settings className="h-5 w-5" strokeWidth={2} />
+        </IconButton>
 
-        <div className="chat-header-center">
-          <span className="chat-header-title">Donna</span>
+        <div className="flex min-w-0 items-center justify-center gap-3">
+          <span className="text-[1.0625rem] font-semibold text-donna-gold">Donna</span>
           <ModeToggle mode={mode} onChange={setMode} disabled={busy} />
         </div>
 
-        <div className="chat-header-right">
-          <button
-            type="button"
-            className="icon-button icon-button-search"
+        <div className="flex items-center justify-end gap-1.5">
+          <IconButton
             onClick={() => navigate("/app/search")}
             aria-label="Search context"
           >
-            ⌕
-          </button>
-          <button
-            type="button"
-            className="icon-button"
+            <Search className="h-5 w-5" strokeWidth={2} />
+          </IconButton>
+          <IconButton
             onClick={() => navigate("/app/add")}
             aria-label="Add to memory"
           >
-            +
-          </button>
+            <Plus className="h-5 w-5" strokeWidth={2.5} />
+          </IconButton>
         </div>
       </header>
 
       <ChatMessages messages={messages} phase={phase} mode={mode} />
 
       {error ? (
-        <div className="chat-error-banner" role="alert">
-          <span>{error}</span>
-          <button type="button" onClick={dismissError}>
-            Dismiss
-          </button>
-        </div>
+        <AlertBanner onDismiss={dismissError}>{error}</AlertBanner>
       ) : null}
 
       <ChatInput

@@ -1,9 +1,11 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { SignInWithAppleButton } from "../components/SignInWithAppleButton";
+import { Button } from "../components/ui/Button";
+import { TextInput } from "../components/ui/TextInput";
 import { PRIVACY_POLICY_URL } from "../config";
 import { signInWithEmail, signUpWithEmail } from "../services/auth";
-import "./Login.css";
+import { cn } from "../lib/cn";
 
 export function Login() {
   const [showEmail, setShowEmail] = useState(false);
@@ -46,32 +48,41 @@ export function Login() {
   }
 
   return (
-    <div className="login-page">
-      <div className="login-hero">
-        <div className="login-logo" aria-hidden="true">
+    <div className="flex min-h-dvh w-full flex-col justify-between px-6 pb-8 pt-12">
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
+        <div
+          className="mb-2 flex h-24 w-24 items-center justify-center rounded-full border border-donna-border bg-donna-surface text-4xl font-bold text-donna-gold"
+          aria-hidden="true"
+        >
           D
         </div>
-        <h1 className="login-title">Donna</h1>
-        <p className="login-subtitle">AI Second Brain, but the BEST</p>
+        <h1 className="text-4xl font-bold tracking-tight text-donna-text">Donna</h1>
+        <p className="max-w-xs text-[1.0625rem] leading-relaxed text-donna-muted">
+          AI Second Brain, but the BEST
+        </p>
       </div>
 
-      <div className="login-actions">
+      <div className="flex flex-col gap-4">
         {signupSent ? (
-          <p className="login-success">
+          <p className="text-center leading-relaxed text-donna-gold">
             Check your email to confirm your account, then sign in.
           </p>
         ) : (
           <>
-            <p className="login-label">Sign in to continue</p>
+            <p className="text-center text-[0.9375rem] font-medium text-donna-muted">
+              Sign in to continue
+            </p>
 
             <SignInWithAppleButton onError={setError} />
 
-            {error ? <p className="login-error">{error}</p> : null}
+            {error ? (
+              <p className="text-center text-sm text-donna-destructive">{error}</p>
+            ) : null}
 
             {!showEmail ? (
               <button
                 type="button"
-                className="login-toggle"
+                className="min-h-11 py-2 text-center text-sm text-donna-muted transition-colors hover:text-donna-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-gold-ring"
                 onClick={() => {
                   setShowEmail(true);
                   setError(null);
@@ -81,13 +92,14 @@ export function Login() {
               </button>
             ) : (
               <>
-                <div className="login-divider" aria-hidden="true">
+                <div className="flex items-center gap-3 text-sm text-donna-muted" aria-hidden="true">
+                  <span className="h-px flex-1 bg-donna-border" />
                   <span>or</span>
+                  <span className="h-px flex-1 bg-donna-border" />
                 </div>
 
-                <form className="login-form" onSubmit={handleSubmit}>
-                  <input
-                    className="text-input"
+                <form className="flex flex-col gap-3" onSubmit={handleSubmit}>
+                  <TextInput
                     type="email"
                     placeholder="you@email.com"
                     value={email}
@@ -96,8 +108,7 @@ export function Login() {
                     autoComplete="email"
                   />
 
-                  <input
-                    className="text-input"
+                  <TextInput
                     type="password"
                     placeholder="Password"
                     value={password}
@@ -109,21 +120,17 @@ export function Login() {
                     }
                   />
 
-                  <button
-                    className="btn-primary"
-                    type="submit"
-                    disabled={loading}
-                  >
+                  <Button type="submit" fullWidth disabled={loading}>
                     {loading
                       ? "Please wait…"
                       : mode === "signin"
                         ? "Sign in"
                         : "Sign up"}
-                  </button>
+                  </Button>
 
                   <button
                     type="button"
-                    className="login-toggle"
+                    className="min-h-11 py-2 text-center text-sm text-donna-muted transition-colors hover:text-donna-gold"
                     onClick={() => {
                       setMode(mode === "signin" ? "signup" : "signin");
                       setError(null);
@@ -139,7 +146,13 @@ export function Login() {
           </>
         )}
 
-        <Link to={PRIVACY_POLICY_URL} className="link-gold login-privacy">
+        <Link
+          to={PRIVACY_POLICY_URL}
+          className={cn(
+            "self-center text-sm font-medium text-donna-gold underline",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-gold-ring",
+          )}
+        >
           Privacy Policy
         </Link>
       </div>

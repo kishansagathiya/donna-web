@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { deleteAccount } from "../services/accountApi";
 import { signOut } from "../services/auth";
-import "./AccountModal.css";
+import { Button } from "./ui/Button";
+import { Sheet } from "./ui/Sheet";
 
 type Props = {
   open: boolean;
@@ -14,8 +15,6 @@ export function AccountModal({ open, onClose }: Props) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const busy = signingOut || deleting;
-
-  if (!open) return null;
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -45,72 +44,61 @@ export function AccountModal({ open, onClose }: Props) {
   }
 
   return (
-    <div className="account-backdrop" onClick={onClose} role="presentation">
-      <div
-        className="account-modal"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-labelledby="account-title"
-      >
-        <div className="account-header">
-          <h2 id="account-title" className="account-title">
-            Account
-          </h2>
-          <button
-            type="button"
-            className="account-close"
-            onClick={onClose}
-            disabled={busy}
-          >
-            Done
-          </button>
-        </div>
+    <Sheet open={open} onClose={onClose} title="Account">
+      <p className="mb-4 text-sm leading-relaxed text-donna-muted">
+        Manage your Donna account. Deleting your account permanently removes
+        your conversations, memories, and sign-in from our servers.
+      </p>
 
-        <p className="account-description">
-          Manage your Donna account. Deleting your account permanently removes
-          your conversations, memories, and sign-in from our servers.
-        </p>
+      {error ? (
+        <p className="mb-4 text-sm text-donna-destructive">{error}</p>
+      ) : null}
 
-        {error ? <p className="account-error">{error}</p> : null}
-
-        <button
-          className="btn-secondary account-action"
+      <div className="flex flex-col gap-3">
+        <Button
+          variant="secondary"
+          fullWidth
           onClick={() => void handleSignOut()}
           disabled={busy}
         >
           {signingOut ? "Signing out…" : "Sign out"}
-        </button>
+        </Button>
 
         {confirmDelete ? (
-          <div className="account-delete-confirm">
-            <p>This cannot be undone. Delete everything?</p>
-            <div className="account-delete-actions">
-              <button
-                className="btn-secondary"
+          <div className="rounded-donna border border-donna-border bg-donna-surface p-4">
+            <p className="mb-3 text-sm text-donna-text">
+              This cannot be undone. Delete everything?
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="secondary"
+                className="flex-1"
                 onClick={() => setConfirmDelete(false)}
                 disabled={busy}
               >
                 Cancel
-              </button>
-              <button
-                className="btn-destructive"
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1"
                 onClick={() => void handleDelete()}
                 disabled={busy}
               >
                 {deleting ? "Deleting…" : "Delete account"}
-              </button>
+              </Button>
             </div>
           </div>
         ) : (
-          <button
-            className="btn-destructive account-action"
+          <Button
+            variant="destructive"
+            fullWidth
             onClick={() => setConfirmDelete(true)}
             disabled={busy}
           >
             Delete account
-          </button>
+          </Button>
         )}
       </div>
-    </div>
+    </Sheet>
   );
 }

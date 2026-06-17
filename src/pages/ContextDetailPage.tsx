@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
+import { ChevronLeft, Flame, Star } from "lucide-react";
 import {
   deleteNote,
   formatNoteDate,
@@ -9,7 +10,12 @@ import {
   updateNote,
   type Note,
 } from "../services/notesApi";
-import "./ContextPages.css";
+import { AppPageHeader, HeaderTextButton } from "../components/ui/AppPageHeader";
+import { Button } from "../components/ui/Button";
+import { TextArea } from "../components/ui/TextArea";
+import { Spinner } from "../components/ui/Spinner";
+import { AlertBanner } from "../components/ui/AlertBanner";
+import { cn } from "../lib/cn";
 
 export function ContextDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -83,9 +89,21 @@ export function ContextDetailPage() {
 
   if (loading) {
     return (
-      <div className="context-page context-detail-page">
-        <div className="context-content">
-          <p className="context-empty">Loading…</p>
+      <div className="flex h-dvh w-full flex-col bg-white">
+        <AppPageHeader
+          title="Context"
+          action={
+            <HeaderTextButton onClick={() => navigate("/app/search")}>
+              <span className="flex items-center gap-1">
+                <ChevronLeft className="h-4 w-4" />
+                Back
+              </span>
+            </HeaderTextButton>
+          }
+        />
+        <div className="flex flex-1 flex-col gap-3 px-5 py-5">
+          <div className="h-8 w-48 animate-pulse rounded-donna bg-donna-surface" />
+          <div className="flex-1 animate-pulse rounded-donna bg-donna-surface" />
         </div>
       </div>
     );
@@ -93,84 +111,114 @@ export function ContextDetailPage() {
 
   if (!item) {
     return (
-      <div className="context-page context-detail-page">
-        <div className="context-content">
-          <p className="context-empty">{error ?? "Context not found"}</p>
-          <Link to="/app/search">← Back to search</Link>
+      <div className="flex h-dvh w-full flex-col bg-white">
+        <AppPageHeader
+          title="Context"
+          action={
+            <HeaderTextButton onClick={() => navigate("/app/search")}>
+              <span className="flex items-center gap-1">
+                <ChevronLeft className="h-4 w-4" />
+                Back
+              </span>
+            </HeaderTextButton>
+          }
+        />
+        <div className="flex flex-1 flex-col items-center justify-center px-5">
+          <p className="text-donna-muted">{error ?? "Context not found"}</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="context-page context-detail-page">
-      <div className="context-content">
-          <Link to="/app/search" style={{ fontSize: "0.875rem", color: "var(--donna-text-secondary)" }}>
-          ← Back
-        </Link>
+    <div className="flex h-dvh w-full flex-col bg-white">
+      <AppPageHeader
+        title="Context"
+        action={
+          <HeaderTextButton onClick={() => navigate("/app/search")}>
+            <span className="flex items-center gap-1">
+              <ChevronLeft className="h-4 w-4" />
+              Back
+            </span>
+          </HeaderTextButton>
+        }
+      />
 
-        <div className="context-detail-toolbar">
+      <div className="flex flex-1 flex-col overflow-y-auto px-5 py-4">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
           <button
             type="button"
-            className={`context-flag-button ${item.is_urgent ? "active-urgent" : ""}`}
+            className={cn(
+              "inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.8125rem] transition-colors duration-150",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-gold-ring",
+              item.is_urgent
+                ? "border-donna-destructive/30 bg-donna-destructive/10 text-donna-destructive"
+                : "border-donna-border bg-donna-surface text-donna-text",
+            )}
             onClick={() => void toggleFlag("is_urgent")}
           >
-            {item.is_urgent ? "🔥 Urgent" : "Mark urgent"}
+            <Flame className="h-3.5 w-3.5" />
+            {item.is_urgent ? "Urgent" : "Mark urgent"}
           </button>
           <button
             type="button"
-            className={`context-flag-button ${item.is_important ? "active-important" : ""}`}
+            className={cn(
+              "inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.8125rem] transition-colors duration-150",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-gold-ring",
+              item.is_important
+                ? "border-donna-gold-ring bg-donna-gold/12 text-donna-gold"
+                : "border-donna-border bg-donna-surface text-donna-text",
+            )}
             onClick={() => void toggleFlag("is_important")}
           >
-            {item.is_important ? "⭐ Important" : "Mark important"}
+            <Star className="h-3.5 w-3.5" />
+            {item.is_important ? "Important" : "Mark important"}
           </button>
-          <label className="context-date-field">
+          <label className="flex flex-col gap-1 text-[0.8125rem] text-donna-muted">
             Date
             <input
               type="datetime-local"
+              className="rounded-donna border border-donna-border px-2 py-2 text-sm text-donna-text focus:border-donna-gold-ring focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30"
               value={noteDate}
               onChange={(e) => setNoteDate(e.target.value)}
             />
           </label>
         </div>
 
-        <textarea
-          className="context-editor"
+        <TextArea
+          className="min-h-64 flex-1"
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Context…"
         />
 
         {error ? (
-          <p className="context-error" role="alert">
-            {error}
-          </p>
+          <AlertBanner className="mx-0 mt-3">{error}</AlertBanner>
         ) : null}
 
-        <div className="context-detail-actions">
-          <button
-            type="button"
-            className="context-danger-button"
-            onClick={() => void handleDelete()}
-          >
-            Delete
-          </button>
-          <button
-            type="button"
-            className="context-primary-button"
-            onClick={() => void handleSave()}
-            disabled={saving}
-          >
-            {saving ? "Saving…" : "Save"}
-          </button>
-        </div>
-
-        <p style={{ fontSize: "0.75rem", color: "var(--donna-text-muted)" }}>
+        <p className="mt-3 text-xs text-donna-muted">
           Created {formatNoteDate(item.created_at)}
           {item.source_type !== "manual"
             ? ` · from ${item.source_type.replace("_", " ")}`
             : ""}
         </p>
+      </div>
+
+      <div className="flex shrink-0 gap-2 border-t border-donna-border px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <Button
+          variant="ghost"
+          className="!w-auto border border-donna-destructive/30 text-donna-destructive"
+          onClick={() => void handleDelete()}
+        >
+          Delete
+        </Button>
+        <Button
+          className="flex-1"
+          onClick={() => void handleSave()}
+          disabled={saving}
+        >
+          {saving ? "Saving…" : "Save"}
+        </Button>
       </div>
     </div>
   );

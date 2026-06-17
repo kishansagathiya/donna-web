@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { signInWithApple } from "../services/auth";
-import "./SignInWithAppleButton.css";
+import { Spinner } from "./ui/Spinner";
+import { cn } from "../lib/cn";
 
 type Props = {
   onError?: (message: string) => void;
@@ -24,12 +25,17 @@ export function SignInWithAppleButton({ onError }: Props) {
   return (
     <button
       type="button"
-      className="apple-sign-in"
+      className={cn(
+        "flex min-h-11 w-full items-center justify-center gap-2 rounded-donna bg-donna-text px-4 py-3 text-base font-semibold text-white",
+        "transition-opacity duration-150 hover:opacity-90",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-gold-ring focus-visible:ring-offset-2",
+        "disabled:cursor-not-allowed disabled:opacity-70",
+      )}
       onClick={() => void handleClick()}
       disabled={loading}
     >
       {loading ? (
-        <span className="apple-sign-in-spinner" aria-hidden="true" />
+        <Spinner className="h-5 w-5 border-white/30 border-t-white" />
       ) : (
         <>
           <AppleLogo />
@@ -43,7 +49,7 @@ export function SignInWithAppleButton({ onError }: Props) {
 function AppleLogo() {
   return (
     <svg
-      className="apple-sign-in-logo"
+      className="h-5 w-5"
       viewBox="0 0 24 24"
       aria-hidden="true"
       focusable="false"
