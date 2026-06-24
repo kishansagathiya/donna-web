@@ -3,6 +3,7 @@ import { MessageCircle, Ear } from "lucide-react";
 import type { UiMessage } from "../hooks/useChatSession";
 import type { DonnaMode } from "../types/mode";
 import { EmptyState } from "./ui/EmptyState";
+import { MessageContent } from "./MessageContent";
 import { cn } from "../lib/cn";
 
 type Props = {
@@ -49,7 +50,10 @@ export function ChatMessages({ messages, phase, mode }: Props) {
             message.streaming && "opacity-95",
           )}
         >
-          <p>{message.content || (message.streaming ? "…" : "")}</p>
+          <MessageContent
+            content={message.content || (message.streaming ? "…" : "")}
+            variant={message.role === "user" ? "user" : "assistant"}
+          />
         </div>
       ))}
       {phase === "generating" && mode === "talk" && messages[messages.length - 1]?.streaming ? (
