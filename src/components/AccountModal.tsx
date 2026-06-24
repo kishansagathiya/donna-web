@@ -1,5 +1,9 @@
-import { useState } from "react";
-import { deleteAccount } from "../services/accountApi";
+import { useEffect, useState } from "react";
+import {
+  deleteAccount,
+  getAccountPreferences,
+  updateLLMModel,
+} from "../services/accountApi";
 import { signOut } from "../services/auth";
 import { Button } from "./ui/Button";
 import { Sheet } from "./ui/Sheet";
@@ -14,7 +18,41 @@ export function AccountModal({ open, onClose }: Props) {
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const busy = signingOut || deleting;
+  const [models, setModels] = useState<string[]>([]);
+  const [selectedModel, setSelectedModel] = useState("");
+  const [loadingModels, setLoadingModels] = useState(false);
+  const [savingModel, setSavingModel] = useState(false);
+  const busy = signingOut || deleting || savingModel;
+
+  useEffect(() => {
+    if (!open) return;
+    setLoadingModels(true);
+    setError(null);
+    void getAccountPreferences()
+      .then((preferences) => {
+        setModels(preferences.available_models);
+        setSelectedModel(preferences.llm_model);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "Could not load models");
+      })
+      .finally(() => setLoadingModels(false));
+  }, [open]);
+
+  async function handleModelChange(model: string) {
+    const previous = selectedModel;
+    setSelectedModel(model);
+    setSavingModel(true);
+    setError(null);
+    try {
+      await updateLLMModel(model);
+    } catch (err) {
+      setSelectedModel(previous);
+      setError(err instanceof Error ? err.message : "Could not save model");
+    } finally {
+      setSavingModel(false);
+    }
+  }
 
   async function handleSignOut() {
     setSigningOut(true);
@@ -53,6 +91,32 @@ export function AccountModal({ open, onClose }: Props) {
       {error ? (
         <p className="mb-4 text-sm text-donna-destructive">{error}</p>
       ) : null}
+
+      <div className="mb-6">
+        <label
+          htmlFor="llm-model"
+          className="mb-1 block text-sm font-semibold text-donna-text"
+        >
+          AI model
+        </label>
+        <p className="mb-2 text-xs text-donna-muted">
+          Used for both text and voice replies.
+        </p>
+        <select
+          id="llm-model"
+          className="w-full rounded-donna border border-donna-border bg-white px-3 py-3 text-sm text-donna-text"
+          value={selectedModel}
+          onChange={(event) => void handleModelChange(event.target.value)}
+          disabled={busy || loadingModels}
+        >
+          {loadingModels ? <option>Loading models…</option> : null}
+          {models.map((model) => (
+            <option key={model} value={model}>
+              {model}
+            </option>
+          ))}
+        </select>
+      </div>
 
       <div className="flex flex-col gap-3">
         <Button
