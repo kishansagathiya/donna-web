@@ -7,6 +7,7 @@ import {
 import { signOut } from "../services/auth";
 import { Button } from "./ui/Button";
 import { Sheet } from "./ui/Sheet";
+import { ThemeToggle } from "./ThemeToggle";
 
 type Props = {
   open: boolean;
@@ -117,6 +118,8 @@ export function AccountModal({ open, onClose }: Props) {
           ))}
         </select>
       </div>
+
+      <ThemeToggle className="mb-6" />
 
       <div className="flex flex-col gap-3">
         <Button

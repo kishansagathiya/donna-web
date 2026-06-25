@@ -21,3 +21,5 @@ export const APPLE_CLIENT_ID =
   import.meta.env.VITE_APPLE_CLIENT_ID ?? "com.kishansagathiya.donna.web";
 
 export const AI_DATA_CONSENT_KEY = "donna.ai_data_consent.v1";
+
+export const THEME_STORAGE_KEY = "donna.app_theme.v1";

@@ -16,6 +16,9 @@ function applyAppRouteClass() {
 
 applyAppRouteClass();
 
+import { initTheme } from "./lib/theme";
+initTheme();
+
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";

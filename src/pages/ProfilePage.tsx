@@ -8,6 +8,7 @@ import { signOut } from "../services/auth";
 import { Button } from "../components/ui/Button";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { Spinner } from "../components/ui/Spinner";
+import { ThemeToggle } from "../components/ThemeToggle";
 import { useAuth } from "../hooks/useAuth";
 
 export function ProfilePage() {
@@ -133,6 +134,8 @@ export function ProfilePage() {
             </select>
           )}
         </div>
+
+        <ThemeToggle className="mb-8 max-w-lg" />
 
         <div className="flex max-w-lg flex-col gap-3">
           <Button

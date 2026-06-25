@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
+import { ThemeProvider } from "./hooks/useTheme";
 import { Layout } from "./components/Layout";
 import { Landing } from "./pages/Landing";
 import { Privacy } from "./pages/Privacy";
@@ -43,8 +44,9 @@ function LegacyNotesRedirect() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <PageTitle />
+      <ThemeProvider>
+        <AuthProvider>
+          <PageTitle />
         <Routes>
           <Route element={<Layout />}>
             <Route index element={<Landing />} />
@@ -73,7 +75,8 @@ export default function App() {
             </Route>
           </Route>
         </Routes>
-      </AuthProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </BrowserRouter>
   );
 }

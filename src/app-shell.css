@@ -19,6 +19,23 @@
   --font-donna: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+html[data-theme="indigo"] {
+  --color-donna-primary: #5046e5;
+  --color-donna-primary-hover: #4338ca;
+  --color-donna-primary-light: #ede9fe;
+  --color-donna-primary-ring: #6366f1;
+  --color-donna-gold: #5046e5;
+  --color-donna-gold-ring: #6366f1;
+  --color-donna-surface: #f3f4f6;
+  --color-donna-sidebar: #fafafa;
+  --color-donna-border: #e5e7eb;
+  --color-donna-text: #111827;
+  --color-donna-muted: #6b7280;
+  --color-donna-destructive: #dc2626;
+  --color-donna-toast: rgba(17, 24, 39, 0.92);
+  --color-donna-toast-error: rgba(185, 28, 28, 0.95);
+}
+
 @layer base {
   html.app-route,
   body.app-route {
