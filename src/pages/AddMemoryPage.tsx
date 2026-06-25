@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { FileUp, Link2 } from "lucide-react";
 import { IngestToast } from "../components/IngestToast";
 import { useAssetIngest } from "../hooks/useAssetIngest";
-import { AppPageHeader } from "../components/ui/AppPageHeader";
 import { Button } from "../components/ui/Button";
 import { TextInput } from "../components/ui/TextInput";
 import { Spinner } from "../components/ui/Spinner";
@@ -57,11 +56,9 @@ export function AddMemoryPage() {
         </div>
       ) : null}
 
-      <AppPageHeader
-        title="Add to memory"
-        onBack={() => navigate("/app")}
-        backDisabled={busy}
-      />
+      <header className="shrink-0 border-b border-donna-border px-6 py-5 md:px-8">
+        <h1 className="text-xl font-semibold text-donna-text">Add to memory</h1>
+      </header>
 
       <div className="flex-1 overflow-y-auto px-5 py-5">
         <p className="mb-5 text-sm leading-relaxed text-donna-muted">
@@ -101,7 +98,7 @@ export function AddMemoryPage() {
           className={cn(
             "rounded-donna border-2 border-dashed p-8 text-center transition-colors duration-150",
             dragOver
-              ? "border-donna-gold bg-donna-surface"
+              ? "border-donna-primary bg-donna-surface"
               : "border-donna-border bg-donna-surface/50",
           )}
           onDragOver={(e) => {
@@ -118,7 +115,7 @@ export function AddMemoryPage() {
             }
           }}
         >
-          <FileUp className="mx-auto mb-3 h-8 w-8 text-donna-gold" strokeWidth={1.75} />
+          <FileUp className="mx-auto mb-3 h-8 w-8 text-donna-primary" strokeWidth={1.75} />
           <p className="mb-3 text-sm text-donna-muted">
             Drop a file here, or choose from your device
           </p>

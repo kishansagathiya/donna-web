@@ -9,7 +9,7 @@ export function Spinner({ className, label = "Loading" }: Props) {
   return (
     <div
       className={cn(
-        "h-8 w-8 animate-spin rounded-full border-[3px] border-donna-border border-t-donna-gold",
+        "h-8 w-8 animate-spin rounded-full border-[3px] border-donna-border border-t-donna-primary",
         className,
       )}
       role="status"

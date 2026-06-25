@@ -1,0 +1,185 @@
+import { useEffect, useState } from "react";
+import {
+  deleteAccount,
+  getAccountPreferences,
+  updateLLMModel,
+} from "../services/accountApi";
+import { signOut } from "../services/auth";
+import { Button } from "../components/ui/Button";
+import { AlertBanner } from "../components/ui/AlertBanner";
+import { Spinner } from "../components/ui/Spinner";
+import { useAuth } from "../hooks/useAuth";
+
+export function ProfilePage() {
+  const { session } = useAuth();
+  const [signingOut, setSigningOut] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [models, setModels] = useState<string[]>([]);
+  const [selectedModel, setSelectedModel] = useState("");
+  const [loadingModels, setLoadingModels] = useState(true);
+  const [savingModel, setSavingModel] = useState(false);
+  const busy = signingOut || deleting || savingModel;
+
+  const email = session?.user.email ?? "";
+  const name =
+    (session?.user.user_metadata?.full_name as string | undefined) ?? email;
+  const initial = (name || "U").charAt(0).toUpperCase();
+
+  useEffect(() => {
+    setLoadingModels(true);
+    setError(null);
+    void getAccountPreferences()
+      .then((preferences) => {
+        setModels(preferences.available_models);
+        setSelectedModel(preferences.llm_model);
+      })
+      .catch((err) => {
+        setError(err instanceof Error ? err.message : "Could not load models");
+      })
+      .finally(() => setLoadingModels(false));
+  }, []);
+
+  async function handleModelChange(model: string) {
+    const previous = selectedModel;
+    setSelectedModel(model);
+    setSavingModel(true);
+    setError(null);
+    try {
+      await updateLLMModel(model);
+    } catch (err) {
+      setSelectedModel(previous);
+      setError(err instanceof Error ? err.message : "Could not save model");
+    } finally {
+      setSavingModel(false);
+    }
+  }
+
+  async function handleSignOut() {
+    setSigningOut(true);
+    setError(null);
+    try {
+      await signOut();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not sign out");
+    } finally {
+      setSigningOut(false);
+    }
+  }
+
+  async function handleDelete() {
+    setDeleting(true);
+    setError(null);
+    try {
+      await deleteAccount();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not delete account");
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(false);
+    }
+  }
+
+  return (
+    <div className="flex h-full min-h-0 w-full flex-col overflow-y-auto">
+      <div className="border-b border-donna-border px-6 py-5 md:px-8">
+        <h1 className="text-xl font-semibold text-donna-text">Profile</h1>
+      </div>
+
+      <div className="flex-1 px-6 py-6 md:px-8">
+        <div className="mb-8 flex items-center gap-4">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-donna-primary-light text-2xl font-semibold text-donna-primary">
+            {initial}
+          </div>
+          <div>
+            <p className="text-lg font-semibold text-donna-text">{name}</p>
+            {email ? <p className="text-sm text-donna-muted">{email}</p> : null}
+          </div>
+        </div>
+
+        {error ? (
+          <AlertBanner className="mb-4">{error}</AlertBanner>
+        ) : null}
+
+        <div className="mb-8 max-w-lg">
+          <label
+            htmlFor="llm-model"
+            className="mb-1 block text-sm font-semibold text-donna-text"
+          >
+            AI model
+          </label>
+          <p className="mb-2 text-xs text-donna-muted">
+            Used for both text and voice replies.
+          </p>
+          {loadingModels ? (
+            <div className="flex items-center gap-2 py-3 text-sm text-donna-muted">
+              <Spinner className="h-5 w-5" />
+              Loading models…
+            </div>
+          ) : (
+            <select
+              id="llm-model"
+              className="w-full rounded-donna border border-donna-border bg-white px-3 py-3 text-sm text-donna-text"
+              value={selectedModel}
+              onChange={(event) => void handleModelChange(event.target.value)}
+              disabled={busy}
+            >
+              {models.map((model) => (
+                <option key={model} value={model}>
+                  {model}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        <div className="flex max-w-lg flex-col gap-3">
+          <Button
+            variant="secondary"
+            fullWidth
+            onClick={() => void handleSignOut()}
+            disabled={busy}
+          >
+            {signingOut ? "Signing out…" : "Sign out"}
+          </Button>
+
+          {confirmDelete ? (
+            <div className="rounded-donna border border-donna-border bg-donna-surface p-4">
+              <p className="mb-3 text-sm text-donna-text">
+                This cannot be undone. Delete everything?
+              </p>
+              <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  className="flex-1"
+                  onClick={() => setConfirmDelete(false)}
+                  disabled={busy}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="flex-1"
+                  onClick={() => void handleDelete()}
+                  disabled={busy}
+                >
+                  {deleting ? "Deleting…" : "Delete account"}
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button
+              variant="destructive"
+              fullWidth
+              onClick={() => setConfirmDelete(true)}
+              disabled={busy}
+            >
+              Delete account
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

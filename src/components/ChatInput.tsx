@@ -1,17 +1,36 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { ArrowUp } from "lucide-react";
-import { IconButton } from "./ui/IconButton";
+import { Code2, FileText, Mail, Paperclip, Send } from "lucide-react";
 import { cn } from "../lib/cn";
+
+type QuickAction = {
+  label: string;
+  onClick: () => void;
+};
 
 type Props = {
   onSend: (text: string) => void;
+  onFileSelect?: (file: File) => void;
   disabled?: boolean;
   placeholder?: string;
+  quickActions?: QuickAction[];
 };
 
-export function ChatInput({ onSend, disabled, placeholder = "Message Donna…" }: Props) {
+const quickActionIcons: Record<string, typeof FileText> = {
+  "Summarize PDF": FileText,
+  "Debug code": Code2,
+  "Draft email": Mail,
+};
+
+export function ChatInput({
+  onSend,
+  onFileSelect,
+  disabled,
+  placeholder = "Type your message here...",
+  quickActions,
+}: Props) {
   const [text, setText] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   function resize() {
     const el = textareaRef.current;
@@ -47,36 +66,102 @@ export function ChatInput({ onSend, disabled, placeholder = "Message Donna…" }
   }
 
   return (
-    <form
-      className="shrink-0 border-t border-donna-border bg-white px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]"
-      onSubmit={handleSubmit}
-    >
-      <div className="flex items-end gap-2">
-        <textarea
-          ref={textareaRef}
+    <div className="shrink-0 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2">
+      <form onSubmit={handleSubmit}>
+        <div
           className={cn(
-            "max-h-32 min-h-11 flex-1 resize-none rounded-[20px] border border-donna-border bg-white px-4 py-3 text-base leading-snug text-donna-text",
-            "placeholder:text-donna-muted",
-            "focus:border-donna-gold focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30",
-            "disabled:opacity-60",
+            "flex items-end gap-2 rounded-2xl border border-donna-border bg-white px-3 py-2 shadow-sm",
+            "focus-within:border-donna-primary focus-within:ring-2 focus-within:ring-donna-primary-ring/20",
           )}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          rows={1}
-          disabled={disabled}
-          aria-label={placeholder}
-        />
-        <IconButton
-          type="submit"
-          className="!bg-donna-gold !text-white !border-donna-gold disabled:!opacity-40"
-          disabled={disabled || !text.trim()}
-          aria-label="Send message"
         >
-          <ArrowUp className="h-5 w-5" strokeWidth={2.5} />
-        </IconButton>
-      </div>
-    </form>
+          <textarea
+            ref={textareaRef}
+            className={cn(
+              "max-h-32 min-h-10 flex-1 resize-none bg-transparent px-1 py-2 text-[0.9375rem] leading-snug text-donna-text",
+              "placeholder:text-donna-muted",
+              "focus:outline-none",
+              "disabled:opacity-60",
+            )}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            rows={1}
+            disabled={disabled}
+            aria-label={placeholder}
+          />
+
+          {onFileSelect ? (
+            <>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={disabled}
+                aria-label="Attach file"
+                className={cn(
+                  "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-donna-muted",
+                  "transition-colors hover:bg-donna-surface hover:text-donna-text",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
+                  "disabled:cursor-not-allowed disabled:opacity-50",
+                )}
+              >
+                <Paperclip className="h-5 w-5" strokeWidth={1.75} />
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                hidden
+                accept="image/*,.pdf,.txt,.md,.doc,.docx,.csv,.json"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (file) onFileSelect(file);
+                }}
+              />
+            </>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={disabled || !text.trim()}
+            aria-label="Send message"
+            className={cn(
+              "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-donna-primary text-white",
+              "transition-colors hover:bg-donna-primary-hover",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring focus-visible:ring-offset-2",
+              "disabled:cursor-not-allowed disabled:opacity-40",
+            )}
+          >
+            <Send className="h-4 w-4" strokeWidth={2} />
+          </button>
+        </div>
+      </form>
+
+      {quickActions && quickActions.length > 0 ? (
+        <div className="mt-3 flex flex-wrap justify-center gap-2">
+          {quickActions.map((action) => {
+            const Icon = quickActionIcons[action.label] ?? FileText;
+            return (
+              <button
+                key={action.label}
+                type="button"
+                onClick={action.onClick}
+                disabled={disabled}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border border-donna-border bg-donna-surface px-3 py-1.5",
+                  "text-xs font-medium text-donna-muted transition-colors",
+                  "hover:border-donna-primary/30 hover:text-donna-text",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
+                  "disabled:cursor-not-allowed disabled:opacity-50",
+                )}
+              >
+                <Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
+                {action.label}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
   );
 }

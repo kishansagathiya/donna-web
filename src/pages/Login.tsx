@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
+import { Bot } from "lucide-react";
 import { SignInWithAppleButton } from "../components/SignInWithAppleButton";
 import { Button } from "../components/ui/Button";
 import { TextInput } from "../components/ui/TextInput";
@@ -51,20 +52,20 @@ export function Login() {
     <div className="flex h-full min-h-0 w-full flex-col justify-between overflow-y-auto px-6 pb-8 pt-12">
       <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
         <div
-          className="mb-2 flex h-24 w-24 items-center justify-center rounded-full border border-donna-border bg-donna-surface text-4xl font-bold text-donna-gold"
+          className="mb-2 flex h-20 w-20 items-center justify-center rounded-full bg-donna-primary text-white"
           aria-hidden="true"
         >
-          D
+          <Bot className="h-10 w-10" strokeWidth={1.75} />
         </div>
-        <h1 className="text-4xl font-bold tracking-tight text-donna-text">Donna</h1>
-        <p className="max-w-xs text-[1.0625rem] leading-relaxed text-donna-muted">
-          AI Second Brain, but the BEST
+        <h1 className="text-3xl font-bold tracking-tight text-donna-text">Donna</h1>
+        <p className="max-w-xs text-base leading-relaxed text-donna-muted">
+          AI Assistant that remembers what matters
         </p>
       </div>
 
       <div className="flex flex-col gap-4">
         {signupSent ? (
-          <p className="text-center leading-relaxed text-donna-gold">
+          <p className="text-center leading-relaxed text-donna-primary">
             Check your email to confirm your account, then sign in.
           </p>
         ) : (
@@ -82,7 +83,7 @@ export function Login() {
             {!showEmail ? (
               <button
                 type="button"
-                className="min-h-11 py-2 text-center text-sm text-donna-muted transition-colors hover:text-donna-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-gold-ring"
+                className="min-h-11 py-2 text-center text-sm text-donna-muted transition-colors hover:text-donna-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring"
                 onClick={() => {
                   setShowEmail(true);
                   setError(null);
@@ -130,7 +131,7 @@ export function Login() {
 
                   <button
                     type="button"
-                    className="min-h-11 py-2 text-center text-sm text-donna-muted transition-colors hover:text-donna-gold"
+                    className="min-h-11 py-2 text-center text-sm text-donna-muted transition-colors hover:text-donna-primary"
                     onClick={() => {
                       setMode(mode === "signin" ? "signup" : "signin");
                       setError(null);
@@ -149,8 +150,8 @@ export function Login() {
         <Link
           to={PRIVACY_POLICY_URL}
           className={cn(
-            "self-center text-sm font-medium text-donna-gold underline",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-gold-ring",
+            "self-center text-sm font-medium text-donna-primary underline",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
           )}
         >
           Privacy Policy

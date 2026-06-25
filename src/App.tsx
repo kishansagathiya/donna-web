@@ -11,7 +11,9 @@ import { ChatApp } from "./pages/ChatApp";
 import { ContextDetailPage } from "./pages/ContextDetailPage";
 import { AddMemoryPage } from "./pages/AddMemoryPage";
 import { SearchContextPage } from "./pages/SearchContextPage";
+import { ProfilePage } from "./pages/ProfilePage";
 import { AppShell, ConsentShell, LoginShell } from "./pages/AppShell";
+import { AppLayout } from "./pages/AppLayout";
 
 function PageTitle() {
   const { pathname } = useLocation();
@@ -23,7 +25,7 @@ function PageTitle() {
       "/consent": "Data consent — Donna",
       "/app": "Donna",
       "/app/search": "Search — Donna",
-      "/app/add": "Add — Donna",
+      "/app/profile": "Profile — Donna",
       "/privacy": "Privacy — Donna",
       "/support": "Support — Donna",
     };
@@ -59,13 +61,16 @@ export default function App() {
           </Route>
 
           <Route element={<AppShell />}>
-            <Route path="app" element={<ChatApp />} />
-            <Route path="app/search" element={<SearchContextPage />} />
-            <Route path="app/add" element={<AddMemoryPage />} />
-            <Route path="app/context/:id" element={<ContextDetailPage />} />
-            <Route path="app/context" element={<Navigate to="/app" replace />} />
-            <Route path="app/notes" element={<Navigate to="/app" replace />} />
-            <Route path="app/notes/:id" element={<LegacyNotesRedirect />} />
+            <Route element={<AppLayout />}>
+              <Route path="app" element={<ChatApp />} />
+              <Route path="app/search" element={<SearchContextPage />} />
+              <Route path="app/add" element={<AddMemoryPage />} />
+              <Route path="app/profile" element={<ProfilePage />} />
+              <Route path="app/context/:id" element={<ContextDetailPage />} />
+              <Route path="app/context" element={<Navigate to="/app" replace />} />
+              <Route path="app/notes" element={<Navigate to="/app" replace />} />
+              <Route path="app/notes/:id" element={<LegacyNotesRedirect />} />
+            </Route>
           </Route>
         </Routes>
       </AuthProvider>

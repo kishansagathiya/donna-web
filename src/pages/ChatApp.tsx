@@ -1,68 +1,93 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Plus, Search, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 import { AccountModal } from "../components/AccountModal";
 import { ChatInput } from "../components/ChatInput";
 import { ChatMessages } from "../components/ChatMessages";
 import { IngestToast } from "../components/IngestToast";
-import { ModeToggle } from "../components/ModeToggle";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { IconButton } from "../components/ui/IconButton";
 import { useAssetIngest } from "../hooks/useAssetIngest";
+import { useAuth } from "../hooks/useAuth";
 import { useChatSession } from "../hooks/useChatSession";
-import type { DonnaMode } from "../types/mode";
 import { cn } from "../lib/cn";
+
+const quickActions = [
+  { label: "Summarize PDF", prompt: "Summarize the PDF I shared" },
+  { label: "Debug code", prompt: "Help me debug this code" },
+  { label: "Draft email", prompt: "Help me draft an email" },
+] as const;
+
+function UserAvatar({ onClick }: { onClick: () => void }) {
+  const { session } = useAuth();
+  const name =
+    (session?.user.user_metadata?.full_name as string | undefined) ??
+    session?.user.email ??
+    "U";
+  const initial = name.charAt(0).toUpperCase();
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="Open profile"
+      className={cn(
+        "flex h-9 w-9 items-center justify-center rounded-full bg-donna-primary-light text-sm font-semibold text-donna-primary",
+        "transition-opacity hover:opacity-80",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring focus-visible:ring-offset-2",
+      )}
+    >
+      {initial}
+    </button>
+  );
+}
 
 export function ChatApp() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [mode, setMode] = useState<DonnaMode>("talk");
-  const { messages, sendMessage, busy, phase, error, dismissError } =
-    useChatSession(mode);
-  const { toast, showToast } = useAssetIngest();
+  const { messages, sendMessage, clearChat, busy, phase, error, dismissError } =
+    useChatSession("talk");
+  const { toast, showToast, addFile } = useAssetIngest();
   const [accountOpen, setAccountOpen] = useState(false);
 
   useEffect(() => {
     const state = location.state as {
       ingestToast?: { message: string; isError: boolean };
+      newChat?: boolean;
     } | null;
+
+    if (state?.newChat) {
+      clearChat();
+      navigate("/app", { replace: true, state: null });
+    }
+
     if (state?.ingestToast) {
       showToast(state.ingestToast.message, state.ingestToast.isError);
       navigate(location.pathname, { replace: true, state: null });
     }
-  }, [location, navigate, showToast]);
+  }, [location, navigate, showToast, clearChat]);
+
+  async function handleFileSelect(file: File) {
+    const result = await addFile(file);
+    if (result.ok) {
+      showToast(result.message, false);
+    }
+  }
 
   return (
-    <div className={cn("flex h-full min-h-0 w-full flex-col")}>
-      <header className="grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-donna-border bg-white px-3 py-2.5">
-        <div className="justify-self-start">
-          <IconButton
-            onClick={() => setAccountOpen(true)}
-            aria-label="Account settings"
-          >
-            <Settings className="h-5 w-5" strokeWidth={2} />
-          </IconButton>
-        </div>
-
-        <ModeToggle mode={mode} onChange={setMode} disabled={busy} />
-
-        <div className="flex items-center gap-1.5 justify-self-end">
-          <IconButton
-            onClick={() => navigate("/app/search")}
-            aria-label="Search context"
-          >
-            <Search className="h-5 w-5" strokeWidth={2} />
-          </IconButton>
-          <IconButton
-            onClick={() => navigate("/app/add")}
-            aria-label="Add to memory"
-          >
-            <Plus className="h-5 w-5" strokeWidth={2.5} />
-          </IconButton>
-        </div>
+    <div className="flex h-full min-h-0 w-full flex-col">
+      <header className="flex shrink-0 items-center justify-end gap-2 px-5 py-3">
+        <IconButton
+          onClick={() => setAccountOpen(true)}
+          aria-label="Settings"
+          className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
+        >
+          <Settings className="h-5 w-5" strokeWidth={1.75} />
+        </IconButton>
+        <UserAvatar onClick={() => navigate("/app/profile")} />
       </header>
 
-      <ChatMessages messages={messages} phase={phase} mode={mode} />
+      <ChatMessages messages={messages} phase={phase} />
 
       {error ? (
         <AlertBanner onDismiss={dismissError}>{error}</AlertBanner>
@@ -70,11 +95,16 @@ export function ChatApp() {
 
       <ChatInput
         onSend={(text) => void sendMessage(text)}
+        onFileSelect={(file) => void handleFileSelect(file)}
         disabled={busy}
-        placeholder={
-          mode === "listen"
-            ? "Share something for Donna to remember…"
-            : "Message Donna…"
+        placeholder="Type your message here..."
+        quickActions={
+          messages.length === 0
+            ? quickActions.map((action) => ({
+                label: action.label,
+                onClick: () => void sendMessage(action.prompt),
+              }))
+            : undefined
         }
       />
 

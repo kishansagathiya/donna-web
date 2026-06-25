@@ -1,24 +1,29 @@
 @import "tailwindcss";
 
 @theme {
-  --color-donna-gold: #9a7b2f;
-  --color-donna-gold-ring: #b89446;
-  --color-donna-surface: #f2efe6;
-  --color-donna-border: #e0d8c4;
-  --color-donna-text: #1a1a1a;
-  --color-donna-muted: #666666;
-  --color-donna-destructive: #b42318;
-  --color-donna-toast: rgba(30, 30, 30, 0.92);
-  --color-donna-toast-error: rgba(140, 40, 40, 0.95);
+  --color-donna-primary: #5046e5;
+  --color-donna-primary-hover: #4338ca;
+  --color-donna-primary-light: #ede9fe;
+  --color-donna-primary-ring: #6366f1;
+  --color-donna-gold: #5046e5;
+  --color-donna-gold-ring: #6366f1;
+  --color-donna-surface: #f3f4f6;
+  --color-donna-sidebar: #fafafa;
+  --color-donna-border: #e5e7eb;
+  --color-donna-text: #111827;
+  --color-donna-muted: #6b7280;
+  --color-donna-destructive: #dc2626;
+  --color-donna-toast: rgba(17, 24, 39, 0.92);
+  --color-donna-toast-error: rgba(185, 28, 28, 0.95);
   --radius-donna: 12px;
-  --font-donna: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-donna: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 @layer base {
   html.app-route,
   body.app-route {
-    background: #ece7da;
-    color: #1a1a1a;
+    background: #ffffff;
+    color: #111827;
     margin: 0;
     width: 100%;
     height: 100%;
@@ -47,4 +52,19 @@
     opacity: 1;
     transform: translate(-50%, 0);
   }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

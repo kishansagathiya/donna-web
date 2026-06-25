@@ -1,18 +1,18 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Flame, Search, Star } from "lucide-react";
+import { Flame, Plus, Search, Star } from "lucide-react";
 import {
   formatNoteDate,
   searchNotes,
   type NoteSummary,
 } from "../services/notesApi";
-import { AppPageHeader } from "../components/ui/AppPageHeader";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Spinner } from "../components/ui/Spinner";
 import { TextInput } from "../components/ui/TextInput";
 import { Button } from "../components/ui/Button";
 import { AlertBanner } from "../components/ui/AlertBanner";
+import { IconButton } from "../components/ui/IconButton";
 
 export function SearchContextPage() {
   const navigate = useNavigate();
@@ -46,7 +46,16 @@ export function SearchContextPage() {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col bg-white">
-      <AppPageHeader title="Search context" onBack={() => navigate("/app")} />
+      <header className="flex shrink-0 items-center justify-between border-b border-donna-border px-6 py-5 md:px-8">
+        <h1 className="text-xl font-semibold text-donna-text">Memory</h1>
+        <IconButton
+          onClick={() => navigate("/app/add")}
+          aria-label="Add to memory"
+          className="!h-9 !w-9"
+        >
+          <Plus className="h-5 w-5" strokeWidth={2} />
+        </IconButton>
+      </header>
 
       <form
         className="flex shrink-0 gap-2 border-b border-donna-border px-5 py-4"
@@ -116,7 +125,7 @@ export function SearchContextPage() {
                     ) : null}
                     {item.is_important ? (
                       <Star
-                        className="h-4 w-4 fill-donna-gold text-donna-gold"
+                        className="h-4 w-4 fill-donna-primary text-donna-primary"
                         aria-label="Important"
                       />
                     ) : null}
