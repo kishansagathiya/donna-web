@@ -64,3 +64,26 @@ export async function updateLLMModel(llmModel: string): Promise<void> {
     throw new Error(body.message ?? body.error ?? `Save failed (${res.status})`);
   }
 }
+
+export async function downloadAccountExport(): Promise<void> {
+  const res = await authorizedFetch("/account/export");
+  if (!res.ok) {
+    let message = `Export failed (${res.status})`;
+    try {
+      const body = (await res.json()) as { error?: string; message?: string };
+      message = body.message ?? body.error ?? message;
+    } catch {
+      // ZIP responses have no JSON body on success; errors may still be JSON.
+    }
+    throw new Error(message);
+  }
+
+  const blob = await res.blob();
+  const date = new Date().toISOString().slice(0, 10);
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `donna-export-${date}.zip`;
+  link.click();
+  URL.revokeObjectURL(url);
+}

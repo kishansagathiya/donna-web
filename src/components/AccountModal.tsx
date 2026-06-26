@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   deleteAccount,
+  downloadAccountExport,
   getAccountPreferences,
   updateLLMModel,
 } from "../services/accountApi";
@@ -23,7 +24,8 @@ export function AccountModal({ open, onClose }: Props) {
   const [selectedModel, setSelectedModel] = useState("");
   const [loadingModels, setLoadingModels] = useState(false);
   const [savingModel, setSavingModel] = useState(false);
-  const busy = signingOut || deleting || savingModel;
+  const [exporting, setExporting] = useState(false);
+  const busy = signingOut || deleting || savingModel || exporting;
 
   useEffect(() => {
     if (!open) return;
@@ -52,6 +54,18 @@ export function AccountModal({ open, onClose }: Props) {
       setError(err instanceof Error ? err.message : "Could not save model");
     } finally {
       setSavingModel(false);
+    }
+  }
+
+  async function handleExport() {
+    setExporting(true);
+    setError(null);
+    try {
+      await downloadAccountExport();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not download data");
+    } finally {
+      setExporting(false);
     }
   }
 
@@ -120,6 +134,23 @@ export function AccountModal({ open, onClose }: Props) {
       </div>
 
       <ThemeToggle className="mb-6" />
+
+      <div className="mb-6">
+        <p className="mb-2 text-sm font-semibold text-donna-text">
+          Download my data
+        </p>
+        <p className="mb-3 text-xs leading-relaxed text-donna-muted">
+          Download a ZIP of your conversations, notes, and uploaded files.
+        </p>
+        <Button
+          variant="secondary"
+          fullWidth
+          onClick={() => void handleExport()}
+          disabled={busy}
+        >
+          {exporting ? "Preparing download…" : "Download my data"}
+        </Button>
+      </div>
 
       <div className="flex flex-col gap-3">
         <Button
