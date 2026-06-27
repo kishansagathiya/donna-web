@@ -55,6 +55,7 @@ export function ChatApp() {
     state: micState,
     toggleTalk,
     turns: voiceTurns,
+    transcript: liveTranscript,
     reply: liveReply,
     phaseLabel: voicePhaseLabel,
     sessionLabel,
@@ -122,6 +123,7 @@ export function ChatApp() {
         micDisabled={micDisabled}
         sessionLabel={sessionLabel}
         voiceTurns={voiceTurns}
+        liveTranscript={liveTranscript}
         liveReply={liveReply}
         voicePhaseLabel={voicePhaseLabel}
       />

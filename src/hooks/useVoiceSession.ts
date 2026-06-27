@@ -70,6 +70,8 @@ export function useVoiceSession(mode: DonnaMode) {
   });
   const [turns, setTurns] = useState<VoiceTurn[]>([]);
   const turnSeqRef = useRef(0);
+  const transcriptRef = useRef<string | null>(null);
+  const replyRef = useRef<string | null>(null);
   const statusRef = useRef(status);
   statusRef.current = status;
 
@@ -108,6 +110,8 @@ export function useVoiceSession(mode: DonnaMode) {
     stopActivePlayback();
     playbackRef.current = null;
     pendingReplyRef.current = null;
+    transcriptRef.current = null;
+    replyRef.current = null;
     messageChainRef.current = Promise.resolve();
     vadRef.current.resume();
     captureRef.current?.stop();
@@ -152,10 +156,12 @@ export function useVoiceSession(mode: DonnaMode) {
           }
           break;
         case "turn.transcript":
+          transcriptRef.current = message.text;
           setStatus((prev) => ({ ...prev, transcript: message.text }));
           break;
         case "turn.reply":
           if (sessionModeRef.current === "listen") break;
+          replyRef.current = message.text;
           pendingReplyRef.current = message.text;
           setStatus((prev) => ({ ...prev, reply: message.text }));
           break;
@@ -167,6 +173,7 @@ export function useVoiceSession(mode: DonnaMode) {
               if (pendingReplyRef.current) {
                 const reply = pendingReplyRef.current;
                 pendingReplyRef.current = null;
+                replyRef.current = reply;
                 setStatus((prev) => ({ ...prev, reply }));
               }
             });
@@ -198,10 +205,9 @@ export function useVoiceSession(mode: DonnaMode) {
             if (playbackRef.current) {
               await playbackRef.current.finish();
             }
-            if (pendingReplyRef.current) {
-              const reply = pendingReplyRef.current;
+            if (pendingReplyRef.current && !replyRef.current) {
+              replyRef.current = pendingReplyRef.current;
               pendingReplyRef.current = null;
-              setStatus((prev) => ({ ...prev, reply }));
             }
           } catch (err) {
             setVoiceError(
@@ -212,18 +218,22 @@ export function useVoiceSession(mode: DonnaMode) {
             isPlayingRef.current = false;
             playbackRef.current = null;
             vadRef.current.reset();
-            const { transcript, reply } = statusRef.current;
-            if (transcript) {
+            const transcript = transcriptRef.current;
+            const reply = replyRef.current;
+            if (transcript || reply) {
               turnSeqRef.current += 1;
               setTurns((prev) => [
                 ...prev,
                 {
                   id: String(turnSeqRef.current),
-                  user: transcript,
+                  user: transcript ?? "",
                   assistant: reply,
                 },
               ]);
             }
+            transcriptRef.current = null;
+            replyRef.current = null;
+            pendingReplyRef.current = null;
             setStatus({ transcript: null, reply: null, phase: null });
             if (activeRef.current) {
               setState("listening");
@@ -441,6 +451,7 @@ export function useVoiceSession(mode: DonnaMode) {
     state,
     toggleTalk,
     turns,
+    transcript: status.transcript,
     reply: status.reply,
     phaseLabel,
     sessionLabel,

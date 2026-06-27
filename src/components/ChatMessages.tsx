@@ -14,6 +14,7 @@ type Props = {
   micDisabled?: boolean;
   sessionLabel?: string | null;
   voiceTurns?: VoiceTurn[];
+  liveTranscript?: string | null;
   liveReply?: string | null;
   voicePhaseLabel?: string | null;
 };
@@ -47,6 +48,7 @@ export function ChatMessages({
   micDisabled,
   sessionLabel,
   voiceTurns = [],
+  liveTranscript,
   liveReply,
   voicePhaseLabel,
 }: Props) {
@@ -55,6 +57,13 @@ export function ChatMessages({
   const allMessages = useMemo(() => {
     const voiceMessages = voiceTurnsToMessages(voiceTurns);
     const merged = [...messages, ...voiceMessages];
+    if (liveTranscript) {
+      merged.push({
+        id: "live-transcript",
+        role: "user",
+        content: liveTranscript,
+      });
+    }
     if (liveReply) {
       merged.push({
         id: "live-reply",
@@ -64,7 +73,7 @@ export function ChatMessages({
       });
     }
     return merged;
-  }, [liveReply, messages, voiceTurns]);
+  }, [liveReply, liveTranscript, messages, voiceTurns]);
 
   const hasMessages = allMessages.length > 0;
   const displayPhase = voicePhaseLabel ?? phase;
