@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Settings } from "lucide-react";
-import { AccountModal } from "../components/AccountModal";
 import { ChatInput } from "../components/ChatInput";
 import { ChatMessages } from "../components/ChatMessages";
 import { IngestToast } from "../components/IngestToast";
@@ -65,8 +64,6 @@ export function ChatApp() {
     dismissError: dismissVoiceError,
   } = useVoiceSession(mode);
   const { toast, showToast, addFile } = useAssetIngest();
-  const [accountOpen, setAccountOpen] = useState(false);
-
   const activeError = voiceError ?? error;
   const dismissActiveError = voiceError ? dismissVoiceError : dismissError;
   const inputDisabled = busy || micDisabled || sessionActive;
@@ -105,8 +102,8 @@ export function ChatApp() {
         />
         <div className="flex items-center gap-2">
           <IconButton
-            onClick={() => setAccountOpen(true)}
-            aria-label="Settings"
+            onClick={() => navigate("/app/profile")}
+            aria-label="Profile and settings"
             className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
           >
             <Settings className="h-5 w-5" strokeWidth={1.75} />
@@ -147,7 +144,6 @@ export function ChatApp() {
         }
       />
 
-      <AccountModal open={accountOpen} onClose={() => setAccountOpen(false)} />
       <IngestToast toast={toast} />
     </div>
   );
