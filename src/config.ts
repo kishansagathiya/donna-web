@@ -23,3 +23,25 @@ export const APPLE_CLIENT_ID =
 export const AI_DATA_CONSENT_KEY = "donna.ai_data_consent.v1";
 
 export const THEME_STORAGE_KEY = "donna.app_theme.v1";
+
+const PRODUCTION_VOICE_WS_URL =
+  "wss://donna-server-go-production.up.railway.app/voice";
+
+function resolveVoiceWsUrl(): string {
+  if (import.meta.env.VITE_VOICE_WS_URL) {
+    return import.meta.env.VITE_VOICE_WS_URL;
+  }
+  if (import.meta.env.DEV) {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    return `${protocol}//${window.location.host}/voice`;
+  }
+  return PRODUCTION_VOICE_WS_URL;
+}
+
+export const VOICE_WS_URL = resolveVoiceWsUrl();
+
+export const AUDIO_SAMPLE_RATE = 16_000;
+export const AUDIO_CHANNELS = 1;
+export const VAD_SILENCE_MS = 350;
+export const VAD_ENERGY_THRESHOLD = 0.02;
+export const VAD_MIN_SPEECH_MS = 400;

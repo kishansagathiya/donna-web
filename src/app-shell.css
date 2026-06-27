@@ -85,3 +85,25 @@ html[data-theme="indigo"] {
 .animate-pulse-ring {
   animation: pulse-ring 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+.animate-pulse-ring-listening {
+  animation: pulse-ring 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-pulse-ring-processing {
+  animation: pulse-ring 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes mic-requesting {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.animate-mic-requesting {
+  animation: mic-requesting 400ms ease-in-out infinite;
+}

@@ -12,6 +12,10 @@ export default defineConfig({
       "/knowledge": backendTarget,
       "/account": backendTarget,
       "/health": backendTarget,
+      "/voice": {
+        target: backendTarget.replace(/^http/, "ws"),
+        ws: true,
+      },
     },
   },
 });

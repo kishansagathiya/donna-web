@@ -1,79 +1,120 @@
-import { useEffect, useRef } from "react";
-import { Mic } from "lucide-react";
+import { useEffect, useMemo, useRef } from "react";
 import type { UiMessage } from "../hooks/useChatSession";
+import type { VoiceTurn } from "../hooks/useVoiceSession";
+import { ChatHero } from "./ChatHero";
+import type { MicState } from "./MicButton";
 import { MessageContent } from "./MessageContent";
 import { cn } from "../lib/cn";
 
 type Props = {
   messages: UiMessage[];
   phase: string | null;
+  micState: MicState;
+  onMicPress: () => void;
+  micDisabled?: boolean;
+  sessionLabel?: string | null;
+  voiceTurns?: VoiceTurn[];
+  liveReply?: string | null;
+  voicePhaseLabel?: string | null;
 };
 
-function ChatHero() {
-  return (
-    <div className="flex flex-1 flex-col items-center justify-center px-6 py-8 text-center">
-      <div className="relative mb-8 flex h-28 w-28 items-center justify-center">
-        <span
-          className="animate-pulse-ring absolute inset-0 rounded-full bg-donna-primary/15"
-          aria-hidden="true"
-        />
-        <span
-          className="animate-pulse-ring absolute inset-2 rounded-full bg-donna-primary/10 [animation-delay:0.8s]"
-          aria-hidden="true"
-        />
-        <div className="relative flex h-20 w-20 items-center justify-center rounded-full bg-donna-primary text-white shadow-lg shadow-donna-primary/25">
-          <Mic className="h-8 w-8" strokeWidth={1.75} />
-        </div>
-      </div>
-
-      <h1 className="text-3xl font-bold tracking-tight text-donna-text sm:text-4xl">
-        Ask Donna anything
-      </h1>
-      <p className="mt-3 max-w-md text-base leading-relaxed text-donna-muted">
-        Donna remembers what you save — links, files, and past conversations.
-      </p>
-    </div>
-  );
+function voiceTurnsToMessages(turns: VoiceTurn[]): UiMessage[] {
+  const out: UiMessage[] = [];
+  for (const turn of turns) {
+    if (turn.user) {
+      out.push({
+        id: `${turn.id}-user`,
+        role: "user",
+        content: turn.user,
+      });
+    }
+    if (turn.assistant) {
+      out.push({
+        id: `${turn.id}-assistant`,
+        role: "assistant",
+        content: turn.assistant,
+      });
+    }
+  }
+  return out;
 }
 
-export function ChatMessages({ messages, phase }: Props) {
+export function ChatMessages({
+  messages,
+  phase,
+  micState,
+  onMicPress,
+  micDisabled,
+  sessionLabel,
+  voiceTurns = [],
+  liveReply,
+  voicePhaseLabel,
+}: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  const allMessages = useMemo(() => {
+    const voiceMessages = voiceTurnsToMessages(voiceTurns);
+    const merged = [...messages, ...voiceMessages];
+    if (liveReply) {
+      merged.push({
+        id: "live-reply",
+        role: "assistant",
+        content: liveReply,
+        streaming: true,
+      });
+    }
+    return merged;
+  }, [liveReply, messages, voiceTurns]);
+
+  const hasMessages = allMessages.length > 0;
+  const displayPhase = voicePhaseLabel ?? phase;
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, phase]);
-
-  if (messages.length === 0) {
-    return <ChatHero />;
-  }
+  }, [allMessages, displayPhase]);
 
   return (
-    <div
-      className="flex flex-1 flex-col gap-3 overflow-y-auto px-5 py-4 md:px-8"
-      role="log"
-      aria-live="polite"
-    >
-      {messages.map((message) => (
+    <div className="flex min-h-0 flex-1 flex-col">
+      {hasMessages ? (
         <div
-          key={message.id}
-          className={cn(
-            "max-w-[85%] rounded-2xl px-4 py-3 text-[0.9375rem] leading-relaxed break-words",
-            message.role === "user"
-              ? "ml-auto rounded-br-md bg-donna-primary text-white"
-              : "mr-auto rounded-bl-md border border-donna-border bg-donna-surface text-donna-text",
-            message.streaming && "opacity-95",
-          )}
+          className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 py-4 md:px-8"
+          role="log"
+          aria-live="polite"
         >
-          <MessageContent
-            content={message.content || (message.streaming ? "…" : "")}
-            variant={message.role === "user" ? "user" : "assistant"}
-          />
+          {allMessages.map((message) => (
+            <div
+              key={message.id}
+              className={cn(
+                "max-w-[85%] rounded-2xl px-4 py-3 text-[0.9375rem] leading-relaxed break-words",
+                message.role === "user"
+                  ? "ml-auto rounded-br-md bg-donna-primary text-white"
+                  : "mr-auto rounded-bl-md border border-donna-border bg-donna-surface text-donna-text",
+                message.streaming && "opacity-95",
+              )}
+            >
+              <MessageContent
+                content={message.content || (message.streaming ? "…" : "")}
+                variant={message.role === "user" ? "user" : "assistant"}
+              />
+            </div>
+          ))}
+          {displayPhase === "generating" &&
+          allMessages[allMessages.length - 1]?.streaming ? (
+            <p className="text-sm text-donna-muted">Donna is thinking…</p>
+          ) : voicePhaseLabel ? (
+            <p className="text-sm text-donna-muted">{voicePhaseLabel}</p>
+          ) : null}
+          <div ref={bottomRef} />
         </div>
-      ))}
-      {phase === "generating" && messages[messages.length - 1]?.streaming ? (
-        <p className="text-sm text-donna-muted">Donna is thinking…</p>
       ) : null}
-      <div ref={bottomRef} />
+
+      <ChatHero
+        micState={micState}
+        onMicPress={onMicPress}
+        micDisabled={micDisabled}
+        compact={hasMessages}
+        sessionLabel={sessionLabel}
+      />
     </div>
   );
 }

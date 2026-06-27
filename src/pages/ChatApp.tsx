@@ -5,12 +5,15 @@ import { AccountModal } from "../components/AccountModal";
 import { ChatInput } from "../components/ChatInput";
 import { ChatMessages } from "../components/ChatMessages";
 import { IngestToast } from "../components/IngestToast";
+import { ModeToggle } from "../components/ModeToggle";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { IconButton } from "../components/ui/IconButton";
 import { useAssetIngest } from "../hooks/useAssetIngest";
 import { useAuth } from "../hooks/useAuth";
 import { useChatSession } from "../hooks/useChatSession";
+import { useVoiceSession } from "../hooks/useVoiceSession";
 import { cn } from "../lib/cn";
+import type { DonnaMode } from "../types/mode";
 
 const quickActions = [
   { label: "Summarize PDF", prompt: "Summarize the PDF I shared" },
@@ -45,10 +48,27 @@ function UserAvatar({ onClick }: { onClick: () => void }) {
 export function ChatApp() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [mode, setMode] = useState<DonnaMode>("talk");
   const { messages, sendMessage, clearChat, busy, phase, error, dismissError } =
-    useChatSession("talk");
+    useChatSession(mode);
+  const {
+    state: micState,
+    toggleTalk,
+    turns: voiceTurns,
+    reply: liveReply,
+    phaseLabel: voicePhaseLabel,
+    sessionLabel,
+    errorMsg: voiceError,
+    disabled: micDisabled,
+    sessionActive,
+    dismissError: dismissVoiceError,
+  } = useVoiceSession(mode);
   const { toast, showToast, addFile } = useAssetIngest();
   const [accountOpen, setAccountOpen] = useState(false);
+
+  const activeError = voiceError ?? error;
+  const dismissActiveError = voiceError ? dismissVoiceError : dismissError;
+  const inputDisabled = busy || micDisabled || sessionActive;
 
   useEffect(() => {
     const state = location.state as {
@@ -76,30 +96,47 @@ export function ChatApp() {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
-      <header className="flex shrink-0 items-center justify-end gap-2 px-5 py-3">
-        <IconButton
-          onClick={() => setAccountOpen(true)}
-          aria-label="Settings"
-          className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
-        >
-          <Settings className="h-5 w-5" strokeWidth={1.75} />
-        </IconButton>
-        <UserAvatar onClick={() => navigate("/app/profile")} />
+      <header className="flex shrink-0 items-center justify-between gap-2 px-5 py-3">
+        <ModeToggle
+          mode={mode}
+          onChange={setMode}
+          disabled={sessionActive || micDisabled}
+        />
+        <div className="flex items-center gap-2">
+          <IconButton
+            onClick={() => setAccountOpen(true)}
+            aria-label="Settings"
+            className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
+          >
+            <Settings className="h-5 w-5" strokeWidth={1.75} />
+          </IconButton>
+          <UserAvatar onClick={() => navigate("/app/profile")} />
+        </div>
       </header>
 
-      <ChatMessages messages={messages} phase={phase} />
+      <ChatMessages
+        messages={messages}
+        phase={phase}
+        micState={micState}
+        onMicPress={() => void toggleTalk()}
+        micDisabled={micDisabled}
+        sessionLabel={sessionLabel}
+        voiceTurns={voiceTurns}
+        liveReply={liveReply}
+        voicePhaseLabel={voicePhaseLabel}
+      />
 
-      {error ? (
-        <AlertBanner onDismiss={dismissError}>{error}</AlertBanner>
+      {activeError ? (
+        <AlertBanner onDismiss={dismissActiveError}>{activeError}</AlertBanner>
       ) : null}
 
       <ChatInput
         onSend={(text) => void sendMessage(text)}
         onFileSelect={(file) => void handleFileSelect(file)}
-        disabled={busy}
+        disabled={inputDisabled}
         placeholder="Type your message here..."
         quickActions={
-          messages.length === 0
+          messages.length === 0 && voiceTurns.length === 0 && !sessionActive
             ? quickActions.map((action) => ({
                 label: action.label,
                 onClick: () => void sendMessage(action.prompt),
