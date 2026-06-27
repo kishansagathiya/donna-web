@@ -18,7 +18,7 @@ type Props = {
 function coreBackgroundClass(state: MicState): string {
   switch (state) {
     case "listening":
-      return "bg-donna-destructive shadow-donna-destructive/25";
+      return "bg-donna-primary-hover shadow-donna-primary/30 ring-4 ring-donna-primary-ring/40 ring-offset-2 ring-offset-white";
     case "processing":
       return "bg-donna-muted shadow-donna-muted/25";
     default:
@@ -29,7 +29,7 @@ function coreBackgroundClass(state: MicState): string {
 function ringBackgroundClass(state: MicState): string {
   switch (state) {
     case "listening":
-      return "bg-donna-destructive/15";
+      return "bg-donna-primary/20";
     case "processing":
       return "bg-donna-muted/15";
     default:
@@ -40,7 +40,7 @@ function ringBackgroundClass(state: MicState): string {
 function innerRingBackgroundClass(state: MicState): string {
   switch (state) {
     case "listening":
-      return "bg-donna-destructive/10";
+      return "bg-donna-primary/15";
     case "processing":
       return "bg-donna-muted/10";
     default:

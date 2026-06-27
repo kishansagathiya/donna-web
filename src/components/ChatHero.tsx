@@ -35,7 +35,7 @@ export function ChatHero({
         <p
           className={cn(
             "mt-4 text-[0.9375rem] font-semibold leading-snug",
-            isListening ? "text-donna-destructive" : "text-donna-muted",
+            isListening ? "text-donna-primary" : "text-donna-muted",
           )}
           aria-live="polite"
         >
