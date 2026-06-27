@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Settings } from "lucide-react";
+import { History, Settings } from "lucide-react";
+import { ChatHistorySheet } from "../components/ChatHistorySheet";
 import { ChatInput } from "../components/ChatInput";
 import { ChatMessages } from "../components/ChatMessages";
 import { IngestToast } from "../components/IngestToast";
@@ -48,8 +49,17 @@ export function ChatApp() {
   const navigate = useNavigate();
   const location = useLocation();
   const [mode, setMode] = useState<DonnaMode>("talk");
-  const { messages, sendMessage, clearChat, busy, phase, error, dismissError } =
-    useChatSession(mode);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const {
+    messages,
+    sendMessage,
+    clearChat,
+    loadConversation,
+    busy,
+    phase,
+    error,
+    dismissError,
+  } = useChatSession(mode);
   const {
     state: micState,
     toggleTalk,
@@ -102,6 +112,13 @@ export function ChatApp() {
         />
         <div className="flex items-center gap-2">
           <IconButton
+            onClick={() => setHistoryOpen(true)}
+            aria-label="Chat history"
+            className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
+          >
+            <History className="h-5 w-5" strokeWidth={1.75} />
+          </IconButton>
+          <IconButton
             onClick={() => navigate("/app/profile")}
             aria-label="Profile and settings"
             className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
@@ -145,6 +162,12 @@ export function ChatApp() {
       />
 
       <IngestToast toast={toast} />
+
+      <ChatHistorySheet
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        onResume={loadConversation}
+      />
     </div>
   );
 }

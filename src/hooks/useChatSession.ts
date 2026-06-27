@@ -104,10 +104,22 @@ export function useChatSession(mode: DonnaMode) {
     setError(null);
   }, []);
 
+  const loadConversation = useCallback(
+    (nextSessionId: string | undefined, nextMessages: UiMessage[]) => {
+      setMessages(nextMessages);
+      setSessionId(nextSessionId);
+      setError(null);
+      setBusy(false);
+      setPhase(null);
+    },
+    [],
+  );
+
   return {
     messages,
     sendMessage,
     clearChat,
+    loadConversation,
     busy,
     phase,
     error,
