@@ -26,19 +26,6 @@ export async function getAccessToken(): Promise<string | null> {
   return session?.access_token ?? null;
 }
 
-export async function signInWithEmail(
-  email: string,
-  password: string,
-): Promise<void> {
-  const { error } = await supabase.auth.signInWithPassword({
-    email: email.trim(),
-    password,
-  });
-  if (error) {
-    throw new Error(error.message);
-  }
-}
-
 export async function signInWithApple(): Promise<void> {
   if (!APPLE_CLIENT_ID) {
     throw new Error(
@@ -173,19 +160,6 @@ function isAppleSignInCancellation(error: unknown): boolean {
     code.includes("user_cancelled") ||
     code.includes("1001")
   );
-}
-
-export async function signUpWithEmail(
-  email: string,
-  password: string,
-): Promise<void> {
-  const { error } = await supabase.auth.signUp({
-    email: email.trim(),
-    password,
-  });
-  if (error) {
-    throw new Error(error.message);
-  }
 }
 
 export async function signOut(): Promise<void> {
