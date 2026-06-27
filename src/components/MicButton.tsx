@@ -16,36 +16,24 @@ type Props = {
 };
 
 function coreBackgroundClass(state: MicState): string {
-  switch (state) {
-    case "listening":
-      return "bg-donna-primary-hover shadow-donna-primary/30 ring-4 ring-donna-primary-ring/40 ring-offset-2 ring-offset-white";
-    case "processing":
-      return "bg-donna-muted shadow-donna-muted/25";
-    default:
-      return "bg-donna-primary shadow-donna-primary/25";
+  if (state === "processing") {
+    return "bg-donna-muted shadow-donna-muted/25";
   }
+  return "bg-donna-primary shadow-donna-primary/25";
 }
 
 function ringBackgroundClass(state: MicState): string {
-  switch (state) {
-    case "listening":
-      return "bg-donna-primary/20";
-    case "processing":
-      return "bg-donna-muted/15";
-    default:
-      return "bg-donna-primary/15";
+  if (state === "processing") {
+    return "bg-donna-muted/15";
   }
+  return "bg-donna-primary/15";
 }
 
 function innerRingBackgroundClass(state: MicState): string {
-  switch (state) {
-    case "listening":
-      return "bg-donna-primary/15";
-    case "processing":
-      return "bg-donna-muted/10";
-    default:
-      return "bg-donna-primary/10";
+  if (state === "processing") {
+    return "bg-donna-muted/10";
   }
+  return "bg-donna-primary/10";
 }
 
 export function MicButton({ state, onPress, disabled }: Props) {

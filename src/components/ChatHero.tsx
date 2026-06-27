@@ -16,8 +16,6 @@ export function ChatHero({
   compact = false,
   sessionLabel,
 }: Props) {
-  const isListening = micState === "listening";
-
   return (
     <div
       className={cn(
@@ -33,10 +31,7 @@ export function ChatHero({
 
       {sessionLabel ? (
         <p
-          className={cn(
-            "mt-4 text-[0.9375rem] font-semibold leading-snug",
-            isListening ? "text-donna-primary" : "text-donna-muted",
-          )}
+          className="mt-4 text-[0.9375rem] font-semibold leading-snug text-donna-muted"
           aria-live="polite"
         >
           {sessionLabel}
