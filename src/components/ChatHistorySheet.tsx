@@ -93,9 +93,7 @@ export function ChatHistorySheet({ open, onClose, onResume }: Props) {
         <ul className="max-h-[min(60vh,28rem)] space-y-2 overflow-y-auto">
           {conversations.map((conversation) => {
             const Icon = conversation.channel === "voice" ? Mic : MessageSquare;
-            const title =
-              conversation.preview ||
-              (conversation.channel === "voice" ? "Voice conversation" : "New chat");
+            const title = conversation.title;
             const busy = resumingId === conversation.id;
 
             return (
@@ -125,6 +123,11 @@ export function ChatHistorySheet({ open, onClose, onResume }: Props) {
                     <p className="truncate text-sm font-medium text-donna-text">
                       {title}
                     </p>
+                    {conversation.preview ? (
+                      <p className="mt-0.5 truncate text-xs text-donna-muted">
+                        {conversation.preview}
+                      </p>
+                    ) : null}
                     <p className="mt-0.5 text-xs text-donna-muted">
                       {formatConversationDate(conversation.updated_at)}
                       {conversation.turn_count > 0

@@ -4,6 +4,7 @@ import { getAccessToken } from "./auth";
 export type ConversationSummary = {
   id: string;
   channel: "text" | "voice";
+  title: string;
   client_session_id?: string;
   voice_session_id?: string;
   preview: string;
@@ -23,6 +24,7 @@ export type ConversationTurn = {
 export type ConversationDetail = {
   id: string;
   channel: "text" | "voice";
+  title: string;
   client_session_id?: string;
   voice_session_id?: string;
   created_at: string;
