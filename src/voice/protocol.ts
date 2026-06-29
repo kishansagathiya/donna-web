@@ -12,7 +12,7 @@ export type ClientMessage =
       type: "session.start";
       userId?: string;
       sessionId?: string;
-      mode?: "listen" | "talk";
+      mode?: "notes" | "talk";
     }
   | {
       type: "audio.chunk";

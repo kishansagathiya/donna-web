@@ -17,13 +17,18 @@ export function ModeToggle({ mode, onChange, disabled }: Props) {
       role="tablist"
       aria-label="Interaction mode"
     >
-      {(["talk", "listen"] as const).map((value) => (
+      {(
+        [
+          { value: "talk" as const, label: "Talk" },
+          { value: "notes" as const, label: "Notes" },
+        ] as const
+      ).map(({ value, label }) => (
         <button
           key={value}
           type="button"
           role="tab"
           className={cn(
-            "rounded-full px-4 py-1.5 text-[0.8125rem] font-semibold capitalize transition-colors duration-150",
+            "rounded-full px-4 py-1.5 text-[0.8125rem] font-semibold transition-colors duration-150",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-gold-ring",
             "disabled:cursor-not-allowed",
             mode === value
@@ -34,7 +39,7 @@ export function ModeToggle({ mode, onChange, disabled }: Props) {
           disabled={disabled}
           onClick={() => onChange(value)}
         >
-          {value}
+          {label}
         </button>
       ))}
     </div>

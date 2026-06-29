@@ -32,7 +32,7 @@ export function useChatSession(mode: DonnaMode) {
       abortRef.current = false;
       setError(null);
       setBusy(true);
-      setPhase(mode === "listen" ? "saving" : "generating");
+      setPhase(mode === "notes" ? "saving" : "generating");
 
       const userMessage: UiMessage = {
         id: nextId(),
@@ -45,12 +45,12 @@ export function useChatSession(mode: DonnaMode) {
         role: m.role,
         content: m.content,
       }));
-      const isListenMode = mode === "listen";
+      const isNotesMode = mode === "notes";
 
       setMessages((prev) => [
         ...prev,
         userMessage,
-        ...(isListenMode
+        ...(isNotesMode
           ? []
           : [{ id: assistantId, role: "assistant" as const, content: "", streaming: true }]),
       ]);
@@ -61,7 +61,7 @@ export function useChatSession(mode: DonnaMode) {
           onSessionId: (id) => setSessionId(id),
           onPhase: (p) => setPhase(p),
           onChunk: (partial) => {
-            if (abortRef.current || isListenMode) return;
+            if (abortRef.current || isNotesMode) return;
             setMessages((prev) =>
               prev.map((m) =>
                 m.id === assistantId
@@ -72,7 +72,7 @@ export function useChatSession(mode: DonnaMode) {
           },
           onDone: (reply, newSessionId) => {
             setSessionId(newSessionId);
-            if (isListenMode) return;
+            if (isNotesMode) return;
             setMessages((prev) =>
               prev.map((m) =>
                 m.id === assistantId
@@ -87,7 +87,7 @@ export function useChatSession(mode: DonnaMode) {
         const message =
           err instanceof Error ? err.message : "Something went wrong";
         setError(message);
-        if (!isListenMode) {
+        if (!isNotesMode) {
           setMessages((prev) => prev.filter((m) => m.id !== assistantId));
         }
       } finally {

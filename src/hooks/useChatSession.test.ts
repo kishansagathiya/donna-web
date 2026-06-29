@@ -42,15 +42,15 @@ describe("useChatSession", () => {
     });
   });
 
-  it("stores only the user message in listen mode", async () => {
+  it("stores only the user message in notes mode", async () => {
     const { streamChatMessage } = await import("../services/chatApi");
     vi.mocked(streamChatMessage).mockImplementation(
       async (_message, _history, _sessionId, callbacks) => {
-        callbacks.onDone?.("", "sess-listen");
+        callbacks.onDone?.("", "sess-notes");
       },
     );
 
-    const { result } = renderHook(() => useChatSession("listen"));
+    const { result } = renderHook(() => useChatSession("notes"));
 
     await act(async () => {
       await result.current.sendMessage("remember milk");
