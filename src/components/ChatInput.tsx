@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { Code2, FileText, Mail, Mic, Paperclip, Send, Square } from "lucide-react";
 import { cn } from "../lib/cn";
+import { isDonnaThinkingPhase } from "../lib/thinkingPhrases";
 import type { MicState } from "./MicButton";
+import { ThinkingIndicator } from "./ThinkingIndicator";
 import { Spinner } from "./ui/Spinner";
 
 type QuickAction = {
@@ -84,7 +86,9 @@ export function ChatInput({
 
   return (
     <div className="shrink-0 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2">
-      {sessionLabel ? (
+      {isDonnaThinkingPhase(sessionLabel) ? (
+        <ThinkingIndicator className="mb-2 text-[0.8125rem] font-semibold" />
+      ) : sessionLabel ? (
         <p
           className="mb-2 text-center text-[0.8125rem] font-semibold leading-snug text-donna-muted"
           aria-live="polite"

@@ -4,7 +4,9 @@ import type { VoiceTurn } from "../hooks/useVoiceSession";
 import { ChatHero } from "./ChatHero";
 import type { MicState } from "./MicButton";
 import { MessageContent } from "./MessageContent";
+import { ThinkingIndicator } from "./ThinkingIndicator";
 import { cn } from "../lib/cn";
+import { isDonnaThinkingPhase } from "../lib/thinkingPhrases";
 
 type Props = {
   messages: UiMessage[];
@@ -79,6 +81,10 @@ export function ChatMessages({
 
   const hasMessages = allMessages.length > 0;
   const displayPhase = voicePhaseLabel ?? phase;
+  const showThinking =
+    isDonnaThinkingPhase(displayPhase) ||
+    (displayPhase === "generating" &&
+      allMessages[allMessages.length - 1]?.streaming);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -109,11 +115,10 @@ export function ChatMessages({
               />
             </div>
           ))}
-          {displayPhase === "generating" &&
-          allMessages[allMessages.length - 1]?.streaming ? (
-            <p className="text-sm text-donna-muted">Donna is thinking…</p>
-          ) : voicePhaseLabel ? (
-            <p className="text-sm text-donna-muted">{voicePhaseLabel}</p>
+          {showThinking ? (
+            <ThinkingIndicator />
+          ) : displayPhase ? (
+            <p className="text-sm text-donna-muted">{displayPhase}</p>
           ) : null}
           <div ref={bottomRef} />
         </div>

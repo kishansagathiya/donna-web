@@ -107,3 +107,20 @@ html[data-theme="indigo"] {
 .animate-mic-requesting {
   animation: mic-requesting 400ms ease-in-out infinite;
 }
+
+@keyframes thinking-bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+.thinking-dot {
+  animation: thinking-bounce 1.2s ease-in-out infinite;
+}

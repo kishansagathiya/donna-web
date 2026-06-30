@@ -1,5 +1,7 @@
 import { MicButton, type MicState } from "./MicButton";
+import { ThinkingIndicator } from "./ThinkingIndicator";
 import { cn } from "../lib/cn";
+import { isDonnaThinkingPhase } from "../lib/thinkingPhrases";
 
 type Props = {
   micState: MicState;
@@ -37,7 +39,9 @@ export function ChatHero({
         />
       ) : null}
 
-      {sessionLabel ? (
+      {isDonnaThinkingPhase(sessionLabel) ? (
+        <ThinkingIndicator className="mt-4 text-[0.9375rem] font-semibold" />
+      ) : sessionLabel ? (
         <p
           className="mt-4 text-[0.9375rem] font-semibold leading-snug text-donna-muted"
           aria-live="polite"

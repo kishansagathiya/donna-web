@@ -9,6 +9,7 @@ import {
   VOICE_WS_URL,
 } from "../config";
 import { getAccessToken } from "../services/auth";
+import { DONNA_THINKING_PHASE } from "../lib/thinkingPhrases";
 import type { DonnaMode } from "../types/mode";
 import { BrowserAudioCapture } from "../voice/browserCapture";
 import { floatToPcm16, pcm16ToBase64 } from "../voice/pcm";
@@ -429,7 +430,7 @@ export function useVoiceSession(mode: DonnaMode) {
     state === "processing"
       ? sessionModeRef.current === "notes"
         ? "Saving…"
-        : "Donna is thinking…"
+        : DONNA_THINKING_PHASE
       : null;
 
   const sessionLabel =
@@ -444,7 +445,7 @@ export function useVoiceSession(mode: DonnaMode) {
           : state === "processing"
             ? sessionModeRef.current === "notes"
               ? "Saving…"
-              : "Donna is thinking…"
+              : DONNA_THINKING_PHASE
             : null;
 
   return {
