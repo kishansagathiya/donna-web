@@ -13,6 +13,7 @@ type Props = {
   state: MicState;
   onPress: () => void;
   disabled?: boolean;
+  variant?: "hero" | "inline";
 };
 
 function coreBackgroundClass(state: MicState): string {
@@ -36,8 +37,15 @@ function innerRingBackgroundClass(state: MicState): string {
   return "bg-donna-primary/10";
 }
 
-export function MicButton({ state, onPress, disabled }: Props) {
-  const pulseEnabled = state === "listening" || state === "processing";
+export function MicButton({
+  state,
+  onPress,
+  disabled,
+  variant = "hero",
+}: Props) {
+  const isInline = variant === "inline";
+  const pulseEnabled =
+    !isInline && (state === "listening" || state === "processing");
   const isRequesting = state === "requesting";
   const isListening = state === "listening";
   const isProcessing = state === "processing";
@@ -53,7 +61,10 @@ export function MicButton({ state, onPress, disabled }: Props) {
 
   return (
     <div
-      className="relative flex h-28 w-28 items-center justify-center"
+      className={cn(
+        "relative flex items-center justify-center",
+        isInline ? "h-9 w-9" : "h-28 w-28",
+      )}
       data-testid="mic-toggle"
     >
       {pulseEnabled ? (
@@ -84,21 +95,36 @@ export function MicButton({ state, onPress, disabled }: Props) {
         aria-label={accessibilityLabel}
         aria-busy={isRequesting}
         className={cn(
-          "relative flex h-20 w-20 items-center justify-center rounded-full text-white shadow-lg",
+          "relative flex items-center justify-center rounded-full text-white",
           "transition-opacity hover:opacity-90 active:opacity-90",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring focus-visible:ring-offset-2",
           "disabled:cursor-not-allowed disabled:opacity-60",
           coreBackgroundClass(state),
+          isInline
+            ? "h-9 w-9 shadow-none"
+            : "h-20 w-20 shadow-lg",
           isRequesting && "animate-mic-requesting",
           state === "error" && "border-[3px] border-donna-destructive",
+          isInline && isListening && "ring-2 ring-donna-primary-ring",
         )}
       >
         {isProcessing ? (
-          <Spinner className="!h-8 !w-8 !border-white/30 !border-t-white" />
+          <Spinner
+            className={cn(
+              "!border-white/30 !border-t-white",
+              isInline ? "!h-4 !w-4" : "!h-8 !w-8",
+            )}
+          />
         ) : isListening ? (
-          <Square className="h-7 w-7 fill-current" strokeWidth={0} />
+          <Square
+            className={cn("fill-current", isInline ? "h-3.5 w-3.5" : "h-7 w-7")}
+            strokeWidth={0}
+          />
         ) : (
-          <Mic className="h-8 w-8" strokeWidth={1.75} />
+          <Mic
+            className={cn(isInline ? "h-4 w-4" : "h-8 w-8")}
+            strokeWidth={1.75}
+          />
         )}
       </button>
     </div>

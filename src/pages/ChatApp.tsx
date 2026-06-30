@@ -102,6 +102,12 @@ export function ChatApp() {
     }
   }
 
+  const hasMessages =
+    messages.length > 0 ||
+    voiceTurns.length > 0 ||
+    Boolean(liveTranscript) ||
+    Boolean(liveReply);
+
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
       <header className="flex shrink-0 items-center justify-between gap-2 px-5 py-3">
@@ -140,6 +146,7 @@ export function ChatApp() {
         liveTranscript={liveTranscript}
         liveReply={liveReply}
         voicePhaseLabel={voicePhaseLabel}
+        showMic={!hasMessages}
       />
 
       {activeError ? (
@@ -151,6 +158,11 @@ export function ChatApp() {
         onFileSelect={(file) => void handleFileSelect(file)}
         disabled={inputDisabled}
         placeholder="Type your message here..."
+        showMic={hasMessages}
+        micState={micState}
+        onMicPress={() => void toggleTalk()}
+        micDisabled={micDisabled}
+        sessionLabel={hasMessages ? sessionLabel : null}
         quickActions={
           messages.length === 0 && voiceTurns.length === 0 && !sessionActive
             ? quickActions.map((action) => ({

@@ -17,6 +17,7 @@ type Props = {
   liveTranscript?: string | null;
   liveReply?: string | null;
   voicePhaseLabel?: string | null;
+  showMic?: boolean;
 };
 
 function voiceTurnsToMessages(turns: VoiceTurn[]): UiMessage[] {
@@ -51,6 +52,7 @@ export function ChatMessages({
   liveTranscript,
   liveReply,
   voicePhaseLabel,
+  showMic = true,
 }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -122,7 +124,8 @@ export function ChatMessages({
         onMicPress={onMicPress}
         micDisabled={micDisabled}
         compact={hasMessages}
-        sessionLabel={sessionLabel}
+        showMic={showMic}
+        sessionLabel={showMic ? sessionLabel : null}
       />
     </div>
   );

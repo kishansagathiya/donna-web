@@ -6,6 +6,7 @@ type Props = {
   onMicPress: () => void;
   micDisabled?: boolean;
   compact?: boolean;
+  showMic?: boolean;
   sessionLabel?: string | null;
 };
 
@@ -14,8 +15,13 @@ export function ChatHero({
   onMicPress,
   micDisabled,
   compact = false,
+  showMic = true,
   sessionLabel,
 }: Props) {
+  if (compact && !showMic && !sessionLabel) {
+    return null;
+  }
+
   return (
     <div
       className={cn(
@@ -23,11 +29,13 @@ export function ChatHero({
         compact ? "py-4" : "flex-1 py-8",
       )}
     >
-      <MicButton
-        state={micState}
-        onPress={onMicPress}
-        disabled={micDisabled}
-      />
+      {showMic ? (
+        <MicButton
+          state={micState}
+          onPress={onMicPress}
+          disabled={micDisabled}
+        />
+      ) : null}
 
       {sessionLabel ? (
         <p
@@ -38,7 +46,7 @@ export function ChatHero({
         </p>
       ) : null}
 
-      {compact || sessionLabel ? null : (
+      {compact || sessionLabel || !showMic ? null : (
         <>
           <h1 className="mt-8 text-3xl font-bold tracking-tight text-donna-text sm:text-4xl">
             Ask Donna anything
