@@ -21,11 +21,11 @@ import { IconButton } from "../components/ui/IconButton";
 import { cn } from "../lib/cn";
 
 export function ExtractedMemoryPage() {
-  const [loading, setLoading] = useState(true);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [savingProfile, setSavingProfile] = useState(false);
   const [query, setQuery] = useState("");
   const [facts, setFacts] = useState<MemoryFact[]>([]);
-  const [searching, setSearching] = useState(false);
+  const [searching, setSearching] = useState(true);
   const [summary, setSummary] = useState("");
   const [identityFactsText, setIdentityFactsText] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -49,21 +49,58 @@ export function ExtractedMemoryPage() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
     void (async () => {
-      setLoading(true);
+      setLoadingProfile(true);
+      setSearching(true);
       setError(null);
-      try {
-        const profile = await getMemoryProfile();
-        setSummary(profile.summary);
-        setIdentityFactsText(profile.identity_facts.join("\n"));
-        await loadFacts();
-      } catch (err: unknown) {
-        setError(err instanceof Error ? err.message : "Failed to load memory");
-      } finally {
-        setLoading(false);
+
+      const [profileResult, factsResult] = await Promise.allSettled([
+        getMemoryProfile(),
+        listMemoryFacts(),
+      ]);
+
+      if (cancelled) {
+        return;
       }
+
+      const failures: string[] = [];
+
+      if (profileResult.status === "fulfilled") {
+        setSummary(profileResult.value.summary);
+        setIdentityFactsText(profileResult.value.identity_facts.join("\n"));
+      } else {
+        failures.push(
+          profileResult.reason instanceof Error
+            ? profileResult.reason.message
+            : "Failed to load profile",
+        );
+      }
+
+      if (factsResult.status === "fulfilled") {
+        setFacts(factsResult.value);
+      } else {
+        setFacts([]);
+        failures.push(
+          factsResult.reason instanceof Error
+            ? factsResult.reason.message
+            : "Failed to load facts",
+        );
+      }
+
+      if (failures.length > 0) {
+        setError(failures.join(" · "));
+      }
+
+      setLoadingProfile(false);
+      setSearching(false);
     })();
-  }, [loadFacts]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleSaveProfile = async () => {
     setSavingProfile(true);
@@ -148,14 +185,6 @@ export function ExtractedMemoryPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex h-full min-h-0 w-full flex-col items-center justify-center bg-white">
-        <Spinner />
-      </div>
-    );
-  }
-
   return (
     <div className="flex h-full min-h-0 w-full flex-col bg-white">
       <header className="flex shrink-0 items-center justify-between border-b border-donna-border px-6 py-5 md:px-8">
@@ -183,12 +212,18 @@ export function ExtractedMemoryPage() {
         ) : null}
 
         <section className="border-b border-donna-border px-5 py-4 md:px-8">
-          <h2 className="mb-2 text-sm font-semibold text-donna-text">Profile</h2>
+          <div className="mb-2 flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-donna-text">Profile</h2>
+            {loadingProfile ? (
+              <span className="text-xs text-donna-muted">Loading…</span>
+            ) : null}
+          </div>
           <TextArea
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
             placeholder="Summary about you…"
             className="min-h-24"
+            disabled={loadingProfile}
           />
           <label className="mt-3 block text-xs font-medium text-donna-muted">
             Identity facts (one per line)
@@ -198,11 +233,12 @@ export function ExtractedMemoryPage() {
             onChange={(e) => setIdentityFactsText(e.target.value)}
             placeholder={"User's name is …"}
             className="mt-1 min-h-16"
+            disabled={loadingProfile}
           />
           <Button
             className="mt-3 !w-auto"
             onClick={() => void handleSaveProfile()}
-            disabled={savingProfile}
+            disabled={savingProfile || loadingProfile}
           >
             {savingProfile ? "Saving…" : "Save profile"}
           </Button>
