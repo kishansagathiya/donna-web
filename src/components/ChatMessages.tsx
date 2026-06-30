@@ -4,7 +4,7 @@ import type { VoiceTurn } from "../hooks/useVoiceSession";
 import { ChatHero } from "./ChatHero";
 import type { MicState } from "./MicButton";
 import { MessageContent } from "./MessageContent";
-import { ThinkingIndicator } from "./ThinkingIndicator";
+import { AssistantThinkingBlock } from "./ThinkingIndicator";
 import { cn } from "../lib/cn";
 import { isDonnaThinkingPhase } from "../lib/thinkingPhrases";
 
@@ -85,6 +85,10 @@ export function ChatMessages({
     isDonnaThinkingPhase(displayPhase) ||
     (displayPhase === "generating" &&
       allMessages[allMessages.length - 1]?.streaming);
+  const hasWaitingBubble = allMessages.some(
+    (message) =>
+      message.role === "assistant" && message.streaming && !message.content,
+  );
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -98,27 +102,37 @@ export function ChatMessages({
           role="log"
           aria-live="polite"
         >
-          {allMessages.map((message) => (
-            <div
-              key={message.id}
-              className={cn(
-                "max-w-[85%] rounded-2xl px-4 py-3 text-[0.9375rem] leading-relaxed break-words",
-                message.role === "user"
-                  ? "ml-auto rounded-br-md bg-donna-primary text-white"
-                  : "mr-auto rounded-bl-md border border-donna-border bg-donna-surface text-donna-text",
-                message.streaming && "opacity-95",
-              )}
-            >
-              <MessageContent
-                content={message.content || (message.streaming ? "…" : "")}
-                variant={message.role === "user" ? "user" : "assistant"}
-              />
-            </div>
-          ))}
-          {showThinking ? (
-            <ThinkingIndicator />
-          ) : displayPhase ? (
-            <p className="text-sm text-donna-muted">{displayPhase}</p>
+          {allMessages.map((message) => {
+            if (
+              message.role === "assistant" &&
+              message.streaming &&
+              !message.content
+            ) {
+              return <AssistantThinkingBlock key={message.id} />;
+            }
+
+            return (
+              <div
+                key={message.id}
+                className={cn(
+                  "max-w-[85%] rounded-2xl px-4 py-3 text-[0.9375rem] leading-relaxed break-words",
+                  message.role === "user"
+                    ? "ml-auto rounded-br-md bg-donna-primary text-white"
+                    : "mr-auto rounded-bl-md border border-donna-border bg-donna-surface text-donna-text",
+                  message.streaming && "opacity-95",
+                )}
+              >
+                <MessageContent
+                  content={message.content}
+                  variant={message.role === "user" ? "user" : "assistant"}
+                />
+              </div>
+            );
+          })}
+          {showThinking && !hasWaitingBubble ? (
+            <AssistantThinkingBlock />
+          ) : displayPhase && !showThinking ? (
+            <p className="mr-auto text-sm text-donna-muted">{displayPhase}</p>
           ) : null}
           <div ref={bottomRef} />
         </div>
