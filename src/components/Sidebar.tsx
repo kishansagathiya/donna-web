@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   Bot,
+  CalendarCheck,
   CircleHelp,
   Database,
   MessageSquare,
@@ -11,6 +12,7 @@ import { cn } from "../lib/cn";
 
 const navItems = [
   { to: "/app", label: "Chat", icon: MessageSquare, end: true },
+  { to: "/app/today", label: "Today", icon: CalendarCheck, end: false },
   { to: "/app/search", label: "Memory", icon: Database, end: false },
   { to: "/app/profile", label: "Profile", icon: User, end: false },
 ] as const;

@@ -14,6 +14,30 @@ export type NoteSummary = {
   source_type: string;
 };
 
+export type DailyTask = {
+  note_id: string;
+  title: string;
+  preview: string;
+  priority: "do_first" | "schedule" | "delegate" | string;
+  reason: string;
+  is_urgent: boolean;
+  is_important: boolean;
+};
+
+export type OutdatedNote = {
+  note_id: string;
+  title: string;
+  preview: string;
+  reason: string;
+};
+
+export type DailyBriefing = {
+  date: string;
+  summary: string;
+  tasks: DailyTask[];
+  outdated: OutdatedNote[];
+};
+
 export type Note = NoteSummary & {
   user_id: string;
   source_id: string | null;
@@ -53,6 +77,15 @@ async function parseJSON<T>(res: Response): Promise<T> {
     throw new Error(body.message ?? body.error ?? `Request failed (${res.status})`);
   }
   return body;
+}
+
+export async function checkDailyNotes(): Promise<DailyBriefing> {
+  const res = await authorizedFetch(
+    "/notes/daily-check",
+    { method: "POST" },
+    true,
+  );
+  return parseJSON(res);
 }
 
 export async function listRecentNotes(
