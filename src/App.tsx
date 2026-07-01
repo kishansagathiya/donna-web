@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { BrowserRouter, Navigate, Route, Routes, useLocation, useParams } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
 import { ThemeProvider } from "./hooks/useTheme";
 import { Layout } from "./components/Layout";
@@ -10,6 +10,8 @@ import { Login } from "./pages/Login";
 import { Consent } from "./pages/Consent";
 import { ChatApp } from "./pages/ChatApp";
 import { ContextDetailPage } from "./pages/ContextDetailPage";
+import { NoteDetailPage } from "./pages/NoteDetailPage";
+import { NotesPage } from "./pages/NotesPage";
 import { AddMemoryPage } from "./pages/AddMemoryPage";
 import { ExtractedMemoryPage } from "./pages/ExtractedMemoryPage";
 import { ProfilePage } from "./pages/ProfilePage";
@@ -25,6 +27,7 @@ function PageTitle() {
       "/login": "Sign in — Donna",
       "/consent": "Data consent — Donna",
       "/app": "Donna",
+      "/app/notes": "Notes — Donna",
       "/app/search": "Memory — Donna",
       "/app/profile": "Profile — Donna",
       "/privacy": "Privacy — Donna",
@@ -34,11 +37,6 @@ function PageTitle() {
   }, [pathname]);
 
   return null;
-}
-
-function LegacyNotesRedirect() {
-  const { id } = useParams<{ id?: string }>();
-  return <Navigate to={id ? `/app/context/${id}` : "/app"} replace />;
 }
 
 export default function App() {
@@ -68,10 +66,10 @@ export default function App() {
               <Route path="app/search" element={<ExtractedMemoryPage />} />
               <Route path="app/add" element={<AddMemoryPage />} />
               <Route path="app/profile" element={<ProfilePage />} />
+              <Route path="app/notes" element={<NotesPage />} />
+              <Route path="app/notes/:id" element={<NoteDetailPage />} />
               <Route path="app/context/:id" element={<ContextDetailPage />} />
-              <Route path="app/context" element={<Navigate to="/app" replace />} />
-              <Route path="app/notes" element={<Navigate to="/app" replace />} />
-              <Route path="app/notes/:id" element={<LegacyNotesRedirect />} />
+              <Route path="app/context" element={<Navigate to="/app/search" replace />} />
             </Route>
           </Route>
         </Routes>

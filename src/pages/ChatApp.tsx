@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { History, Settings } from "lucide-react";
+import { History, Settings, StickyNote } from "lucide-react";
 import { ChatHistorySheet } from "../components/ChatHistorySheet";
 import { ChatInput } from "../components/ChatInput";
 import { ChatMessages } from "../components/ChatMessages";
@@ -58,7 +58,9 @@ export function ChatApp() {
     busy,
     phase,
     error,
+    noteSavedMessage,
     dismissError,
+    dismissNoteSaved,
   } = useChatSession(mode);
   const {
     state: micState,
@@ -77,6 +79,13 @@ export function ChatApp() {
   const activeError = voiceError ?? error;
   const dismissActiveError = voiceError ? dismissVoiceError : dismissError;
   const inputDisabled = busy || micDisabled || sessionActive;
+  const isNotesMode = mode === "notes";
+
+  useEffect(() => {
+    if (!noteSavedMessage) return;
+    const timer = window.setTimeout(() => dismissNoteSaved(), 2500);
+    return () => window.clearTimeout(timer);
+  }, [noteSavedMessage, dismissNoteSaved]);
 
   useEffect(() => {
     const state = location.state as {
@@ -103,10 +112,11 @@ export function ChatApp() {
   }
 
   const hasMessages =
-    messages.length > 0 ||
-    voiceTurns.length > 0 ||
-    Boolean(liveTranscript) ||
-    Boolean(liveReply);
+    !isNotesMode &&
+    (messages.length > 0 ||
+      voiceTurns.length > 0 ||
+      Boolean(liveTranscript) ||
+      Boolean(liveReply));
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
@@ -117,13 +127,23 @@ export function ChatApp() {
           disabled={sessionActive || micDisabled}
         />
         <div className="flex items-center gap-2">
-          <IconButton
-            onClick={() => setHistoryOpen(true)}
-            aria-label="Chat history"
-            className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
-          >
-            <History className="h-5 w-5" strokeWidth={1.75} />
-          </IconButton>
+          {isNotesMode ? (
+            <IconButton
+              onClick={() => navigate("/app/notes")}
+              aria-label="View all notes"
+              className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
+            >
+              <StickyNote className="h-5 w-5" strokeWidth={1.75} />
+            </IconButton>
+          ) : (
+            <IconButton
+              onClick={() => setHistoryOpen(true)}
+              aria-label="Chat history"
+              className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
+            >
+              <History className="h-5 w-5" strokeWidth={1.75} />
+            </IconButton>
+          )}
           <IconButton
             onClick={() => navigate("/app/profile")}
             aria-label="Profile and settings"
@@ -155,16 +175,21 @@ export function ChatApp() {
 
       <ChatInput
         onSend={(text) => void sendMessage(text)}
-        onFileSelect={(file) => void handleFileSelect(file)}
+        onFileSelect={isNotesMode ? undefined : (file) => void handleFileSelect(file)}
         disabled={inputDisabled}
-        placeholder="Type your message here..."
-        showMic={hasMessages}
+        placeholder={
+          isNotesMode ? "Jot down a note…" : "Type your message here..."
+        }
+        showMic={hasMessages || isNotesMode}
         micState={micState}
         onMicPress={() => void toggleTalk()}
         micDisabled={micDisabled}
         sessionLabel={hasMessages ? sessionLabel : null}
         quickActions={
-          messages.length === 0 && voiceTurns.length === 0 && !sessionActive
+          !isNotesMode &&
+          messages.length === 0 &&
+          voiceTurns.length === 0 &&
+          !sessionActive
             ? quickActions.map((action) => ({
                 label: action.label,
                 onClick: () => void sendMessage(action.prompt),
@@ -173,7 +198,13 @@ export function ChatApp() {
         }
       />
 
-      <IngestToast toast={toast} />
+      <IngestToast
+        toast={
+          noteSavedMessage
+            ? { message: noteSavedMessage, isError: false }
+            : toast
+        }
+      />
 
       <ChatHistorySheet
         open={historyOpen}

@@ -5,12 +5,14 @@ import {
   Database,
   MessageSquare,
   Plus,
+  StickyNote,
   User,
 } from "lucide-react";
 import { cn } from "../lib/cn";
 
 const navItems = [
   { to: "/app", label: "Chat", icon: MessageSquare, end: true },
+  { to: "/app/notes", label: "Notes", icon: StickyNote, end: false },
   { to: "/app/search", label: "Memory", icon: Database, end: false },
   { to: "/app/profile", label: "Profile", icon: User, end: false },
 ] as const;

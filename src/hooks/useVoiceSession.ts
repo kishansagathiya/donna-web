@@ -221,7 +221,7 @@ export function useVoiceSession(mode: DonnaMode) {
             vadRef.current.reset();
             const transcript = transcriptRef.current;
             const reply = replyRef.current;
-            if (transcript || reply) {
+            if (sessionModeRef.current !== "notes" && (transcript || reply)) {
               turnSeqRef.current += 1;
               setTurns((prev) => [
                 ...prev,
