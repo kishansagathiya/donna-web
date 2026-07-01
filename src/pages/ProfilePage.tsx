@@ -4,6 +4,7 @@ import {
   downloadAccountExport,
   getAccountPreferences,
   updateLLMModel,
+  updatePersona,
 } from "../services/accountApi";
 import { signOut } from "../services/auth";
 import { Button } from "../components/ui/Button";
@@ -23,7 +24,11 @@ export function ProfilePage() {
   const [loadingModels, setLoadingModels] = useState(true);
   const [savingModel, setSavingModel] = useState(false);
   const [exporting, setExporting] = useState(false);
-  const busy = signingOut || deleting || savingModel || exporting;
+  const [personas, setPersonas] = useState<string[]>([]);
+  const [persona, setPersona] = useState("companion");
+  const [personaCustom, setPersonaCustom] = useState("");
+  const [savingPersona, setSavingPersona] = useState(false);
+  const busy = signingOut || deleting || savingModel || savingPersona || exporting;
 
   const email = session?.user.email ?? "";
   const name =
@@ -37,6 +42,9 @@ export function ProfilePage() {
       .then((preferences) => {
         setModels(preferences.available_models);
         setSelectedModel(preferences.llm_model);
+        setPersonas(preferences.available_personas ?? []);
+        setPersona(preferences.persona ?? "companion");
+        setPersonaCustom(preferences.persona_custom ?? "");
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "Could not load models");
@@ -56,6 +64,33 @@ export function ProfilePage() {
       setError(err instanceof Error ? err.message : "Could not save model");
     } finally {
       setSavingModel(false);
+    }
+  }
+
+  async function handlePersonaChange(next: string) {
+    const previous = persona;
+    setPersona(next);
+    setSavingPersona(true);
+    setError(null);
+    try {
+      await updatePersona(next, next === "custom" ? personaCustom : "");
+    } catch (err) {
+      setPersona(previous);
+      setError(err instanceof Error ? err.message : "Could not save persona");
+    } finally {
+      setSavingPersona(false);
+    }
+  }
+
+  async function handlePersonaCustomSave() {
+    setSavingPersona(true);
+    setError(null);
+    try {
+      await updatePersona("custom", personaCustom);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save persona");
+    } finally {
+      setSavingPersona(false);
     }
   }
 
@@ -150,6 +185,64 @@ export function ProfilePage() {
         </div>
 
         <ThemeToggle className="mb-8 max-w-lg" />
+
+        <div className="mb-8 max-w-lg">
+          <label
+            htmlFor="persona"
+            className="mb-1 block text-sm font-semibold text-donna-text"
+          >
+            Persona
+          </label>
+          <p className="mb-2 text-xs text-donna-muted">
+            How Donna talks to you in chat and voice.
+          </p>
+          <select
+            id="persona"
+            className="w-full rounded-donna border border-donna-border bg-white px-3 py-3 text-sm capitalize text-donna-text"
+            value={persona}
+            onChange={(event) => void handlePersonaChange(event.target.value)}
+            disabled={busy || personas.length === 0}
+          >
+            {(personas.length > 0
+              ? personas
+              : ["companion", "boss", "coach", "therapist", "custom"]
+            ).map((p) => (
+              <option key={p} value={p} className="capitalize">
+                {p}
+              </option>
+            ))}
+          </select>
+          {persona === "custom" ? (
+            <div className="mt-3">
+              <label
+                htmlFor="persona-custom"
+                className="mb-1 block text-xs font-medium text-donna-text"
+              >
+                Custom persona instructions
+              </label>
+              <textarea
+                id="persona-custom"
+                rows={4}
+                maxLength={4000}
+                placeholder="e.g. You are Donna, a witty senior engineer who pairs with me…"
+                value={personaCustom}
+                onChange={(e) => setPersonaCustom(e.target.value)}
+                disabled={busy}
+                className="w-full rounded-donna border border-donna-border px-3 py-3 text-sm text-donna-text focus:border-donna-gold-ring focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30"
+              />
+              <div className="mt-2 flex justify-end">
+                <Button
+                  variant="secondary"
+                  className="!w-auto px-4 py-2 text-sm"
+                  onClick={() => void handlePersonaCustomSave()}
+                  disabled={busy || savingPersona}
+                >
+                  {savingPersona ? "Saving…" : "Save persona"}
+                </Button>
+              </div>
+            </div>
+          ) : null}
+        </div>
 
         <div className="mb-8 max-w-lg">
           <p className="mb-1 text-sm font-semibold text-donna-text">

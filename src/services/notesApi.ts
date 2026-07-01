@@ -12,6 +12,32 @@ export type NoteSummary = {
   is_important: boolean;
   is_urgent: boolean;
   source_type: string;
+  keywords: string[] | null;
+  category: string | null;
+};
+
+export type DailyTask = {
+  note_id: string;
+  title: string;
+  preview: string;
+  priority: "do_first" | "schedule" | "delegate" | string;
+  reason: string;
+  is_urgent: boolean;
+  is_important: boolean;
+};
+
+export type OutdatedNote = {
+  note_id: string;
+  title: string;
+  preview: string;
+  reason: string;
+};
+
+export type DailyBriefing = {
+  date: string;
+  summary: string;
+  tasks: DailyTask[];
+  outdated: OutdatedNote[];
 };
 
 export type Note = NoteSummary & {
@@ -21,6 +47,16 @@ export type Note = NoteSummary & {
   user_last_modified: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type NoteTags = {
+  note_id: string;
+  tags: string[];
+};
+
+export type TagCount = {
+  tag: string;
+  count: number;
 };
 
 async function authorizedFetch(
@@ -53,6 +89,15 @@ async function parseJSON<T>(res: Response): Promise<T> {
     throw new Error(body.message ?? body.error ?? `Request failed (${res.status})`);
   }
   return body;
+}
+
+export async function checkDailyNotes(): Promise<DailyBriefing> {
+  const res = await authorizedFetch(
+    "/notes/daily-check",
+    { method: "POST" },
+    true,
+  );
+  return parseJSON(res);
 }
 
 export async function listRecentNotes(
@@ -123,6 +168,61 @@ export async function deleteNote(id: string): Promise<void> {
     true,
   );
   await parseJSON(res);
+}
+
+export async function listTags(limit = 30): Promise<TagCount[]> {
+  const res = await authorizedFetch(`/notes/tags?limit=${limit}`, {}, true);
+  return parseJSON(res);
+}
+
+export async function getNoteTags(id: string): Promise<NoteTags> {
+  const res = await authorizedFetch(`/notes/${id}/tags`, {}, true);
+  return parseJSON(res);
+}
+
+export async function setNoteTags(id: string, tags: string[]): Promise<NoteTags> {
+  const res = await authorizedFetch(
+    `/notes/${id}/tags`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ tags }),
+    },
+    true,
+  );
+  return parseJSON(res);
+}
+
+export async function listNotesForTag(tag: string, limit = 50): Promise<NoteSummary[]> {
+  const res = await authorizedFetch(
+    `/notes/tags/${encodeURIComponent(tag.trim().toLowerCase())}?limit=${limit}`,
+    {},
+    true,
+  );
+  return parseJSON(res);
+}
+
+export async function recomputeTagCounts(): Promise<void> {
+  const res = await authorizedFetch(
+    `/notes/recompute-tags`,
+    { method: "POST" },
+    true,
+  );
+  await parseJSON(res);
+}
+
+export function extractHashtags(text: string): string[] {
+  const matches = text.match(/(?:^|\s)#([A-Za-z0-9][A-Za-z0-9_-]{0,40})/g) ?? [];
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const m of matches) {
+    const tag = m.replace(/(?:^|\s)#/, "").trim().toLowerCase();
+    if (tag && !seen.has(tag)) {
+      seen.add(tag);
+      out.push(tag);
+    }
+  }
+  return out;
 }
 
 export function formatNoteDate(iso: string): string {

@@ -3,9 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { Flame, StickyNote, Star } from "lucide-react";
 import {
   formatNoteDate,
+  listNotesForTag,
   listRecentNotes,
+  listTags,
   updateNote,
   type NoteSummary,
+  type TagCount,
 } from "../services/notesApi";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -18,6 +21,8 @@ const PAGE_SIZE = 50;
 export function NotesPage() {
   const navigate = useNavigate();
   const [notes, setNotes] = useState<NoteSummary[]>([]);
+  const [tags, setTags] = useState<TagCount[]>([]);
+  const [activeTag, setActiveTag] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -45,9 +50,39 @@ export function NotesPage() {
     }
   }, []);
 
+  const loadTagged = useCallback(async (tag: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const batch = await listNotesForTag(tag, PAGE_SIZE);
+      setNotes(batch);
+      setHasMore(false);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load tag");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const refresh = useCallback(() => {
+    listTags(30)
+      .then(setTags)
+      .catch(() => setTags([]));
+  }, []);
+
   useEffect(() => {
     void loadNotes();
-  }, [loadNotes]);
+    refresh();
+  }, [loadNotes, refresh]);
+
+  const selectTag = (tag: string | null) => {
+    setActiveTag(tag);
+    if (tag) {
+      void loadTagged(tag);
+    } else {
+      void loadNotes();
+    }
+  };
 
   const toggleFlag = async (
     note: NoteSummary,
@@ -78,6 +113,39 @@ export function NotesPage() {
       <header className="flex shrink-0 items-center justify-between border-b border-donna-border px-6 py-5 md:px-8">
         <h1 className="text-xl font-semibold text-donna-text">Notes</h1>
       </header>
+
+      {tags.length > 0 ? (
+        <div className="flex shrink-0 flex-wrap gap-1.5 border-b border-donna-border px-5 py-3 md:px-8">
+          <button
+            type="button"
+            onClick={() => selectTag(null)}
+            className={cn(
+              "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
+              activeTag === null
+                ? "bg-donna-primary text-white"
+                : "bg-donna-surface text-donna-muted hover:text-donna-text",
+            )}
+          >
+            All
+          </button>
+          {tags.map((t) => (
+            <button
+              key={t.tag}
+              type="button"
+              onClick={() => selectTag(t.tag)}
+              className={cn(
+                "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
+                activeTag === t.tag
+                  ? "bg-donna-primary text-white"
+                  : "bg-donna-surface text-donna-muted hover:text-donna-text",
+              )}
+            >
+              #{t.tag}
+              <span className="ml-1 opacity-60">{t.count}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       <div className="flex flex-1 flex-col overflow-y-auto">
         {error ? (
@@ -150,6 +218,23 @@ export function NotesPage() {
                 <p className="mt-2 text-xs text-donna-muted">
                   {formatNoteDate(note.note_date)}
                 </p>
+                {note.category || (note.keywords && note.keywords.length > 0) ? (
+                  <div className="mt-1.5 flex flex-wrap gap-1">
+                    {note.category ? (
+                      <span className="rounded-full bg-donna-surface px-2 py-0.5 text-[0.6875rem] font-medium capitalize text-donna-muted">
+                        {note.category}
+                      </span>
+                    ) : null}
+                    {(note.keywords ?? []).slice(0, 4).map((kw) => (
+                      <span
+                        key={kw}
+                        className="rounded-full bg-donna-surface px-2 py-0.5 text-[0.6875rem] text-donna-muted"
+                      >
+                        {kw}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
               </Card>
             </li>
           ))}

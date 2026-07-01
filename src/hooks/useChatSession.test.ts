@@ -56,6 +56,8 @@ describe("useChatSession", () => {
       is_important: false,
       is_urgent: false,
       source_type: "manual",
+      keywords: [],
+      category: null,
       user_id: "user-1",
       source_id: null,
       content: "remember milk",

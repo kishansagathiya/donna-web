@@ -3,9 +3,12 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Flame, Star } from "lucide-react";
 import {
   deleteNote,
+  extractHashtags,
   formatNoteDate,
   fromDatetimeLocalValue,
   getNote,
+  getNoteTags,
+  setNoteTags,
   toDatetimeLocalValue,
   updateNote,
   type Note,
@@ -13,7 +16,6 @@ import {
 import { AppPageHeader } from "../components/ui/AppPageHeader";
 import { Button } from "../components/ui/Button";
 import { TextArea } from "../components/ui/TextArea";
-import { Spinner } from "../components/ui/Spinner";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { cn } from "../lib/cn";
 
@@ -23,8 +25,11 @@ export function NoteDetailPage() {
   const [item, setItem] = useState<Note | null>(null);
   const [content, setContent] = useState("");
   const [noteDate, setNoteDate] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagInput, setTagInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [savingTags, setSavingTags] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -41,6 +46,9 @@ export function NoteDetailPage() {
         setError(err instanceof Error ? err.message : "Note not found");
       })
       .finally(() => setLoading(false));
+    void getNoteTags(id)
+      .then((t) => setTags(t.tags ?? []))
+      .catch(() => setTags([]));
   }, [id]);
 
   const handleSave = async () => {
@@ -86,6 +94,47 @@ export function NoteDetailPage() {
       setError(err instanceof Error ? err.message : "Failed to delete");
     }
   };
+
+  const persistTags = async (next: string[]) => {
+    if (!id) {
+      return;
+    }
+    setSavingTags(true);
+    setError(null);
+    try {
+      const res = await setNoteTags(id, next);
+      setTags(res.tags ?? []);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to save tags");
+    } finally {
+      setSavingTags(false);
+    }
+  };
+
+  const addTag = (raw: string) => {
+    const tag = raw.trim().toLowerCase().replace(/^#/, "");
+    if (!tag || tags.includes(tag)) {
+      setTagInput("");
+      return;
+    }
+    const next = [...tags, tag];
+    setTags(next);
+    setTagInput("");
+    void persistTags(next);
+  };
+
+  const removeTag = (tag: string) => {
+    const next = tags.filter((t) => t !== tag);
+    setTags(next);
+    void persistTags(next);
+  };
+
+  const keywordSuggestions = (() => {
+    if (!item?.keywords) {
+      return [];
+    }
+    return item.keywords.filter((k) => !tags.includes(k.toLowerCase())).slice(0, 8);
+  })();
 
   if (loading) {
     return (
@@ -153,6 +202,69 @@ export function NoteDetailPage() {
               onChange={(e) => setNoteDate(e.target.value)}
             />
           </label>
+        </div>
+
+        <div className="mb-4">
+          <p className="mb-1.5 text-xs font-semibold text-donna-text">Tags</p>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 rounded-full bg-donna-surface px-2.5 py-1 text-xs font-medium text-donna-text"
+              >
+                #{tag}
+                <button
+                  type="button"
+                  aria-label={`Remove tag ${tag}`}
+                  className="text-donna-muted hover:text-donna-destructive"
+                  onClick={() => removeTag(tag)}
+                  disabled={savingTags}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+            {tags.length === 0 ? (
+              <span className="text-xs text-donna-muted">No tags yet.</span>
+            ) : null}
+          </div>
+          {keywordSuggestions.length > 0 ? (
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
+              <span className="text-xs text-donna-muted">Suggested:</span>
+              {keywordSuggestions.map((kw) => (
+                <button
+                  key={kw}
+                  type="button"
+                  disabled={savingTags}
+                  onClick={() => addTag(kw)}
+                  className="rounded-full border border-danna-border px-2 py-0.5 text-xs text-donna-muted transition-colors hover:border-donna-gold-ring hover:text-donna-text"
+                >
+                  +{kw}
+                </button>
+              ))}
+            </div>
+          ) : null}
+          <div className="mt-2 flex items-center gap-2">
+            <input
+              type="text"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addTag(tagInput);
+                }
+              }}
+              disabled={savingTags}
+              placeholder="Add a tag…"
+              className="w-full max-w-64 rounded-donna border border-donna-border px-3 py-1.5 text-xs text-donna-text focus:border-donna-gold-ring focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30"
+            />
+            {extractHashtags(content).length > 0 ? (
+              <span className="text-xs text-donna-muted">
+                {extractHashtags(content).length} #tag(s) in note
+              </span>
+            ) : null}
+          </div>
         </div>
 
         <TextArea
