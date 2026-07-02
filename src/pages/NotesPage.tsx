@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Flame, StickyNote, Star } from "lucide-react";
+import { Flame, Send, StickyNote, Star } from "lucide-react";
 import {
+  createNote,
   formatNoteDate,
   listNotesForTag,
   listRecentNotes,
@@ -18,6 +19,92 @@ import { cn } from "../lib/cn";
 
 const PAGE_SIZE = 50;
 
+function NoteComposeBar({
+  onSave,
+  saving,
+}: {
+  onSave: (text: string) => Promise<void>;
+  saving: boolean;
+}) {
+  const [draft, setDraft] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const hasText = draft.trim().length > 0;
+
+  function resize() {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
+  }
+
+  useEffect(() => {
+    resize();
+  }, [draft]);
+
+  async function submit() {
+    const trimmed = draft.trim();
+    if (!trimmed || saving) return;
+    await onSave(trimmed);
+    setDraft("");
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
+  }
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    void submit();
+  }
+
+  function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      void submit();
+    }
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="flex shrink-0 items-end gap-2 border-b border-donna-border px-5 py-3 md:px-8"
+    >
+      <textarea
+        ref={textareaRef}
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Jot down a note…"
+        disabled={saving}
+        rows={1}
+        className={cn(
+          "min-h-[44px] flex-1 resize-none rounded-donna border border-donna-border bg-white px-3 py-2.5",
+          "text-base leading-relaxed text-donna-text placeholder:text-donna-muted",
+          "focus:border-donna-gold-ring focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30",
+          "disabled:cursor-not-allowed disabled:opacity-60",
+        )}
+      />
+      <button
+        type="submit"
+        disabled={!hasText || saving}
+        aria-label="Save note"
+        className={cn(
+          "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors",
+          hasText && !saving
+            ? "bg-donna-primary text-white hover:bg-donna-primary-hover"
+            : "bg-donna-surface text-donna-muted",
+          "disabled:cursor-not-allowed disabled:opacity-60",
+        )}
+      >
+        {saving ? (
+          <Spinner className="h-4 w-4" />
+        ) : (
+          <Send className="h-4 w-4" />
+        )}
+      </button>
+    </form>
+  );
+}
+
 export function NotesPage() {
   const navigate = useNavigate();
   const [notes, setNotes] = useState<NoteSummary[]>([]);
@@ -27,6 +114,7 @@ export function NotesPage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const loadNotes = useCallback(async (offset = 0, append = false) => {
     if (offset === 0) {
@@ -84,6 +172,24 @@ export function NotesPage() {
     }
   };
 
+  const handleCreateNote = async (text: string) => {
+    setSaving(true);
+    setError(null);
+    try {
+      const created = await createNote(text);
+      if (activeTag) {
+        setActiveTag(null);
+        setHasMore(true);
+      }
+      setNotes((prev) => [created, ...prev.filter((note) => note.id !== created.id)]);
+      refresh();
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to save note");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const toggleFlag = async (
     note: NoteSummary,
     field: "is_urgent" | "is_important",
@@ -113,6 +219,8 @@ export function NotesPage() {
       <header className="flex shrink-0 items-center justify-between border-b border-donna-border px-6 py-5 md:px-8">
         <h1 className="text-xl font-semibold text-donna-text">Notes</h1>
       </header>
+
+      <NoteComposeBar onSave={handleCreateNote} saving={saving} />
 
       {tags.length > 0 ? (
         <div className="flex shrink-0 flex-wrap gap-1.5 border-b border-donna-border px-5 py-3 md:px-8">
@@ -162,7 +270,7 @@ export function NotesPage() {
           <EmptyState
             icon={StickyNote}
             title="No notes yet"
-            description="Switch to Notes mode in chat and jot something down, or tap a note to add one."
+            description="Jot a note above, or save links and documents for Donna to turn into notes."
           />
         ) : null}
 

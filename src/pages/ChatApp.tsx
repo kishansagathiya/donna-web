@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { History, Settings, StickyNote } from "lucide-react";
+import { History, Settings } from "lucide-react";
 import { ChatHistorySheet } from "../components/ChatHistorySheet";
 import { ChatInput } from "../components/ChatInput";
 import { ChatMessages } from "../components/ChatMessages";
 import { IngestToast } from "../components/IngestToast";
-import { ModeToggle } from "../components/ModeToggle";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { IconButton } from "../components/ui/IconButton";
 import { useAssetIngest } from "../hooks/useAssetIngest";
@@ -13,7 +12,6 @@ import { useAuth } from "../hooks/useAuth";
 import { useChatSession } from "../hooks/useChatSession";
 import { useVoiceSession } from "../hooks/useVoiceSession";
 import { cn } from "../lib/cn";
-import type { DonnaMode } from "../types/mode";
 
 const quickActions = [
   { label: "Summarize PDF", prompt: "Summarize the PDF I shared" },
@@ -48,7 +46,6 @@ function UserAvatar({ onClick }: { onClick: () => void }) {
 export function ChatApp() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [mode, setMode] = useState<DonnaMode>("talk");
   const [historyOpen, setHistoryOpen] = useState(false);
   const {
     messages,
@@ -58,10 +55,8 @@ export function ChatApp() {
     busy,
     phase,
     error,
-    noteSavedMessage,
     dismissError,
-    dismissNoteSaved,
-  } = useChatSession(mode);
+  } = useChatSession();
   const {
     state: micState,
     toggleTalk,
@@ -74,18 +69,11 @@ export function ChatApp() {
     disabled: micDisabled,
     sessionActive,
     dismissError: dismissVoiceError,
-  } = useVoiceSession(mode);
+  } = useVoiceSession();
   const { toast, showToast, addFile } = useAssetIngest();
   const activeError = voiceError ?? error;
   const dismissActiveError = voiceError ? dismissVoiceError : dismissError;
   const inputDisabled = busy || micDisabled || sessionActive;
-  const isNotesMode = mode === "notes";
-
-  useEffect(() => {
-    if (!noteSavedMessage) return;
-    const timer = window.setTimeout(() => dismissNoteSaved(), 2500);
-    return () => window.clearTimeout(timer);
-  }, [noteSavedMessage, dismissNoteSaved]);
 
   useEffect(() => {
     const state = location.state as {
@@ -112,38 +100,23 @@ export function ChatApp() {
   }
 
   const hasMessages =
-    !isNotesMode &&
-    (messages.length > 0 ||
-      voiceTurns.length > 0 ||
-      Boolean(liveTranscript) ||
-      Boolean(liveReply));
+    messages.length > 0 ||
+    voiceTurns.length > 0 ||
+    Boolean(liveTranscript) ||
+    Boolean(liveReply);
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
       <header className="flex shrink-0 items-center justify-between gap-2 px-5 py-3">
-        <ModeToggle
-          mode={mode}
-          onChange={setMode}
-          disabled={sessionActive || micDisabled}
-        />
+        <h1 className="text-lg font-semibold text-donna-text">Chat</h1>
         <div className="flex items-center gap-2">
-          {isNotesMode ? (
-            <IconButton
-              onClick={() => navigate("/app/notes")}
-              aria-label="View all notes"
-              className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
-            >
-              <StickyNote className="h-5 w-5" strokeWidth={1.75} />
-            </IconButton>
-          ) : (
-            <IconButton
-              onClick={() => setHistoryOpen(true)}
-              aria-label="Chat history"
-              className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
-            >
-              <History className="h-5 w-5" strokeWidth={1.75} />
-            </IconButton>
-          )}
+          <IconButton
+            onClick={() => setHistoryOpen(true)}
+            aria-label="Chat history"
+            className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
+          >
+            <History className="h-5 w-5" strokeWidth={1.75} />
+          </IconButton>
           <IconButton
             onClick={() => navigate("/app/profile")}
             aria-label="Profile and settings"
@@ -175,18 +148,15 @@ export function ChatApp() {
 
       <ChatInput
         onSend={(text) => void sendMessage(text)}
-        onFileSelect={isNotesMode ? undefined : (file) => void handleFileSelect(file)}
+        onFileSelect={(file) => void handleFileSelect(file)}
         disabled={inputDisabled}
-        placeholder={
-          isNotesMode ? "Jot down a note…" : "Type your message here..."
-        }
-        showMic={hasMessages || isNotesMode}
+        placeholder="Type your message here..."
+        showMic={hasMessages}
         micState={micState}
         onMicPress={() => void toggleTalk()}
         micDisabled={micDisabled}
         sessionLabel={hasMessages ? sessionLabel : null}
         quickActions={
-          !isNotesMode &&
           messages.length === 0 &&
           voiceTurns.length === 0 &&
           !sessionActive
@@ -198,13 +168,7 @@ export function ChatApp() {
         }
       />
 
-      <IngestToast
-        toast={
-          noteSavedMessage
-            ? { message: noteSavedMessage, isError: false }
-            : toast
-        }
-      />
+      <IngestToast toast={toast} />
 
       <ChatHistorySheet
         open={historyOpen}

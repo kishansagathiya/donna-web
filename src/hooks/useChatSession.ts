@@ -3,8 +3,6 @@ import {
   streamChatMessage,
   type ChatMessage,
 } from "../services/chatApi";
-import { createNote } from "../services/notesApi";
-import type { DonnaMode } from "../types/mode";
 
 export type UiMessage = {
   id: string;
@@ -17,13 +15,12 @@ function nextId(): string {
   return crypto.randomUUID();
 }
 
-export function useChatSession(mode: DonnaMode) {
+export function useChatSession() {
   const [messages, setMessages] = useState<UiMessage[]>([]);
   const [sessionId, setSessionId] = useState<string | undefined>();
   const [busy, setBusy] = useState(false);
   const [phase, setPhase] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [noteSavedMessage, setNoteSavedMessage] = useState<string | null>(null);
   const abortRef = useRef(false);
 
   const sendMessage = useCallback(
@@ -33,25 +30,7 @@ export function useChatSession(mode: DonnaMode) {
 
       abortRef.current = false;
       setError(null);
-      setNoteSavedMessage(null);
       setBusy(true);
-
-      if (mode === "notes") {
-        setPhase("saving");
-        try {
-          await createNote(trimmed);
-          setNoteSavedMessage("Note saved");
-        } catch (err) {
-          const message =
-            err instanceof Error ? err.message : "Failed to save note";
-          setError(message);
-        } finally {
-          setBusy(false);
-          setPhase(null);
-        }
-        return;
-      }
-
       setPhase("generating");
 
       const userMessage: UiMessage = {
@@ -74,7 +53,6 @@ export function useChatSession(mode: DonnaMode) {
 
       try {
         await streamChatMessage(trimmed, history, sessionId, {
-          mode,
           onSessionId: (id) => setSessionId(id),
           onPhase: (p) => setPhase(p),
           onChunk: (partial) => {
@@ -109,14 +87,13 @@ export function useChatSession(mode: DonnaMode) {
         setPhase(null);
       }
     },
-    [busy, messages, mode, sessionId],
+    [busy, messages, sessionId],
   );
 
   const clearChat = useCallback(() => {
     setMessages([]);
     setSessionId(undefined);
     setError(null);
-    setNoteSavedMessage(null);
   }, []);
 
   const loadConversation = useCallback(
@@ -124,16 +101,11 @@ export function useChatSession(mode: DonnaMode) {
       setMessages(nextMessages);
       setSessionId(nextSessionId);
       setError(null);
-      setNoteSavedMessage(null);
       setBusy(false);
       setPhase(null);
     },
     [],
   );
-
-  const dismissNoteSaved = useCallback(() => {
-    setNoteSavedMessage(null);
-  }, []);
 
   return {
     messages,
@@ -143,8 +115,6 @@ export function useChatSession(mode: DonnaMode) {
     busy,
     phase,
     error,
-    noteSavedMessage,
     dismissError: () => setError(null),
-    dismissNoteSaved,
   };
 }
