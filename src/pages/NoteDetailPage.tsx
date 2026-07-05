@@ -267,6 +267,17 @@ export function NoteDetailPage() {
           </div>
         </div>
 
+        {item.audio_url ? (
+          <audio
+            controls
+            src={item.audio_url}
+            className="mb-4 w-full"
+            preload="metadata"
+          >
+            Your browser does not support audio playback.
+          </audio>
+        ) : null}
+
         <TextArea
           className="min-h-64 flex-1"
           value={content}

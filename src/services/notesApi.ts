@@ -14,6 +14,7 @@ export type NoteSummary = {
   source_type: string;
   keywords: string[] | null;
   category: string | null;
+  has_audio: boolean;
 };
 
 export type DailyTask = {
@@ -47,6 +48,7 @@ export type Note = NoteSummary & {
   user_last_modified: string | null;
   created_at: string;
   updated_at: string;
+  audio_url?: string;
 };
 
 export type NoteTags = {
