@@ -1,25 +1,61 @@
 import { Link } from "react-router-dom";
+import { APP_STORE_URL } from "../config";
 import "../App.css";
 
 export function Landing() {
   return (
     <div className="page">
       <main className="landing">
+        <img
+          className="landing-logo"
+          src="/donna-logo.png"
+          alt="Donna"
+          width={112}
+          height={112}
+        />
+        <p className="landing-eyebrow">Now on the App Store</p>
         <h1>
           AI Second Brain, but the <em>BEST</em>
         </h1>
         <p className="landing-tagline">
-          Talk on iOS. Chat on the web. Donna remembers what matters.
+          Donna is your voice-powered AI second brain — built for people who
+          think out loud. Tap the mic on iPhone, speak naturally, and she
+          replies out loud. Notes and memory stay with you on the web too.
         </p>
         <div className="landing-actions">
-          <Link to="/app" className="landing-cta">
-            Open Donna
-          </Link>
-          <Link to="/login" className="landing-secondary">
-            Sign in
+          <a
+            href={APP_STORE_URL}
+            className="landing-cta"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <AppleIcon />
+            Download on the App Store
+          </a>
+          <Link to="/app" className="landing-secondary">
+            Open on the web
           </Link>
         </div>
+        <p className="landing-footnote">
+          Free on iPhone &amp; iPad.{" "}
+          <Link to="/login">Sign in</Link> to sync across devices.
+        </p>
       </main>
     </div>
+  );
+}
+
+function AppleIcon() {
+  return (
+    <svg
+      className="landing-cta-icon"
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+      fill="currentColor"
+    >
+      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
+    </svg>
   );
 }

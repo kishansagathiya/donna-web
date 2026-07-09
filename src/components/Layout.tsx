@@ -6,6 +6,13 @@ export function Layout() {
     <div className="layout">
       <header className="layout-header">
         <Link to="/" className="layout-brand">
+          <img
+            className="layout-brand-logo"
+            src="/donna-logo.png"
+            alt=""
+            width={28}
+            height={28}
+          />
           Donna
         </Link>
       </header>

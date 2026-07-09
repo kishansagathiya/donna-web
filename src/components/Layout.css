@@ -10,12 +10,21 @@
 }
 
 .layout-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   font-family: var(--font-display);
   font-size: 1.35rem;
   font-weight: 500;
   color: var(--accent);
   letter-spacing: 0.02em;
   transition: opacity 0.2s;
+}
+
+.layout-brand-logo {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 0.4rem;
 }
 
 .layout-brand:hover {

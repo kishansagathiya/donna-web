@@ -8,8 +8,25 @@
 
 .landing {
   width: 100%;
-  max-width: 32rem;
+  max-width: 34rem;
   text-align: center;
+}
+
+.landing-logo {
+  width: 7rem;
+  height: 7rem;
+  margin: 0 auto 1.5rem;
+  border-radius: 1.35rem;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.landing-eyebrow {
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1rem;
 }
 
 .landing h1 {
@@ -18,7 +35,7 @@
   font-weight: 500;
   line-height: 1.2;
   letter-spacing: -0.02em;
-  margin-bottom: 2rem;
+  margin-bottom: 1.25rem;
 }
 
 .landing h1 em {
@@ -27,10 +44,10 @@
 }
 
 .landing-tagline {
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: var(--text-muted);
   margin-bottom: 2rem;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .landing-actions {
@@ -41,6 +58,9 @@
 }
 
 .landing-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.85rem 1.5rem;
   font-size: 0.9rem;
   font-weight: 500;
@@ -48,6 +68,10 @@
   background: var(--accent);
   border-radius: 100px;
   transition: transform 0.15s, box-shadow 0.2s;
+}
+
+.landing-cta-icon {
+  flex-shrink: 0;
 }
 
 .landing-cta:hover {
@@ -67,6 +91,23 @@
 
 .landing-secondary:hover {
   border-color: var(--accent);
+  color: var(--accent);
+}
+
+.landing-footnote {
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  color: var(--text-faint);
+  line-height: 1.5;
+}
+
+.landing-footnote a {
+  color: var(--text-muted);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.landing-footnote a:hover {
   color: var(--accent);
 }
 

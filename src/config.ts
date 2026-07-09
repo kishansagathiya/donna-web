@@ -16,6 +16,11 @@ export const API_BASE_URL =
 export const PRIVACY_POLICY_URL =
   import.meta.env.VITE_PRIVACY_POLICY_URL ?? "/privacy";
 
+/** App Store listing for the Donna iOS app. */
+export const APP_STORE_URL =
+  import.meta.env.VITE_APP_STORE_URL ??
+  "https://apps.apple.com/us/app/donna-best-ai-second-brain/id6776987368";
+
 /** Apple Services ID for Sign in with Apple JS (web). */
 export const APPLE_CLIENT_ID =
   import.meta.env.VITE_APPLE_CLIENT_ID ?? "com.kishansagathiya.donna.web";
