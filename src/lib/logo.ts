@@ -1,7 +1,7 @@
 import type { AppTheme } from "./theme";
 
-export const LOGO_BW = "/donna-logo.png";
-export const LOGO_COLOR = "/donna-logo-color.png";
+export const LOGO_BW = "/donna-logo-bw.png?v=3";
+export const LOGO_COLOR = "/donna-logo-color.png?v=3";
 
 export type LogoSurface = "app" | "marketing";
 
