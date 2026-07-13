@@ -1,8 +1,7 @@
 import { useTheme } from "../hooks/useTheme";
-import { logoForTheme, type LogoSurface } from "../lib/logo";
+import { logoForTheme } from "../lib/logo";
 
 type Props = {
-  surface?: LogoSurface;
   className?: string;
   alt?: string;
   width?: number;
@@ -10,7 +9,6 @@ type Props = {
 };
 
 export function DonnaLogo({
-  surface = "app",
   className,
   alt = "Donna",
   width,
@@ -21,7 +19,7 @@ export function DonnaLogo({
   return (
     <img
       className={className}
-      src={logoForTheme(theme, surface)}
+      src={logoForTheme(theme)}
       alt={alt}
       width={width}
       height={height}

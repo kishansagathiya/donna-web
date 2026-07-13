@@ -1,10 +1,10 @@
 import type { AppTheme } from "./theme";
 
 export const LOGO_BW = "/donna-logo-bw.png?v=3";
-export const LOGO_COLOR = "/donna-logo-color.png?v=3";
 export const LOGO_INDIGO = "/donna-logo-indigo.png?v=2";
+export const LOGO_LANDING = "/donna-logo-landing.png?v=1";
 
-export type LogoSurface = "app" | "marketing";
+export type LogoSurface = "app";
 
 export type ThemeFavicons = {
   icon32: string;
@@ -24,14 +24,14 @@ const FAVICON_INDIGO: ThemeFavicons = {
   apple: "/apple-touch-icon-indigo.png?v=2",
 };
 
-/** eink/cream: B&W in app. cream marketing: warm color. indigo: indigo logo everywhere. */
+/** eink/cream: B&W in app. indigo: indigo logo in app. */
 export function logoForTheme(
   theme: AppTheme,
-  surface: LogoSurface = "app",
+  _surface: LogoSurface = "app",
 ): string {
   if (theme === "eink") return LOGO_BW;
   if (theme === "indigo") return LOGO_INDIGO;
-  return surface === "marketing" ? LOGO_COLOR : LOGO_BW;
+  return LOGO_BW;
 }
 
 export function faviconsForTheme(theme: AppTheme): ThemeFavicons {

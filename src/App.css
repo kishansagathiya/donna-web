@@ -162,6 +162,19 @@
   color: var(--accent);
 }
 
+.layout--eink .landing-logo {
+  box-shadow: none;
+  border: 1px solid var(--border);
+}
+
+.layout--eink .landing-cta:hover {
+  transform: none;
+}
+
+.layout--eink .waitlist-form button:hover {
+  transform: none;
+}
+
 html[data-theme="eink"] .landing-logo {
   box-shadow: none;
   border: 1px solid var(--border);

@@ -1,29 +1,29 @@
 import { describe, expect, it } from "vitest";
 import {
   LOGO_BW,
-  LOGO_COLOR,
   LOGO_INDIGO,
+  LOGO_LANDING,
   faviconsForTheme,
   logoForTheme,
 } from "./logo";
 
 describe("logoForTheme", () => {
-  it("uses the black-and-white logo for e-ink everywhere", () => {
-    expect(logoForTheme("eink", "app")).toBe(LOGO_BW);
-    expect(logoForTheme("eink", "marketing")).toBe(LOGO_BW);
+  it("uses the black-and-white logo for e-ink", () => {
+    expect(logoForTheme("eink")).toBe(LOGO_BW);
   });
 
   it("uses the black-and-white logo for cream in the app", () => {
-    expect(logoForTheme("cream", "app")).toBe(LOGO_BW);
+    expect(logoForTheme("cream")).toBe(LOGO_BW);
   });
 
-  it("uses the warm colorful logo for cream on marketing pages", () => {
-    expect(logoForTheme("cream", "marketing")).toBe(LOGO_COLOR);
+  it("uses the indigo logo for indigo", () => {
+    expect(logoForTheme("indigo")).toBe(LOGO_INDIGO);
   });
+});
 
-  it("uses the indigo logo for indigo everywhere", () => {
-    expect(logoForTheme("indigo", "app")).toBe(LOGO_INDIGO);
-    expect(logoForTheme("indigo", "marketing")).toBe(LOGO_INDIGO);
+describe("LOGO_LANDING", () => {
+  it("is a dedicated colorful landing asset", () => {
+    expect(LOGO_LANDING).toContain("donna-logo-landing");
   });
 });
 
