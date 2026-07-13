@@ -1,4 +1,5 @@
 import { THEME_STORAGE_KEY } from "../config";
+import { applyFaviconForTheme } from "./logo";
 
 export { THEME_STORAGE_KEY };
 
@@ -36,5 +37,6 @@ export function storeTheme(theme: AppTheme): void {
 export function initTheme(): AppTheme {
   const theme = getStoredTheme();
   applyTheme(theme);
+  applyFaviconForTheme(theme);
   return theme;
 }

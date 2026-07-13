@@ -1,7 +1,7 @@
 {
   "headers": [
     {
-      "source": "/(donna-logo.*|favicon-.*|apple-touch-icon.*)",
+      "source": "/(donna-logo.*|favicon.*|apple-touch-icon.*)",
       "headers": [
         {
           "key": "Cache-Control",

@@ -12,6 +12,7 @@ import {
   storeTheme,
   type AppTheme,
 } from "../lib/theme";
+import { applyFaviconForTheme } from "../lib/logo";
 
 type ThemeContextValue = {
   theme: AppTheme;
@@ -27,6 +28,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     applyTheme(theme);
     storeTheme(theme);
+    applyFaviconForTheme(theme);
   }, [theme]);
 
   const value = useMemo(
