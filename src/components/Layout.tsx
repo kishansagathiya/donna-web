@@ -8,7 +8,7 @@ export function Layout() {
         <Link to="/" className="layout-brand">
           <img
             className="layout-brand-logo"
-            src="/donna-logo.png"
+            src="/donna-logo.jpg"
             alt=""
             width={28}
             height={28}

@@ -8,7 +8,7 @@ export function Landing() {
       <main className="landing">
         <img
           className="landing-logo"
-          src="/donna-logo.png"
+          src="/donna-logo.jpg"
           alt="Donna"
           width={112}
           height={112}
