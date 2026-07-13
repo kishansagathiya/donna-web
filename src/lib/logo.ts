@@ -2,7 +2,7 @@ import type { AppTheme } from "./theme";
 
 export const LOGO_BW = "/donna-logo-bw.png?v=3";
 export const LOGO_COLOR = "/donna-logo-color.png?v=3";
-export const LOGO_INDIGO = "/donna-logo-indigo.png?v=1";
+export const LOGO_INDIGO = "/donna-logo-indigo.png?v=2";
 
 export type LogoSurface = "app" | "marketing";
 
@@ -19,9 +19,9 @@ const FAVICON_BW: ThemeFavicons = {
 };
 
 const FAVICON_INDIGO: ThemeFavicons = {
-  icon32: "/favicon-indigo-32.png?v=1",
-  icon64: "/favicon-indigo-64.png?v=1",
-  apple: "/apple-touch-icon-indigo.png?v=1",
+  icon32: "/favicon-indigo-32.png?v=2",
+  icon64: "/favicon-indigo-64.png?v=2",
+  apple: "/apple-touch-icon-indigo.png?v=2",
 };
 
 /** eink/cream: B&W in app. cream marketing: warm color. indigo: indigo logo everywhere. */
