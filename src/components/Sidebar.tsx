@@ -1,6 +1,5 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import {
-  Bot,
   CalendarCheck,
   CircleHelp,
   Database,
@@ -45,9 +44,13 @@ export function Sidebar({ onNewChat, onNavigate, className }: Props) {
       )}
     >
       <div className="flex items-center gap-3 px-5 py-5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-donna-primary text-white">
-          <Bot className="h-5 w-5" strokeWidth={2} />
-        </div>
+        <img
+          className="h-10 w-10 rounded-xl object-cover"
+          src="/donna-logo.png"
+          alt="Donna"
+          width={40}
+          height={40}
+        />
         <div>
           <p className="text-base font-bold text-donna-primary">Donna</p>
           <p className="text-xs text-donna-muted">AI Assistant</p>
