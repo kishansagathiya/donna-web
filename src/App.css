@@ -17,6 +17,7 @@
   height: 7rem;
   margin: 0 auto 1.5rem;
   border-radius: 1.35rem;
+  object-fit: contain;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
 }
 

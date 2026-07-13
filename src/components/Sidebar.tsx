@@ -45,7 +45,7 @@ export function Sidebar({ onNewChat, onNavigate, className }: Props) {
     >
       <div className="flex items-center gap-3 px-5 py-5">
         <img
-          className="h-10 w-10 rounded-xl object-cover"
+          className="h-10 w-10 rounded-xl object-contain"
           src="/donna-logo.png"
           alt="Donna"
           width={40}

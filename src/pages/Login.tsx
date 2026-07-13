@@ -23,7 +23,7 @@ export function Login() {
     <div className="flex h-full min-h-0 w-full flex-col justify-between overflow-y-auto px-6 pb-8 pt-12">
       <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
         <img
-          className="mb-2 h-20 w-20 rounded-2xl object-cover"
+          className="mb-2 h-20 w-20 rounded-2xl object-contain"
           src="/donna-logo.png"
           alt="Donna"
           width={80}
