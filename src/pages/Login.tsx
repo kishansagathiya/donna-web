@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Bot } from "lucide-react";
 import { SignInWithAppleButton } from "../components/SignInWithAppleButton";
 import { PRIVACY_POLICY_URL } from "../config";
 import { cn } from "../lib/cn";
@@ -23,12 +22,13 @@ export function Login() {
   return (
     <div className="flex h-full min-h-0 w-full flex-col justify-between overflow-y-auto px-6 pb-8 pt-12">
       <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-        <div
-          className="mb-2 flex h-20 w-20 items-center justify-center rounded-full bg-donna-primary text-white"
-          aria-hidden="true"
-        >
-          <Bot className="h-10 w-10" strokeWidth={1.75} />
-        </div>
+        <img
+          className="mb-2 h-20 w-20 rounded-2xl object-cover"
+          src="/donna-logo.png"
+          alt="Donna"
+          width={80}
+          height={80}
+        />
         <h1 className="text-3xl font-bold tracking-tight text-donna-text">Donna</h1>
         <p className="max-w-xs text-base leading-relaxed text-donna-muted">
           AI Assistant that remembers what matters
