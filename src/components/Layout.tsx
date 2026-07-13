@@ -1,4 +1,5 @@
 import { Link, Outlet } from "react-router-dom";
+import { DonnaLogo } from "./DonnaLogo";
 import "./Layout.css";
 
 export function Layout() {
@@ -6,9 +7,9 @@ export function Layout() {
     <div className="layout">
       <header className="layout-header">
         <Link to="/" className="layout-brand">
-          <img
+          <DonnaLogo
             className="layout-brand-logo"
-            src="/donna-logo.png"
+            surface="marketing"
             alt=""
             width={28}
             height={28}

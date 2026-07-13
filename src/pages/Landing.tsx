@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { DonnaLogo } from "../components/DonnaLogo";
 import { APP_STORE_URL } from "../config";
 import "../App.css";
 
@@ -6,10 +7,9 @@ export function Landing() {
   return (
     <div className="page">
       <main className="landing">
-        <img
+        <DonnaLogo
           className="landing-logo"
-          src="/donna-logo.png"
-          alt="Donna"
+          surface="marketing"
           width={112}
           height={112}
         />

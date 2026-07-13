@@ -162,11 +162,6 @@
   color: var(--accent);
 }
 
-html[data-theme="eink"] .landing img,
-html[data-theme="eink"] .doc-page img {
-  filter: grayscale(1) contrast(1.05);
-}
-
 html[data-theme="eink"] .landing-logo {
   box-shadow: none;
   border: 1px solid var(--border);

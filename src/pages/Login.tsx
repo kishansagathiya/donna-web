@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { DonnaLogo } from "../components/DonnaLogo";
 import { SignInWithAppleButton } from "../components/SignInWithAppleButton";
 import { PRIVACY_POLICY_URL } from "../config";
 import { cn } from "../lib/cn";
@@ -22,10 +23,8 @@ export function Login() {
   return (
     <div className="flex h-full min-h-0 w-full flex-col justify-between overflow-y-auto px-6 pb-8 pt-12">
       <div className="flex flex-1 flex-col items-center justify-center gap-4 text-center">
-        <img
+        <DonnaLogo
           className="mb-2 h-20 w-20 rounded-2xl object-contain"
-          src="/donna-logo.png"
-          alt="Donna"
           width={80}
           height={80}
         />

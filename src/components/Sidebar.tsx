@@ -8,6 +8,7 @@ import {
   StickyNote,
   User,
 } from "lucide-react";
+import { DonnaLogo } from "./DonnaLogo";
 import { cn } from "../lib/cn";
 
 const navItems = [
@@ -44,10 +45,8 @@ export function Sidebar({ onNewChat, onNavigate, className }: Props) {
       )}
     >
       <div className="flex items-center gap-3 px-5 py-5">
-        <img
+        <DonnaLogo
           className="h-10 w-10 rounded-xl object-contain"
-          src="/donna-logo.png"
-          alt="Donna"
           width={40}
           height={40}
         />
