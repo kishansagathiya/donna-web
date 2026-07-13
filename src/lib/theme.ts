@@ -1,6 +1,8 @@
 import { THEME_STORAGE_KEY } from "../config";
 
-export type AppTheme = "cream" | "indigo";
+export { THEME_STORAGE_KEY };
+
+export type AppTheme = "cream" | "indigo" | "eink";
 
 export const APP_THEMES: Record<
   AppTheme,
@@ -8,14 +10,19 @@ export const APP_THEMES: Record<
 > = {
   cream: { label: "Cream & gold", description: "Warm, calm palette" },
   indigo: { label: "Indigo", description: "Classic blue accent" },
+  eink: { label: "E-ink", description: "Black & white reader" },
 };
+
+export function isAppTheme(value: string | null): value is AppTheme {
+  return value === "cream" || value === "indigo" || value === "eink";
+}
 
 export function getStoredTheme(): AppTheme {
   if (typeof window === "undefined") {
     return "cream";
   }
   const stored = localStorage.getItem(THEME_STORAGE_KEY);
-  return stored === "indigo" ? "indigo" : "cream";
+  return isAppTheme(stored) ? stored : "cream";
 }
 
 export function applyTheme(theme: AppTheme): void {

@@ -36,6 +36,40 @@ html[data-theme="indigo"] {
   --color-donna-toast-error: rgba(185, 28, 28, 0.95);
 }
 
+html[data-theme="eink"] {
+  --color-donna-primary: #1a1a1a;
+  --color-donna-primary-hover: #000000;
+  --color-donna-primary-light: #e8e6df;
+  --color-donna-primary-ring: #333333;
+  --color-donna-gold: #1a1a1a;
+  --color-donna-gold-ring: #333333;
+  --color-donna-surface: #f4f1ea;
+  --color-donna-sidebar: #efece3;
+  --color-donna-border: #d8d4c8;
+  --color-donna-text: #1a1a1a;
+  --color-donna-muted: #5c564e;
+  --color-donna-destructive: #1a1a1a;
+  --color-donna-toast: rgba(20, 20, 20, 0.92);
+  --color-donna-toast-error: rgba(40, 40, 40, 0.95);
+  --font-donna: "Literata", "Lora", Georgia, "Times New Roman", serif;
+}
+
+html[data-theme="eink"].app-route,
+html[data-theme="eink"] body.app-route {
+  background: #f4f1ea;
+}
+
+html[data-theme="eink"] .app-shell .bg-white,
+html[data-theme="eink"] .app-shell [class*="bg-white/"] {
+  background-color: var(--color-donna-surface);
+}
+
+html[data-theme="eink"] .app-shell .shadow-sm,
+html[data-theme="eink"] .app-shell .shadow-xl,
+html[data-theme="eink"] .app-shell .shadow {
+  box-shadow: none !important;
+}
+
 @layer base {
   html.app-route,
   body.app-route {

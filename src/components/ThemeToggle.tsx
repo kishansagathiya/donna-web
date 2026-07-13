@@ -13,14 +13,15 @@ export function ThemeToggle({ className }: Props) {
     <div className={className}>
       <p className="mb-1 text-sm font-semibold text-donna-text">Color theme</p>
       <p className="mb-3 text-xs text-donna-muted">
-        Switch between the warm cream palette and the earlier indigo look.
+        Switch between the warm cream palette, the earlier indigo look, or a
+        black-and-white e-ink reader.
       </p>
       <div
         className="flex gap-1 rounded-xl border border-donna-border bg-donna-surface p-1"
         role="radiogroup"
         aria-label="Color theme"
       >
-        {(["cream", "indigo"] as const).map((value) => (
+        {(["cream", "indigo", "eink"] as const).map((value) => (
           <button
             key={value}
             type="button"

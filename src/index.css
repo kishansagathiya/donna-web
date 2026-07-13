@@ -13,6 +13,21 @@
   --font-body: "Outfit", system-ui, sans-serif;
 }
 
+html[data-theme="eink"] {
+  --bg-deep: #f4f1ea;
+  --bg-elevated: #efece3;
+  --bg-card: #e8e4d8;
+  --text-primary: #1a1a1a;
+  --text-muted: #5c564e;
+  --text-faint: #8a8478;
+  --accent: #1a1a1a;
+  --accent-glow: rgba(26, 26, 26, 0);
+  --accent-soft: rgba(26, 26, 26, 0.08);
+  --border: rgba(26, 26, 26, 0.15);
+  --font-display: "Literata", "Lora", Georgia, serif;
+  --font-body: "Literata", "Lora", Georgia, serif;
+}
+
 @layer base {
   *,
   *::before,
