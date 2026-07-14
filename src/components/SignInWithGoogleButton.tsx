@@ -14,12 +14,12 @@ export function SignInWithGoogleButton({ onError }: Props) {
     setLoading(true);
     try {
       await signInWithGoogle();
-      // Browser navigates to Google then back to /login; keep spinner until then.
     } catch (err) {
-      setLoading(false);
       const message =
         err instanceof Error ? err.message : "Sign in failed. Please try again.";
       onError?.(message);
+    } finally {
+      setLoading(false);
     }
   }
 

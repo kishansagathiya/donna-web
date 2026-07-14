@@ -25,6 +25,11 @@ export const APP_STORE_URL =
 export const APPLE_CLIENT_ID =
   import.meta.env.VITE_APPLE_CLIENT_ID ?? "com.kishansagathiya.donna.web";
 
+/** Google Web OAuth Client ID (GIS + Supabase Google provider). */
+export const GOOGLE_CLIENT_ID =
+  import.meta.env.VITE_GOOGLE_CLIENT_ID ??
+  "649652106727-mohbcdb0r5ahrtg8qbnan566tvorv164.apps.googleusercontent.com";
+
 export const AI_DATA_CONSENT_KEY = "donna.ai_data_consent.v1";
 
 export const THEME_STORAGE_KEY = "donna.app_theme.v1";
