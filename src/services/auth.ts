@@ -107,6 +107,28 @@ export async function signInWithApple(): Promise<void> {
   }
 }
 
+/** Google OAuth redirect → Supabase session (uses detectSessionInUrl on return). */
+export async function signInWithGoogle(): Promise<void> {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${window.location.origin}/login`,
+      queryParams: {
+        prompt: "select_account",
+      },
+    },
+  });
+
+  if (error) {
+    if (error.message.toLowerCase().includes("not enabled")) {
+      throw new Error(
+        "Google Sign In is not enabled in Supabase. Go to Authentication → Providers → Google, turn it on, and add your Google OAuth Client ID and Client Secret.",
+      );
+    }
+    throw new Error(error.message);
+  }
+}
+
 function loadAppleScript(): Promise<void> {
   if (window.AppleID) {
     return Promise.resolve();
