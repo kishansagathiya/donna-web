@@ -2,7 +2,7 @@ import type { AppTheme } from "./theme";
 
 export const LOGO_BW = "/donna-logo-bw.png?v=3";
 export const LOGO_INDIGO = "/donna-logo-indigo.png?v=2";
-export const LOGO_LANDING = "/donna-logo-landing.png?v=1";
+export const LOGO_LANDING = "/donna-logo-bw.png?v=1";
 
 export type LogoSurface = "app";
 
