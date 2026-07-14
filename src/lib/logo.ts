@@ -24,12 +24,11 @@ const FAVICON_INDIGO: ThemeFavicons = {
   apple: "/apple-touch-icon-indigo.png?v=2",
 };
 
-/** eink/cream: B&W in app. indigo: indigo logo in app. */
+/** eink: B&W in app. indigo: indigo logo in app. */
 export function logoForTheme(
   theme: AppTheme,
   _surface: LogoSurface = "app",
 ): string {
-  if (theme === "eink") return LOGO_BW;
   if (theme === "indigo") return LOGO_INDIGO;
   return LOGO_BW;
 }

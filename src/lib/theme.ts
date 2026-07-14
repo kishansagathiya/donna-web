@@ -3,27 +3,26 @@ import { applyFaviconForTheme } from "./logo";
 
 export { THEME_STORAGE_KEY };
 
-export type AppTheme = "cream" | "indigo" | "eink";
+export type AppTheme = "indigo" | "eink";
 
 export const APP_THEMES: Record<
   AppTheme,
   { label: string; description: string }
 > = {
-  cream: { label: "Cream & gold", description: "Warm, calm palette" },
   indigo: { label: "Indigo", description: "Classic blue accent" },
   eink: { label: "E-ink", description: "Black & white reader" },
 };
 
 export function isAppTheme(value: string | null): value is AppTheme {
-  return value === "cream" || value === "indigo" || value === "eink";
+  return value === "indigo" || value === "eink";
 }
 
 export function getStoredTheme(): AppTheme {
   if (typeof window === "undefined") {
-    return "cream";
+    return "indigo";
   }
   const stored = localStorage.getItem(THEME_STORAGE_KEY);
-  return isAppTheme(stored) ? stored : "cream";
+  return isAppTheme(stored) ? stored : "indigo";
 }
 
 export function applyTheme(theme: AppTheme): void {

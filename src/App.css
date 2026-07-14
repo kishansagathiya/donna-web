@@ -41,7 +41,9 @@
 
 .landing h1 em {
   font-style: italic;
-  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #9a7b2f;
 }
 
 .landing-tagline {

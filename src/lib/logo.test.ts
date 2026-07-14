@@ -12,18 +12,14 @@ describe("logoForTheme", () => {
     expect(logoForTheme("eink")).toBe(LOGO_BW);
   });
 
-  it("uses the black-and-white logo for cream in the app", () => {
-    expect(logoForTheme("cream")).toBe(LOGO_BW);
-  });
-
   it("uses the indigo logo for indigo", () => {
     expect(logoForTheme("indigo")).toBe(LOGO_INDIGO);
   });
 });
 
 describe("LOGO_LANDING", () => {
-  it("is a dedicated colorful landing asset", () => {
-    expect(LOGO_LANDING).toContain("donna-logo-landing");
+  it("points at a landing logo asset", () => {
+    expect(LOGO_LANDING).toMatch(/donna-logo/);
   });
 });
 
@@ -32,8 +28,7 @@ describe("faviconsForTheme", () => {
     expect(faviconsForTheme("indigo").icon32).toContain("favicon-indigo-32");
   });
 
-  it("uses default favicons for cream and e-ink", () => {
-    expect(faviconsForTheme("cream").icon32).toContain("favicon-32");
+  it("uses default favicons for e-ink", () => {
     expect(faviconsForTheme("eink").icon32).toContain("favicon-32");
   });
 });

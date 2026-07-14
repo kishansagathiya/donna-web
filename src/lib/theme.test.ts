@@ -9,11 +9,12 @@ import {
 } from "./theme";
 
 describe("isAppTheme", () => {
-  it.each(["cream", "indigo", "eink"])('returns true for "%s"', (value) => {
+  it.each(["indigo", "eink"])('returns true for "%s"', (value) => {
     expect(isAppTheme(value)).toBe(true);
   });
 
   it("returns false for invalid values", () => {
+    expect(isAppTheme("cream")).toBe(false);
     expect(isAppTheme("dark")).toBe(false);
     expect(isAppTheme("")).toBe(false);
     expect(isAppTheme(null)).toBe(false);
@@ -25,7 +26,7 @@ describe("getStoredTheme", () => {
     localStorage.clear();
   });
 
-  it.each<[AppTheme]>([["cream"], ["indigo"], ["eink"]])(
+  it.each<[AppTheme]>([["indigo"], ["eink"]])(
     'returns "%s" when it is stored',
     (theme) => {
       localStorage.setItem(THEME_STORAGE_KEY, theme);
@@ -33,13 +34,18 @@ describe("getStoredTheme", () => {
     },
   );
 
-  it('falls back to "cream" for invalid stored values', () => {
+  it('falls back to "indigo" for invalid stored values', () => {
     localStorage.setItem(THEME_STORAGE_KEY, "neon");
-    expect(getStoredTheme()).toBe("cream");
+    expect(getStoredTheme()).toBe("indigo");
   });
 
-  it('falls back to "cream" when nothing is stored', () => {
-    expect(getStoredTheme()).toBe("cream");
+  it('falls back to "indigo" for legacy cream values', () => {
+    localStorage.setItem(THEME_STORAGE_KEY, "cream");
+    expect(getStoredTheme()).toBe("indigo");
+  });
+
+  it('falls back to "indigo" when nothing is stored', () => {
+    expect(getStoredTheme()).toBe("indigo");
   });
 });
 
@@ -48,7 +54,7 @@ describe("applyTheme", () => {
     delete document.documentElement.dataset.theme;
   });
 
-  it.each<[AppTheme]>([["cream"], ["indigo"], ["eink"]])(
+  it.each<[AppTheme]>([["indigo"], ["eink"]])(
     'sets data-theme to "%s"',
     (theme) => {
       applyTheme(theme);
@@ -62,7 +68,7 @@ describe("storeTheme", () => {
     localStorage.clear();
   });
 
-  it.each<[AppTheme]>([["cream"], ["indigo"], ["eink"]])(
+  it.each<[AppTheme]>([["indigo"], ["eink"]])(
     'writes "%s" to localStorage',
     (theme) => {
       storeTheme(theme);

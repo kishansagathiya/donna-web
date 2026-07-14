@@ -37,7 +37,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       setTheme: setThemeState,
       toggleTheme: () =>
         setThemeState((current) => {
-          const order: AppTheme[] = ["cream", "indigo", "eink"];
+          const order: AppTheme[] = ["indigo", "eink"];
           const nextIndex = (order.indexOf(current) + 1) % order.length;
           return order[nextIndex];
         }),
