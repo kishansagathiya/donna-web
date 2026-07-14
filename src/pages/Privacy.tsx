@@ -20,10 +20,10 @@ export function Privacy() {
 
         <h2>Information we collect</h2>
         <p>
-          <strong>Account information.</strong> When you sign in with Apple, we
-          receive an account identifier and, if you choose to share it, your
-          email address and name. This is used to keep your data separate from
-          other users and to maintain your session.
+          <strong>Account information.</strong> When you sign in with Apple or
+          Google, we receive an account identifier and, if you choose to share
+          it, your email address and name. This is used to keep your data
+          separate from other users and to maintain your session.
         </p>
         <p>
           <strong>Voice audio.</strong> When you tap the microphone and speak,

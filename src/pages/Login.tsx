@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { DonnaLogo } from "../components/DonnaLogo";
 import { SignInWithAppleButton } from "../components/SignInWithAppleButton";
+import { SignInWithGoogleButton } from "../components/SignInWithGoogleButton";
 import { PRIVACY_POLICY_URL } from "../config";
 import { cn } from "../lib/cn";
 
@@ -40,6 +41,7 @@ export function Login() {
         </p>
 
         <SignInWithAppleButton onError={setError} />
+        <SignInWithGoogleButton onError={setError} />
 
         {error ? (
           <p className="text-center text-sm text-donna-destructive">{error}</p>
