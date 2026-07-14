@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Flame, Plus, Search, Star } from "lucide-react";
+import { ArrowLeft, Flame, Search, Star } from "lucide-react";
 import {
   formatNoteDate,
   searchNotes,
@@ -14,7 +14,7 @@ import { Button } from "../components/ui/Button";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { IconButton } from "../components/ui/IconButton";
 
-export function SearchContextPage() {
+export function SearchNotesPage() {
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<NoteSummary[]>([]);
@@ -41,20 +41,20 @@ export function SearchContextPage() {
   }, [query]);
 
   const handleSelect = (id: string) => {
-    navigate(`/app/context/${id}`);
+    navigate(`/app/notes/${id}`);
   };
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col bg-white">
-      <header className="flex shrink-0 items-center justify-between border-b border-donna-border px-6 py-5 md:px-8">
-        <h1 className="text-xl font-semibold text-donna-text">Memory</h1>
+      <header className="flex shrink-0 items-center gap-3 border-b border-donna-border px-6 py-5 md:px-8">
         <IconButton
-          onClick={() => navigate("/app/add")}
-          aria-label="Add to memory"
+          onClick={() => navigate("/app/notes")}
+          aria-label="Back to notes"
           className="!h-9 !w-9"
         >
-          <Plus className="h-5 w-5" strokeWidth={2} />
+          <ArrowLeft className="h-5 w-5" strokeWidth={2} />
         </IconButton>
+        <h1 className="text-xl font-semibold text-donna-text">Search notes</h1>
       </header>
 
       <form
@@ -68,7 +68,7 @@ export function SearchContextPage() {
           type="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search context…"
+          placeholder="Search notes…"
           autoFocus
           className="flex-1"
         />
@@ -95,8 +95,8 @@ export function SearchContextPage() {
         {!searching && !searched && !error ? (
           <EmptyState
             icon={Search}
-            title="Search your memories"
-            description="Search your saved context from voice, links, and documents."
+            title="Search your notes"
+            description="Find notes from voice, typing, links, and documents."
           />
         ) : null}
 
@@ -147,3 +147,6 @@ export function SearchContextPage() {
     </div>
   );
 }
+
+/** @deprecated Prefer SearchNotesPage */
+export const SearchContextPage = SearchNotesPage;

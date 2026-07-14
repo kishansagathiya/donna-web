@@ -229,7 +229,7 @@ export function DailyTasksPage() {
                 <li key={task.note_id}>
                   <TaskCard
                     task={task}
-                    onSelect={(id) => navigate(`/app/context/${id}`)}
+                    onSelect={(id) => navigate(`/app/notes/${id}`)}
                   />
                 </li>
               ))}
@@ -250,7 +250,7 @@ export function DailyTasksPage() {
               {briefing.outdated.map((note) => (
                 <li key={note.note_id}>
                   <Card
-                    onClick={() => navigate(`/app/context/${note.note_id}`)}
+                    onClick={() => navigate(`/app/notes/${note.note_id}`)}
                     className="cursor-pointer opacity-80 hover:opacity-100"
                   >
                     <p className="text-base font-medium text-donna-text">{note.title}</p>
