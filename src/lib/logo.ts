@@ -1,8 +1,8 @@
 import type { AppTheme } from "./theme";
 
-export const LOGO_BW = "/donna-logo-bw.png?v=4";
+export const LOGO_BW = "/donna-logo-bw.png?v=5";
 /** App + landing brand mark — black-and-white stencil. */
-export const LOGO_LANDING = "/donna-logo-bw.png?v=4";
+export const LOGO_LANDING = "/donna-logo-bw.png?v=5";
 
 export type LogoSurface = "app";
 
@@ -13,9 +13,9 @@ export type ThemeFavicons = {
 };
 
 const FAVICON_BW: ThemeFavicons = {
-  icon32: "/favicon-32.png?v=4",
-  icon64: "/favicon-64.png?v=4",
-  apple: "/apple-touch-icon.png?v=4",
+  icon32: "/favicon-32.png?v=5",
+  icon64: "/favicon-64.png?v=5",
+  apple: "/apple-touch-icon.png?v=5",
 };
 
 const FAVICON_INDIGO: ThemeFavicons = {
