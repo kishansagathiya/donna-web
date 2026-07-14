@@ -1,22 +1,23 @@
 @import "tailwindcss";
 
 @theme {
-  --color-donna-primary: #5046e5;
-  --color-donna-primary-hover: #4338ca;
-  --color-donna-primary-light: #ede9fe;
-  --color-donna-primary-ring: #6366f1;
-  --color-donna-gold: #5046e5;
-  --color-donna-gold-ring: #6366f1;
-  --color-donna-surface: #f3f4f6;
-  --color-donna-sidebar: #fafafa;
-  --color-donna-border: #e5e7eb;
-  --color-donna-text: #111827;
-  --color-donna-muted: #6b7280;
-  --color-donna-destructive: #dc2626;
-  --color-donna-toast: rgba(17, 24, 39, 0.92);
-  --color-donna-toast-error: rgba(185, 28, 28, 0.95);
+  /* Defaults match e-ink (app default before data-theme is applied). */
+  --color-donna-primary: #1a1a1a;
+  --color-donna-primary-hover: #000000;
+  --color-donna-primary-light: #e8e6df;
+  --color-donna-primary-ring: #333333;
+  --color-donna-gold: #1a1a1a;
+  --color-donna-gold-ring: #333333;
+  --color-donna-surface: #f4f1ea;
+  --color-donna-sidebar: #efece3;
+  --color-donna-border: #d8d4c8;
+  --color-donna-text: #1a1a1a;
+  --color-donna-muted: #5c564e;
+  --color-donna-destructive: #1a1a1a;
+  --color-donna-toast: rgba(20, 20, 20, 0.92);
+  --color-donna-toast-error: rgba(40, 40, 40, 0.95);
   --radius-donna: 12px;
-  --font-donna: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-donna: "Literata", "Lora", Georgia, "Times New Roman", serif;
 }
 
 html[data-theme="indigo"] {
@@ -73,7 +74,7 @@ html[data-theme="eink"] .app-shell .shadow {
 @layer base {
   html.app-route,
   body.app-route {
-    background: #ffffff;
+    background: #f4f1ea;
     color: #1a1a1a;
     margin: 0;
     width: 100%;

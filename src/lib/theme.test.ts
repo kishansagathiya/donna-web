@@ -34,18 +34,18 @@ describe("getStoredTheme", () => {
     },
   );
 
-  it('falls back to "indigo" for invalid stored values', () => {
+  it('falls back to "eink" for invalid stored values', () => {
     localStorage.setItem(THEME_STORAGE_KEY, "neon");
-    expect(getStoredTheme()).toBe("indigo");
+    expect(getStoredTheme()).toBe("eink");
   });
 
-  it('falls back to "indigo" for legacy cream values', () => {
+  it('falls back to "eink" for legacy cream values', () => {
     localStorage.setItem(THEME_STORAGE_KEY, "cream");
-    expect(getStoredTheme()).toBe("indigo");
+    expect(getStoredTheme()).toBe("eink");
   });
 
-  it('falls back to "indigo" when nothing is stored', () => {
-    expect(getStoredTheme()).toBe("indigo");
+  it('falls back to "eink" when nothing is stored', () => {
+    expect(getStoredTheme()).toBe("eink");
   });
 });
 

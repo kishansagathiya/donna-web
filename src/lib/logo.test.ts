@@ -1,25 +1,21 @@
 import { describe, expect, it } from "vitest";
 import {
   LOGO_BW,
-  LOGO_INDIGO,
   LOGO_LANDING,
   faviconsForTheme,
   logoForTheme,
 } from "./logo";
 
 describe("logoForTheme", () => {
-  it("uses the black-and-white logo for e-ink", () => {
+  it("uses the black-and-white logo for every theme", () => {
     expect(logoForTheme("eink")).toBe(LOGO_BW);
-  });
-
-  it("uses the indigo logo for indigo", () => {
-    expect(logoForTheme("indigo")).toBe(LOGO_INDIGO);
+    expect(logoForTheme("indigo")).toBe(LOGO_BW);
   });
 });
 
 describe("LOGO_LANDING", () => {
-  it("points at a landing logo asset", () => {
-    expect(LOGO_LANDING).toMatch(/donna-logo/);
+  it("points at the black-and-white logo asset", () => {
+    expect(LOGO_LANDING).toContain("donna-logo-bw");
   });
 });
 

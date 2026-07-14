@@ -19,10 +19,10 @@ export function isAppTheme(value: string | null): value is AppTheme {
 
 export function getStoredTheme(): AppTheme {
   if (typeof window === "undefined") {
-    return "indigo";
+    return "eink";
   }
   const stored = localStorage.getItem(THEME_STORAGE_KEY);
-  return isAppTheme(stored) ? stored : "indigo";
+  return isAppTheme(stored) ? stored : "eink";
 }
 
 export function applyTheme(theme: AppTheme): void {
