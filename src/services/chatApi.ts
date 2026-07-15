@@ -23,6 +23,10 @@ export type ChatStreamDoneMeta = {
   attachmentLabels?: string[];
 };
 
+export type ChatRequestOptions = {
+  webSearch?: boolean;
+};
+
 export class ChatAbortedError extends Error {
   constructor(message = "Generation stopped") {
     super(message);
@@ -43,6 +47,7 @@ type ChatRequestBody = {
   session_id?: string;
   mode: DonnaMode;
   attachments?: ChatAttachmentPayload[];
+  web_search?: boolean;
 };
 
 function buildBody(
@@ -51,6 +56,7 @@ function buildBody(
   sessionId: string | undefined,
   mode: DonnaMode,
   attachments?: ChatAttachmentPayload[],
+  options: ChatRequestOptions = {},
 ): ChatRequestBody {
   const body: ChatRequestBody = {
     message,
@@ -60,6 +66,9 @@ function buildBody(
   };
   if (attachments && attachments.length > 0) {
     body.attachments = attachments;
+  }
+  if (options.webSearch) {
+    body.web_search = true;
   }
   return body;
 }
@@ -99,6 +108,8 @@ function parseCitations(raw: unknown): MemoryCitation[] | undefined {
         id: typeof row.id === "string" ? row.id : undefined,
         text,
         score: typeof row.score === "number" ? row.score : undefined,
+        url: typeof row.url === "string" ? row.url : undefined,
+        title: typeof row.title === "string" ? row.title : undefined,
       } satisfies MemoryCitation;
     })
     .filter((c): c is MemoryCitation => c !== null);
@@ -110,11 +121,14 @@ export async function sendChatMessage(
   sessionId?: string,
   mode: DonnaMode = "talk",
   attachments?: ChatAttachmentPayload[],
+  options?: ChatRequestOptions,
 ): Promise<ChatReply> {
   const res = await authorizedFetch("/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(buildBody(message, history, sessionId, mode, attachments)),
+    body: JSON.stringify(
+      buildBody(message, history, sessionId, mode, attachments, options),
+    ),
   });
 
   const body = (await res.json()) as ChatReply & {
@@ -148,6 +162,7 @@ export async function streamChatMessage(
   callbacks: {
     mode?: DonnaMode;
     attachments?: ChatAttachmentPayload[];
+    webSearch?: boolean;
     signal?: AbortSignal;
     onSessionId?: (id: string) => void;
     onChunk?: (partial: string) => void;
@@ -186,6 +201,7 @@ export async function streamChatMessage(
           sessionId,
           callbacks.mode ?? "talk",
           callbacks.attachments,
+          { webSearch: callbacks.webSearch },
         ),
       ),
       signal: callbacks.signal,

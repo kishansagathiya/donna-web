@@ -36,6 +36,11 @@ export type UiMessage = {
   cancelled?: boolean;
   feedback?: "up" | "down";
   citations?: MemoryCitation[];
+  webSearch?: boolean;
+};
+
+export type SendMessageOptions = {
+  webSearch?: boolean;
 };
 
 function nextId(): string {
@@ -59,7 +64,10 @@ function toHistory(messages: UiMessage[]): ChatMessage[] {
   }));
 }
 
-function displayUserContent(text: string, attachments: PendingAttachment[]): string {
+function displayUserContent(
+  text: string,
+  attachments: PendingAttachment[],
+): string {
   const trimmed = text.trim();
   if (attachments.length === 0) return trimmed;
   const labels = attachments.map((a) => a.filename).join(", ");
@@ -104,6 +112,7 @@ export function useChatSession() {
       userMessageId: string,
       activeSessionId: string | undefined,
       attachments?: ChatAttachmentPayload[],
+      options: SendMessageOptions = {},
     ) => {
       const controller = new AbortController();
       abortControllerRef.current = controller;
@@ -115,6 +124,7 @@ export function useChatSession() {
         await streamChatMessage(trimmed, history, activeSessionId, {
           signal: controller.signal,
           attachments,
+          webSearch: options.webSearch,
           onSessionId: (id) => setSessionId(id),
           onPhase: (p) => setPhase(p),
           onChunk: (partial) => {
@@ -134,9 +144,7 @@ export function useChatSession() {
           },
           onCitations: (citations) => {
             setMessages((prev) =>
-              prev.map((m) =>
-                m.id === assistantId ? { ...m, citations } : m,
-              ),
+              prev.map((m) => (m.id === assistantId ? { ...m, citations } : m)),
             );
           },
           onDone: (reply, newSessionId, meta) => {
@@ -213,7 +221,11 @@ export function useChatSession() {
   );
 
   const sendMessage = useCallback(
-    async (text: string, pendingAttachments: PendingAttachment[] = []) => {
+    async (
+      text: string,
+      pendingAttachments: PendingAttachment[] = [],
+      options: SendMessageOptions = {},
+    ) => {
       const trimmed = text.trim();
       if ((!trimmed && pendingAttachments.length === 0) || busyRef.current) {
         return;
@@ -226,6 +238,7 @@ export function useChatSession() {
         content: displayUserContent(trimmed, pendingAttachments),
         attachments: toUiAttachments(pendingAttachments),
         attachmentPayloads: payloads.length > 0 ? payloads : undefined,
+        webSearch: options.webSearch,
       };
       const assistantId = nextId();
       const history = toHistory(messagesRef.current);
@@ -249,6 +262,7 @@ export function useChatSession() {
         userMessage.id,
         sessionIdRef.current,
         payloads.length > 0 ? payloads : undefined,
+        options,
       );
     },
     [runStream],
@@ -307,10 +321,14 @@ export function useChatSession() {
         assistantId,
         user.id,
         activeSessionId,
+        undefined,
+        { webSearch: user.webSearch },
       );
     } else {
       // Strip the display-only attachment footer from content when re-sending.
-      const typed = user.content.replace(/\n\n📎 .+$/s, "").replace(/^📎 .+$/s, "");
+      const typed = user.content
+        .replace(/\n\n📎 .+$/s, "")
+        .replace(/^📎 .+$/s, "");
       await runStream(
         typed === user.content ? user.content : typed.trim(),
         history,
@@ -318,6 +336,7 @@ export function useChatSession() {
         user.id,
         activeSessionId,
         user.attachmentPayloads,
+        { webSearch: user.webSearch },
       );
     }
   }, [runStream]);
@@ -362,6 +381,7 @@ export function useChatSession() {
         id: nextId(),
         role: "user",
         content: trimmed,
+        webSearch: previous?.webSearch,
       };
 
       setMessages([
@@ -375,7 +395,17 @@ export function useChatSession() {
         },
       ]);
 
-      await runStream(trimmed, history, assistantId, userMessage.id, activeSessionId);
+      await runStream(
+        trimmed,
+        history,
+        assistantId,
+        userMessage.id,
+        activeSessionId,
+        undefined,
+        {
+          webSearch: userMessage.webSearch,
+        },
+      );
     },
     [runStream],
   );
@@ -422,6 +452,8 @@ export function useChatSession() {
           assistantId,
           user.id,
           activeSessionId,
+          undefined,
+          { webSearch: user.webSearch },
         );
       } else {
         const typed = user.content
@@ -434,6 +466,7 @@ export function useChatSession() {
           user.id,
           activeSessionId,
           user.attachmentPayloads,
+          { webSearch: user.webSearch },
         );
       }
       return;
@@ -459,6 +492,8 @@ export function useChatSession() {
           assistantId,
           last.id,
           sessionIdRef.current,
+          undefined,
+          { webSearch: last.webSearch },
         );
       } else {
         const typed = last.content
@@ -471,6 +506,7 @@ export function useChatSession() {
           last.id,
           sessionIdRef.current,
           last.attachmentPayloads,
+          { webSearch: last.webSearch },
         );
       }
     }

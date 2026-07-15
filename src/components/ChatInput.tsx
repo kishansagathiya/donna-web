@@ -9,6 +9,7 @@ import {
 import {
   Code2,
   FileText,
+  Globe2,
   Link2,
   Mail,
   Mic,
@@ -36,7 +37,11 @@ type QuickAction = {
 };
 
 type Props = {
-  onSend: (text: string, attachments: PendingAttachment[]) => void;
+  onSend: (
+    text: string,
+    attachments: PendingAttachment[],
+    options?: { webSearch?: boolean },
+  ) => void;
   onStop?: () => void;
   onError?: (message: string) => void;
   disabled?: boolean;
@@ -72,13 +77,15 @@ export function ChatInput({
 }: Props) {
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
+  const [webSearch, setWebSearch] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const attachInputRef = useRef<HTMLInputElement>(null);
   const hasText = text.trim().length > 0;
   const hasAttachments = attachments.length > 0;
   const canSend = hasText || hasAttachments;
   const showStop = busy && Boolean(onStop);
-  const showInlineMic = showMic && !hasText && !hasAttachments && onMicPress && !showStop;
+  const showInlineMic =
+    showMic && !hasText && !hasAttachments && onMicPress && !showStop;
   const isListening = micState === "listening";
   const isProcessing = micState === "processing";
   const isRequesting = micState === "requesting";
@@ -108,9 +115,10 @@ export function ChatInput({
     if (disabled || !canSend) return;
     const trimmed = text.trim();
     const pending = attachments;
-    onSend(trimmed, pending);
+    onSend(trimmed, pending, { webSearch });
     setText("");
     setAttachments([]);
+    setWebSearch(false);
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
@@ -241,6 +249,28 @@ export function ChatInput({
             <div className="mb-0.5">
               <button
                 type="button"
+                onClick={() => setWebSearch((enabled) => !enabled)}
+                disabled={disabled}
+                aria-label="Use web search"
+                aria-pressed={webSearch}
+                title={webSearch ? "Web search on" : "Web search off"}
+                className={cn(
+                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+                  "transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
+                  "disabled:cursor-not-allowed disabled:opacity-50",
+                  webSearch
+                    ? "bg-donna-primary-light text-donna-primary hover:bg-donna-primary-light/80"
+                    : "text-donna-muted hover:bg-donna-surface hover:text-donna-text",
+                )}
+              >
+                <Globe2 className="h-5 w-5" strokeWidth={1.75} />
+              </button>
+            </div>
+
+            <div className="mb-0.5">
+              <button
+                type="button"
                 onClick={() => attachInputRef.current?.click()}
                 disabled={disabled}
                 aria-label="Attach to message"
@@ -284,13 +314,17 @@ export function ChatInput({
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring focus-visible:ring-offset-2",
                   "disabled:cursor-not-allowed disabled:opacity-60",
                   isListening && "ring-2 ring-donna-primary-ring",
-                  micState === "error" && "border-[3px] border-donna-destructive",
+                  micState === "error" &&
+                    "border-[3px] border-donna-destructive",
                 )}
               >
                 {isProcessing ? (
                   <Spinner className="!h-4 !w-4 !border-white/30 !border-t-white" />
                 ) : isListening ? (
-                  <Square className="h-3.5 w-3.5 fill-current" strokeWidth={0} />
+                  <Square
+                    className="h-3.5 w-3.5 fill-current"
+                    strokeWidth={0}
+                  />
                 ) : (
                   <Mic className="h-4 w-4" strokeWidth={1.75} />
                 )}

@@ -51,9 +51,9 @@ export function ChatApp() {
   const navigate = useNavigate();
   const location = useLocation();
   const [historySheetOpen, setHistorySheetOpen] = useState(false);
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(
-    null,
-  );
+  const [activeConversationId, setActiveConversationId] = useState<
+    string | null
+  >(null);
   // Desktop right panel starts closed; open only via the expand button.
   const [historyPanelOpen, setHistoryPanelOpen] = useState(() => {
     try {
@@ -181,9 +181,7 @@ export function ChatApp() {
               aria-pressed={historyPanelOpen}
               className={cn(
                 "!h-9 !w-9 !border-transparent !bg-transparent hover:!bg-donna-surface hidden lg:inline-flex",
-                historyPanelOpen
-                  ? "!text-donna-primary"
-                  : "!text-donna-muted",
+                historyPanelOpen ? "!text-donna-primary" : "!text-donna-muted",
               )}
             >
               {historyPanelOpen ? (
@@ -236,7 +234,9 @@ export function ChatApp() {
         ) : null}
 
         <ChatInput
-          onSend={(text, attachments) => void sendMessage(text, attachments)}
+          onSend={(text, attachments, options) =>
+            void sendMessage(text, attachments, options)
+          }
           onStop={stopGeneration}
           onError={(message) => showToast(message, true)}
           disabled={inputDisabled}
@@ -248,9 +248,7 @@ export function ChatApp() {
           micDisabled={micDisabled}
           sessionLabel={inputSessionLabel}
           quickActions={
-            messages.length === 0 &&
-            voiceTurns.length === 0 &&
-            !sessionActive
+            messages.length === 0 && voiceTurns.length === 0 && !sessionActive
               ? quickActions.map((action) => ({
                   label: action.label,
                   onClick: () => void sendMessage(action.prompt),

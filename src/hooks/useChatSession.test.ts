@@ -59,6 +59,32 @@ describe("useChatSession", () => {
     });
   });
 
+  it("passes web search option to the stream", async () => {
+    streamChatMessage.mockImplementation(
+      async (_message, _history, _sessionId, callbacks) => {
+        callbacks.onDone?.("fresh answer", "sess-1");
+      },
+    );
+
+    const { result } = renderHook(() => useChatSession());
+
+    await act(async () => {
+      await result.current.sendMessage("what happened today?", [], {
+        webSearch: true,
+      });
+    });
+
+    expect(streamChatMessage).toHaveBeenCalledOnce();
+    const callbacks = streamChatMessage.mock.calls[0]?.[3] as {
+      webSearch?: boolean;
+    };
+    expect(callbacks.webSearch).toBe(true);
+    expect(result.current.messages[0]).toMatchObject({
+      role: "user",
+      webSearch: true,
+    });
+  });
+
   it("stops an in-flight stream and keeps partial content", async () => {
     streamChatMessage.mockImplementation(
       async (_message, _history, _sessionId, callbacks) => {
