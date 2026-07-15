@@ -7,11 +7,12 @@ import {
   type KeyboardEvent,
 } from "react";
 import {
-  Code2,
+  BookOpen,
+  Brain,
   FileText,
   Globe2,
+  History,
   Link2,
-  Mail,
   Mic,
   Paperclip,
   Send,
@@ -56,9 +57,9 @@ type Props = {
 };
 
 const quickActionIcons: Record<string, typeof FileText> = {
-  "Summarize PDF": FileText,
-  "Debug code": Code2,
-  "Draft email": Mail,
+  "What do you remember?": Brain,
+  "Catch me up": BookOpen,
+  "Continue last chat": History,
 };
 
 export function ChatInput({

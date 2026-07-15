@@ -16,9 +16,18 @@ import { isDonnaThinkingPhase } from "../lib/thinkingPhrases";
 import { cn } from "../lib/cn";
 
 const quickActions = [
-  { label: "Summarize PDF", prompt: "Summarize the PDF I shared" },
-  { label: "Debug code", prompt: "Help me debug this code" },
-  { label: "Draft email", prompt: "Help me draft an email" },
+  {
+    label: "What do you remember?",
+    prompt: "What do you remember about me?",
+  },
+  {
+    label: "Catch me up",
+    prompt: "Catch me up from my notes and recent conversations.",
+  },
+  {
+    label: "Continue last chat",
+    prompt: "Continue where we left off.",
+  },
 ] as const;
 
 const HISTORY_PANEL_KEY = "donna.chatHistory.panelOpen";
