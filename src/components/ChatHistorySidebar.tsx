@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { History, PanelLeftClose, PanelLeftOpen, Plus } from "lucide-react";
+import { History, PanelRightClose, Plus } from "lucide-react";
 import {
   getConversation,
   turnsToMessages,
@@ -12,8 +12,8 @@ import { IconButton } from "./ui/IconButton";
 import { cn } from "../lib/cn";
 
 type Props = {
-  collapsed?: boolean;
-  onToggleCollapsed?: () => void;
+  open: boolean;
+  onClose: () => void;
   selectedId?: string | null;
   onNewChat: () => void;
   onResume: (
@@ -28,9 +28,10 @@ function nextId(): string {
   return crypto.randomUUID();
 }
 
+/** Desktop-only right-side chat history panel. Hidden until opened via expand. */
 export function ChatHistorySidebar({
-  collapsed = false,
-  onToggleCollapsed,
+  open,
+  onClose,
   selectedId = null,
   onNewChat,
   onResume,
@@ -57,40 +58,19 @@ export function ChatHistorySidebar({
     }
   }
 
-  if (collapsed) {
-    return (
-      <aside
-        className={cn(
-          "hidden h-full w-12 shrink-0 flex-col items-center border-r border-donna-border bg-donna-sidebar py-3 lg:flex",
-          className,
-        )}
-      >
-        <IconButton
-          onClick={onToggleCollapsed}
-          aria-label="Expand chat history"
-          className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
-        >
-          <PanelLeftOpen className="h-5 w-5" strokeWidth={1.75} />
-        </IconButton>
-        <IconButton
-          onClick={onNewChat}
-          aria-label="New chat"
-          className="mt-2 !h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
-        >
-          <Plus className="h-5 w-5" strokeWidth={1.75} />
-        </IconButton>
-      </aside>
-    );
+  if (!open) {
+    return null;
   }
 
   return (
     <aside
       className={cn(
-        "hidden h-full w-72 shrink-0 flex-col border-r border-donna-border bg-donna-sidebar lg:flex",
+        "hidden h-full w-80 shrink-0 flex-col border-l border-donna-border bg-donna-sidebar lg:flex",
         className,
       )}
+      aria-label="Chat history"
     >
-      <div className="flex shrink-0 items-center justify-between gap-2 px-3 py-3">
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-donna-border px-3 py-3">
         <div className="flex items-center gap-2 text-sm font-semibold text-donna-text">
           <History className="h-4 w-4 text-donna-primary" strokeWidth={1.75} />
           Chats
@@ -103,31 +83,29 @@ export function ChatHistorySidebar({
           >
             <Plus className="h-4 w-4" strokeWidth={1.75} />
           </IconButton>
-          {onToggleCollapsed ? (
-            <IconButton
-              onClick={onToggleCollapsed}
-              aria-label="Collapse chat history"
-              className="!h-8 !w-8 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
-            >
-              <PanelLeftClose className="h-4 w-4" strokeWidth={1.75} />
-            </IconButton>
-          ) : null}
+          <IconButton
+            onClick={onClose}
+            aria-label="Close chat history"
+            className="!h-8 !w-8 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
+          >
+            <PanelRightClose className="h-4 w-4" strokeWidth={1.75} />
+          </IconButton>
         </div>
       </div>
 
       {error ? (
-        <AlertBanner className="mx-3 mb-2" onDismiss={() => setError(null)}>
+        <AlertBanner className="mx-3 mb-2 mt-2" onDismiss={() => setError(null)}>
           {error}
         </AlertBanner>
       ) : null}
 
       <ConversationHistoryList
-        active
+        active={open}
         compact
         selectedId={selectedId}
         refreshKey={refreshKey}
         onSelect={handleSelect}
-        className="min-h-0"
+        className="min-h-0 pt-2"
       />
     </aside>
   );
