@@ -412,6 +412,11 @@ export function useVoiceSession() {
     setErrorMsg(null);
   }, []);
 
+  const clearTurns = useCallback(() => {
+    setTurns([]);
+    turnSeqRef.current = 0;
+  }, []);
+
   useEffect(() => {
     return () => {
       void stopSession();
@@ -444,5 +449,6 @@ export function useVoiceSession() {
     disabled: state === "requesting",
     sessionActive: state === "listening" || state === "processing",
     dismissError,
+    clearTurns,
   };
 }

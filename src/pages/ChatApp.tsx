@@ -9,8 +9,9 @@ import { AlertBanner } from "../components/ui/AlertBanner";
 import { IconButton } from "../components/ui/IconButton";
 import { useAssetIngest } from "../hooks/useAssetIngest";
 import { useAuth } from "../hooks/useAuth";
-import { useChatSession } from "../hooks/useChatSession";
-import { useVoiceSession } from "../hooks/useVoiceSession";
+import { useChatSessionContext } from "../hooks/ChatSessionProvider";
+import { useVoiceSessionContext } from "../hooks/VoiceSessionProvider";
+import { isDonnaThinkingPhase } from "../lib/thinkingPhrases";
 import { cn } from "../lib/cn";
 
 const quickActions = [
@@ -56,7 +57,7 @@ export function ChatApp() {
     phase,
     error,
     dismissError,
-  } = useChatSession();
+  } = useChatSessionContext();
   const {
     state: micState,
     toggleTalk,
@@ -69,7 +70,8 @@ export function ChatApp() {
     disabled: micDisabled,
     sessionActive,
     dismissError: dismissVoiceError,
-  } = useVoiceSession();
+    clearTurns: clearVoiceTurns,
+  } = useVoiceSessionContext();
   const { toast, showToast, addFile } = useAssetIngest();
   const activeError = voiceError ?? error;
   const dismissActiveError = voiceError ? dismissVoiceError : dismissError;
@@ -83,6 +85,7 @@ export function ChatApp() {
 
     if (state?.newChat) {
       clearChat();
+      clearVoiceTurns();
       navigate("/app", { replace: true, state: null });
     }
 
@@ -90,7 +93,7 @@ export function ChatApp() {
       showToast(state.ingestToast.message, state.ingestToast.isError);
       navigate(location.pathname, { replace: true, state: null });
     }
-  }, [location, navigate, showToast, clearChat]);
+  }, [location, navigate, showToast, clearChat, clearVoiceTurns]);
 
   async function handleFileSelect(file: File) {
     const result = await addFile(file);
@@ -104,6 +107,11 @@ export function ChatApp() {
     voiceTurns.length > 0 ||
     Boolean(liveTranscript) ||
     Boolean(liveReply);
+
+  const inputSessionLabel =
+    hasMessages && sessionLabel && !isDonnaThinkingPhase(sessionLabel)
+      ? sessionLabel
+      : null;
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col">
@@ -155,7 +163,7 @@ export function ChatApp() {
         micState={micState}
         onMicPress={() => void toggleTalk()}
         micDisabled={micDisabled}
-        sessionLabel={hasMessages ? sessionLabel : null}
+        sessionLabel={inputSessionLabel}
         quickActions={
           messages.length === 0 &&
           voiceTurns.length === 0 &&
@@ -173,7 +181,10 @@ export function ChatApp() {
       <ChatHistorySheet
         open={historyOpen}
         onClose={() => setHistoryOpen(false)}
-        onResume={loadConversation}
+        onResume={(sessionId, nextMessages) => {
+          clearVoiceTurns();
+          loadConversation(sessionId, nextMessages);
+        }}
       />
     </div>
   );

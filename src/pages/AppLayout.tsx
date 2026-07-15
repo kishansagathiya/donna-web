@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Sidebar } from "../components/Sidebar";
+import { ChatSessionProvider } from "../hooks/ChatSessionProvider";
+import { VoiceSessionProvider } from "../hooks/VoiceSessionProvider";
 import { cn } from "../lib/cn";
 
 export function AppLayout() {
@@ -48,7 +50,11 @@ export function AppLayout() {
           <span className="ml-2 text-sm font-semibold text-donna-primary">Donna</span>
         </div>
 
-        <Outlet />
+        <ChatSessionProvider>
+          <VoiceSessionProvider>
+            <Outlet />
+          </VoiceSessionProvider>
+        </ChatSessionProvider>
       </main>
     </div>
   );
