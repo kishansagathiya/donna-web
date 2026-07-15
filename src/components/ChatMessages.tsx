@@ -3,6 +3,7 @@ import type { UiMessage } from "../hooks/useChatSession";
 import type { VoiceTurn } from "../hooks/useVoiceSession";
 import { ChatHero } from "./ChatHero";
 import type { MicState } from "./MicButton";
+import { MemoryCitations } from "./MemoryCitations";
 import { MessageActions } from "./MessageActions";
 import { MessageContent } from "./MessageContent";
 import { AssistantThinkingBlock } from "./ThinkingIndicator";
@@ -179,6 +180,13 @@ export function ChatMessages({
                     </p>
                   ) : null}
                 </div>
+
+                {message.role === "assistant" &&
+                !message.streaming &&
+                message.citations &&
+                message.citations.length > 0 ? (
+                  <MemoryCitations citations={message.citations} />
+                ) : null}
 
                 {showActions ? (
                   <MessageActions

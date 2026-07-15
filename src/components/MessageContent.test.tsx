@@ -39,6 +39,18 @@ describe("MessageContent", () => {
     expect(screen.getByText("Writing")).toBeInTheDocument();
   });
 
+  it("renders a copy control on code blocks", async () => {
+    render(
+      <MessageContent
+        variant="assistant"
+        content={"```js\nconst x = 1;\n```"}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: /copy code/i })).toBeInTheDocument();
+    expect(screen.getByText("const x = 1;")).toBeInTheDocument();
+  });
+
   it("preserves line breaks for user messages", () => {
     render(<MessageContent variant="user" content={"Line one\nLine two"} />);
 

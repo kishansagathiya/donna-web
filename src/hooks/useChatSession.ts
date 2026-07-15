@@ -9,6 +9,8 @@ import {
   truncateConversationTurns,
 } from "../services/conversationsApi";
 
+import type { MemoryCitation } from "../types/citations";
+
 export type UiMessage = {
   id: string;
   role: "user" | "assistant";
@@ -17,6 +19,7 @@ export type UiMessage = {
   error?: boolean;
   cancelled?: boolean;
   feedback?: "up" | "down";
+  citations?: MemoryCitation[];
 };
 
 function nextId(): string {
@@ -92,7 +95,14 @@ export function useChatSession() {
               ),
             );
           },
-          onDone: (reply, newSessionId) => {
+          onCitations: (citations) => {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId ? { ...m, citations } : m,
+              ),
+            );
+          },
+          onDone: (reply, newSessionId, citations) => {
             setSessionId(newSessionId);
             setMessages((prev) =>
               prev.map((m) =>
@@ -103,6 +113,7 @@ export function useChatSession() {
                       streaming: false,
                       error: false,
                       cancelled: false,
+                      citations: citations ?? m.citations,
                     }
                   : m,
               ),

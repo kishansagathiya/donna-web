@@ -1,6 +1,8 @@
+import { useState } from "react";
 import type { Components } from "react-markdown";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Check, Copy } from "lucide-react";
 import { cn } from "../lib/cn";
 
 type Props = {
@@ -8,6 +10,59 @@ type Props = {
   variant: "user" | "assistant";
   className?: string;
 };
+
+function CodeBlock({ children }: { children: React.ReactNode }) {
+  const [copied, setCopied] = useState(false);
+
+  const extractText = (node: React.ReactNode): string => {
+    if (typeof node === "string") return node;
+    if (typeof node === "number") return String(node);
+    if (Array.isArray(node)) return node.map(extractText).join("");
+    if (node && typeof node === "object" && "props" in node) {
+      const el = node as { props?: { children?: React.ReactNode } };
+      return extractText(el.props?.children);
+    }
+    return "";
+  };
+
+  const onCopy = async () => {
+    const text = extractText(children).replace(/\n$/, "");
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard may be unavailable; ignore.
+    }
+  };
+
+  return (
+    <div className="group relative mb-2 last:mb-0">
+      <pre className="overflow-x-auto rounded-lg bg-black/5 p-3 pr-12">
+        {children}
+      </pre>
+      <button
+        type="button"
+        onClick={onCopy}
+        className={cn(
+          "absolute right-2 top-2 inline-flex items-center gap-1 rounded-md border border-donna-border",
+          "bg-donna-surface px-1.5 py-1 text-[0.6875rem] font-medium text-donna-muted",
+          "opacity-100 transition hover:text-donna-text sm:opacity-0 sm:group-hover:opacity-100",
+          "focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-gold/40",
+        )}
+        aria-label={copied ? "Copied" : "Copy code"}
+      >
+        {copied ? (
+          <Check className="h-3.5 w-3.5" aria-hidden />
+        ) : (
+          <Copy className="h-3.5 w-3.5" aria-hidden />
+        )}
+        <span>{copied ? "Copied" : "Copy"}</span>
+      </button>
+    </div>
+  );
+}
 
 const assistantComponents: Components = {
   p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
@@ -48,7 +103,7 @@ const assistantComponents: Components = {
     const isBlock = className?.includes("language-");
     if (isBlock) {
       return (
-        <code className="block overflow-x-auto rounded-lg bg-black/5 px-3 py-2 font-mono text-[0.8125rem] leading-relaxed">
+        <code className="block overflow-x-auto font-mono text-[0.8125rem] leading-relaxed">
           {children}
         </code>
       );
@@ -59,11 +114,7 @@ const assistantComponents: Components = {
       </code>
     );
   },
-  pre: ({ children }) => (
-    <pre className="mb-2 overflow-x-auto rounded-lg bg-black/5 p-3 last:mb-0">
-      {children}
-    </pre>
-  ),
+  pre: ({ children }) => <CodeBlock>{children}</CodeBlock>,
   hr: () => <hr className="my-3 border-donna-border" />,
   table: ({ children }) => (
     <div className="mb-2 max-w-full overflow-x-auto last:mb-0">

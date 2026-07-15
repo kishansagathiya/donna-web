@@ -1,6 +1,7 @@
 import { API_BASE_URL } from "../config";
 import { getAccessToken } from "./auth";
 import type { DonnaMode } from "../types/mode";
+import type { MemoryCitation } from "../types/citations";
 
 export type ChatMessage = {
   role: "user" | "assistant" | "system";
@@ -10,6 +11,7 @@ export type ChatMessage = {
 export type ChatReply = {
   reply: string;
   sessionId: string;
+  citations?: MemoryCitation[];
 };
 
 export class ChatAbortedError extends Error {
@@ -46,6 +48,26 @@ async function authorizedFetch(
   });
 }
 
+function parseCitations(raw: unknown): MemoryCitation[] | undefined {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    return undefined;
+  }
+  return raw
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const row = item as Record<string, unknown>;
+      const text = typeof row.text === "string" ? row.text.trim() : "";
+      if (!text) return null;
+      return {
+        source: typeof row.source === "string" ? row.source : "fact",
+        id: typeof row.id === "string" ? row.id : undefined,
+        text,
+        score: typeof row.score === "number" ? row.score : undefined,
+      } satisfies MemoryCitation;
+    })
+    .filter((c): c is MemoryCitation => c !== null);
+}
+
 export async function sendChatMessage(
   message: string,
   history: ChatMessage[],
@@ -65,6 +87,7 @@ export async function sendChatMessage(
 
   const body = (await res.json()) as ChatReply & {
     session_id?: string;
+    citations?: unknown;
     error?: string;
     message?: string;
   };
@@ -78,6 +101,7 @@ export async function sendChatMessage(
   return {
     reply: body.reply,
     sessionId: body.sessionId ?? body.session_id ?? sessionId ?? "",
+    citations: parseCitations(body.citations),
   };
 }
 
@@ -91,7 +115,12 @@ export async function streamChatMessage(
     onSessionId?: (id: string) => void;
     onChunk?: (partial: string) => void;
     onPhase?: (phase: string) => void;
-    onDone?: (reply: string, sessionId: string) => void;
+    onCitations?: (citations: MemoryCitation[]) => void;
+    onDone?: (
+      reply: string,
+      sessionId: string,
+      citations?: MemoryCitation[],
+    ) => void;
     onError?: (message: string) => void;
   },
 ): Promise<void> {
@@ -143,6 +172,7 @@ export async function streamChatMessage(
   const decoder = new TextDecoder();
   let buffer = "";
   let streamError: string | null = null;
+  let latestCitations: MemoryCitation[] | undefined;
 
   try {
     while (true) {
@@ -184,11 +214,11 @@ export async function streamChatMessage(
         if (!data) continue;
 
         try {
-          const parsed = JSON.parse(data) as Record<string, string>;
+          const parsed = JSON.parse(data) as Record<string, unknown>;
 
           switch (event) {
             case "session":
-              if (parsed.session_id) {
+              if (typeof parsed.session_id === "string") {
                 callbacks.onSessionId?.(parsed.session_id);
               }
               break;
@@ -196,20 +226,42 @@ export async function streamChatMessage(
               callbacks.onPhase?.(data.replace(/"/g, ""));
               break;
             case "chunk":
-              if (parsed.text) {
+              if (typeof parsed.text === "string") {
                 callbacks.onChunk?.(parsed.text);
               }
               break;
+            case "citations": {
+              const cites = parseCitations(parsed.citations);
+              if (cites?.length) {
+                latestCitations = cites;
+                callbacks.onCitations?.(cites);
+              }
+              break;
+            }
             case "done": {
-              const doneBody = JSON.parse(data) as {
-                reply: string;
-                session_id: string;
+              const doneBody = parsed as {
+                reply?: string;
+                session_id?: string;
+                citations?: unknown;
               };
-              callbacks.onDone?.(doneBody.reply, doneBody.session_id);
+              const cites =
+                parseCitations(doneBody.citations) ?? latestCitations;
+              if (cites?.length) {
+                latestCitations = cites;
+                callbacks.onCitations?.(cites);
+              }
+              callbacks.onDone?.(
+                doneBody.reply ?? "",
+                doneBody.session_id ?? sessionId ?? "",
+                cites,
+              );
               break;
             }
             case "error":
-              streamError = parsed.message ?? "Chat failed";
+              streamError =
+                typeof parsed.message === "string"
+                  ? parsed.message
+                  : "Chat failed";
               callbacks.onError?.(streamError);
               break;
           }
