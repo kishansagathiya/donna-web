@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import type { UiMessage } from "../hooks/useChatSession";
 import type { VoiceTurn } from "../hooks/useVoiceSession";
 import { ChatHero } from "./ChatHero";
@@ -9,6 +10,9 @@ import { MessageContent } from "./MessageContent";
 import { AssistantThinkingBlock } from "./ThinkingIndicator";
 import { cn } from "../lib/cn";
 import { isDonnaThinkingPhase } from "../lib/thinkingPhrases";
+
+/** Distance from bottom (px) that still counts as "following" the stream. */
+const NEAR_BOTTOM_PX = 80;
 
 type Props = {
   messages: UiMessage[];
@@ -70,7 +74,11 @@ export function ChatMessages({
   onFeedback,
   onRetry,
 }: Props) {
+  const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const stickToBottomRef = useRef(true);
+  const prevMessageCountRef = useRef(0);
+  const [stickToBottom, setStickToBottom] = useState(true);
 
   const allMessages = useMemo(() => {
     const voiceMessages = voiceTurnsToMessages(voiceTurns);
@@ -123,18 +131,61 @@ export function ChatMessages({
           lastTextMessage.role === "user"),
     );
 
+  const enableStickToBottom = () => {
+    stickToBottomRef.current = true;
+    setStickToBottom(true);
+  };
+
+  const scrollToBottom = (behavior: ScrollBehavior = "auto") => {
+    bottomRef.current?.scrollIntoView({ behavior, block: "end" });
+  };
+
+  const handleScroll = () => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const distanceFromBottom =
+      el.scrollHeight - el.scrollTop - el.clientHeight;
+    const nearBottom = distanceFromBottom <= NEAR_BOTTOM_PX;
+    if (nearBottom === stickToBottomRef.current) return;
+    stickToBottomRef.current = nearBottom;
+    setStickToBottom(nearBottom);
+  };
+
+  // New / loaded conversation: always resume follow mode.
+  const threadKey = messages[0]?.id ?? "empty";
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [allMessages, displayPhase]);
+    enableStickToBottom();
+    prevMessageCountRef.current = allMessages.length;
+  }, [threadKey]);
+
+  // User send (or new user bubble): jump back to bottom and resume follow.
+  useEffect(() => {
+    const count = allMessages.length;
+    const grew = count > prevMessageCountRef.current;
+    prevMessageCountRef.current = count;
+    if (!grew) return;
+    const last = allMessages[count - 1];
+    if (last?.role === "user") {
+      enableStickToBottom();
+    }
+  }, [allMessages]);
+
+  useEffect(() => {
+    if (!stickToBottomRef.current) return;
+    scrollToBottom("auto");
+  }, [allMessages, displayPhase, stickToBottom]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {hasMessages ? (
-        <div
-          className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 py-4 md:px-8"
-          role="log"
-          aria-live="polite"
-        >
+        <div className="relative flex min-h-0 flex-1 flex-col">
+          <div
+            ref={scrollRef}
+            onScroll={handleScroll}
+            className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 py-4 md:px-8"
+            role="log"
+            aria-live="polite"
+          >
           {allMessages.map((message) => {
             if (
               message.role === "assistant" &&
@@ -249,6 +300,25 @@ export function ChatMessages({
             <p className="mr-auto text-sm text-donna-muted">{displayPhase}</p>
           ) : null}
           <div ref={bottomRef} />
+          </div>
+          {!stickToBottom ? (
+            <button
+              type="button"
+              className={cn(
+                "absolute bottom-3 left-1/2 z-10 flex h-9 w-9 -translate-x-1/2 items-center justify-center",
+                "rounded-full border border-donna-border bg-donna-surface text-donna-primary shadow-md",
+                "transition-opacity hover:bg-donna-primary-light",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring focus-visible:ring-offset-2",
+              )}
+              aria-label="Scroll to latest messages"
+              onClick={() => {
+                enableStickToBottom();
+                scrollToBottom("smooth");
+              }}
+            >
+              <ChevronDown className="h-4 w-4" aria-hidden />
+            </button>
+          ) : null}
         </div>
       ) : null}
 
