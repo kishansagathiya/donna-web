@@ -23,7 +23,6 @@ import {
   fileToChatAttachment,
   isImageMime,
   revokePendingAttachment,
-  urlToChatAttachment,
   type PendingAttachment,
 } from "../lib/chatAttachments";
 import { isDonnaThinkingPhase } from "../lib/thinkingPhrases";
@@ -39,8 +38,6 @@ type QuickAction = {
 type Props = {
   onSend: (text: string, attachments: PendingAttachment[]) => void;
   onStop?: () => void;
-  /** Save file to long-term knowledge/memory (not in-turn chat). */
-  onSaveToMemory?: (file: File) => void;
   onError?: (message: string) => void;
   disabled?: boolean;
   busy?: boolean;
@@ -62,7 +59,6 @@ const quickActionIcons: Record<string, typeof FileText> = {
 export function ChatInput({
   onSend,
   onStop,
-  onSaveToMemory,
   onError,
   disabled,
   busy = false,
@@ -76,13 +72,8 @@ export function ChatInput({
 }: Props) {
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [linkOpen, setLinkOpen] = useState(false);
-  const [linkValue, setLinkValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const attachInputRef = useRef<HTMLInputElement>(null);
-  const memoryInputRef = useRef<HTMLInputElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
   const hasText = text.trim().length > 0;
   const hasAttachments = attachments.length > 0;
   const canSend = hasText || hasAttachments;
@@ -104,18 +95,6 @@ export function ChatInput({
   }, [text]);
 
   useEffect(() => {
-    function onDocClick(e: MouseEvent) {
-      if (!menuRef.current?.contains(e.target as Node)) {
-        setMenuOpen(false);
-      }
-    }
-    if (menuOpen) {
-      document.addEventListener("mousedown", onDocClick);
-      return () => document.removeEventListener("mousedown", onDocClick);
-    }
-  }, [menuOpen]);
-
-  useEffect(() => {
     return () => {
       for (const att of attachments) {
         revokePendingAttachment(att);
@@ -132,9 +111,6 @@ export function ChatInput({
     onSend(trimmed, pending);
     setText("");
     setAttachments([]);
-    setMenuOpen(false);
-    setLinkOpen(false);
-    setLinkValue("");
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
@@ -190,19 +166,6 @@ export function ChatInput({
     await addFiles(imageFiles);
   }
 
-  function addLink() {
-    try {
-      assertAttachmentBudget(attachments.length, 1);
-      const att = urlToChatAttachment(linkValue);
-      setAttachments((prev) => [...prev, att]);
-      setLinkValue("");
-      setLinkOpen(false);
-      setMenuOpen(false);
-    } catch (err) {
-      onError?.(err instanceof Error ? err.message : "Could not add link");
-    }
-  }
-
   return (
     <div className="shrink-0 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2">
       {isDonnaThinkingPhase(sessionLabel) ? (
@@ -256,35 +219,6 @@ export function ChatInput({
             </div>
           ) : null}
 
-          {linkOpen ? (
-            <div className="mb-2 flex gap-2">
-              <input
-                value={linkValue}
-                onChange={(e) => setLinkValue(e.target.value)}
-                placeholder="https://…"
-                className="min-w-0 flex-1 rounded-lg border border-donna-border bg-donna-surface px-3 py-2 text-sm text-donna-text placeholder:text-donna-muted focus:outline-none focus:ring-2 focus:ring-donna-primary-ring/30"
-                aria-label="URL to discuss"
-              />
-              <button
-                type="button"
-                onClick={addLink}
-                className="rounded-lg bg-donna-primary px-3 py-2 text-sm font-medium text-white hover:bg-donna-primary-hover"
-              >
-                Add
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setLinkOpen(false);
-                  setLinkValue("");
-                }}
-                className="rounded-lg px-2 text-sm text-donna-muted hover:text-donna-text"
-              >
-                Cancel
-              </button>
-            </div>
-          ) : null}
-
           <div className="flex items-end gap-2">
             <textarea
               ref={textareaRef}
@@ -304,74 +238,21 @@ export function ChatInput({
               aria-label={placeholder}
             />
 
-            <div className="relative mb-0.5" ref={menuRef}>
+            <div className="mb-0.5">
               <button
                 type="button"
-                onClick={() => setMenuOpen((open) => !open)}
+                onClick={() => attachInputRef.current?.click()}
                 disabled={disabled}
-                aria-label="Attach"
-                aria-expanded={menuOpen}
+                aria-label="Attach to message"
                 className={cn(
                   "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-donna-muted",
                   "transition-colors hover:bg-donna-surface hover:text-donna-text",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
                   "disabled:cursor-not-allowed disabled:opacity-50",
-                  menuOpen && "bg-donna-surface text-donna-text",
                 )}
               >
                 <Paperclip className="h-5 w-5" strokeWidth={1.75} />
               </button>
-              {menuOpen ? (
-                <div className="absolute bottom-full right-0 z-20 mb-2 w-56 overflow-hidden rounded-xl border border-donna-border bg-white py-1 shadow-lg">
-                  <button
-                    type="button"
-                    className="flex w-full flex-col items-start px-3 py-2 text-left hover:bg-donna-surface"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      attachInputRef.current?.click();
-                    }}
-                  >
-                    <span className="text-sm font-medium text-donna-text">
-                      Attach to message
-                    </span>
-                    <span className="text-xs text-donna-muted">
-                      For this chat turn only
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    className="flex w-full flex-col items-start px-3 py-2 text-left hover:bg-donna-surface"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      setLinkOpen(true);
-                    }}
-                  >
-                    <span className="text-sm font-medium text-donna-text">
-                      Add link
-                    </span>
-                    <span className="text-xs text-donna-muted">
-                      Fetch a URL for this turn
-                    </span>
-                  </button>
-                  {onSaveToMemory ? (
-                    <button
-                      type="button"
-                      className="flex w-full flex-col items-start border-t border-donna-border px-3 py-2 text-left hover:bg-donna-surface"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        memoryInputRef.current?.click();
-                      }}
-                    >
-                      <span className="text-sm font-medium text-donna-text">
-                        Save to memory
-                      </span>
-                      <span className="text-xs text-donna-muted">
-                        Keep in Donna&apos;s knowledge
-                      </span>
-                    </button>
-                  ) : null}
-                </div>
-              ) : null}
               <input
                 ref={attachInputRef}
                 type="file"
@@ -384,19 +265,6 @@ export function ChatInput({
                   if (files) void addFiles(files);
                 }}
               />
-              {onSaveToMemory ? (
-                <input
-                  ref={memoryInputRef}
-                  type="file"
-                  hidden
-                  accept="image/*,.pdf,.txt,.md,.doc,.docx,.csv,.json,.html,audio/*"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    e.target.value = "";
-                    if (file) onSaveToMemory(file);
-                  }}
-                />
-              ) : null}
             </div>
 
             {showInlineMic ? (

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { useNavigate } from "react-router-dom";
-import { Flame, Search, Send, StickyNote, Star } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { FileUp, Flame, Link2, Search, Send, StickyNote, Star } from "lucide-react";
 import {
   createNote,
   formatNoteDate,
@@ -16,6 +16,8 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { Spinner } from "../components/ui/Spinner";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { IconButton } from "../components/ui/IconButton";
+import { IngestToast } from "../components/IngestToast";
+import { useAssetIngest } from "../hooks/useAssetIngest";
 import { cn } from "../lib/cn";
 
 const PAGE_SIZE = 50;
@@ -23,9 +25,25 @@ const PAGE_SIZE = 50;
 function NoteComposeBar({
   onSave,
   saving,
+  onAddLink,
+  onSaveToMemory,
+  ingestBusy,
+  linkOpen,
+  linkValue,
+  onLinkValueChange,
+  onSubmitLink,
+  onCancelLink,
 }: {
   onSave: (text: string) => Promise<void>;
   saving: boolean;
+  onAddLink: () => void;
+  onSaveToMemory: () => void;
+  ingestBusy: boolean;
+  linkOpen: boolean;
+  linkValue: string;
+  onLinkValueChange: (value: string) => void;
+  onSubmitLink: () => void;
+  onCancelLink: () => void;
 }) {
   const [draft, setDraft] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -65,49 +83,131 @@ function NoteComposeBar({
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="flex shrink-0 items-end gap-2 border-b border-donna-border px-5 py-3 md:px-8"
-    >
-      <textarea
-        ref={textareaRef}
-        value={draft}
-        onChange={(e) => setDraft(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Jot down a note…"
-        disabled={saving}
-        rows={1}
-        className={cn(
-          "min-h-[44px] flex-1 resize-none rounded-donna border border-donna-border bg-white px-3 py-2.5",
-          "text-base leading-relaxed text-donna-text placeholder:text-donna-muted",
-          "focus:border-donna-gold-ring focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30",
-          "disabled:cursor-not-allowed disabled:opacity-60",
-        )}
-      />
-      <button
-        type="submit"
-        disabled={!hasText || saving}
-        aria-label="Save note"
-        className={cn(
-          "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors",
-          hasText && !saving
-            ? "bg-donna-primary text-white hover:bg-donna-primary-hover"
-            : "bg-donna-surface text-donna-muted",
-          "disabled:cursor-not-allowed disabled:opacity-60",
-        )}
-      >
-        {saving ? (
-          <Spinner className="h-4 w-4" />
-        ) : (
-          <Send className="h-4 w-4" />
-        )}
-      </button>
-    </form>
+    <div className="shrink-0 border-b border-donna-border px-5 py-3 md:px-8">
+      <form onSubmit={handleSubmit} className="flex items-end gap-2">
+        <textarea
+          ref={textareaRef}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Jot down a note…"
+          disabled={saving || ingestBusy}
+          rows={1}
+          className={cn(
+            "min-h-[44px] flex-1 resize-none rounded-donna border border-donna-border bg-white px-3 py-2.5",
+            "text-base leading-relaxed text-donna-text placeholder:text-donna-muted",
+            "focus:border-donna-gold-ring focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30",
+            "disabled:cursor-not-allowed disabled:opacity-60",
+          )}
+        />
+        <button
+          type="submit"
+          disabled={!hasText || saving || ingestBusy}
+          aria-label="Save note"
+          className={cn(
+            "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors",
+            hasText && !saving && !ingestBusy
+              ? "bg-donna-primary text-white hover:bg-donna-primary-hover"
+              : "bg-donna-surface text-donna-muted",
+            "disabled:cursor-not-allowed disabled:opacity-60",
+          )}
+        >
+          {saving ? (
+            <Spinner className="h-4 w-4" />
+          ) : (
+            <Send className="h-4 w-4" />
+          )}
+        </button>
+      </form>
+
+      {linkOpen ? (
+        <div className="mt-3 flex gap-2">
+          <input
+            value={linkValue}
+            onChange={(e) => onLinkValueChange(e.target.value)}
+            placeholder="https://…"
+            disabled={ingestBusy}
+            autoFocus
+            className={cn(
+              "min-w-0 flex-1 rounded-donna border border-donna-border bg-white px-3 py-2.5",
+              "text-sm text-donna-text placeholder:text-donna-muted",
+              "focus:border-donna-gold-ring focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30",
+              "disabled:cursor-not-allowed disabled:opacity-60",
+            )}
+            aria-label="URL to save"
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                onSubmitLink();
+              }
+              if (e.key === "Escape") {
+                onCancelLink();
+              }
+            }}
+          />
+          <button
+            type="button"
+            onClick={onSubmitLink}
+            disabled={ingestBusy || !linkValue.trim()}
+            className={cn(
+              "rounded-donna bg-donna-primary px-3 py-2 text-sm font-medium text-white",
+              "hover:bg-donna-primary-hover disabled:cursor-not-allowed disabled:opacity-60",
+            )}
+          >
+            Save
+          </button>
+          <button
+            type="button"
+            onClick={onCancelLink}
+            disabled={ingestBusy}
+            className="rounded-donna px-2 text-sm text-donna-muted hover:text-donna-text"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onAddLink}
+            disabled={ingestBusy}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full border border-donna-border bg-donna-surface px-3 py-1.5",
+              "text-xs font-medium text-donna-muted transition-colors",
+              "hover:border-donna-primary/30 hover:text-donna-text",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
+              "disabled:cursor-not-allowed disabled:opacity-50",
+            )}
+          >
+            <Link2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+            Add link
+          </button>
+          <button
+            type="button"
+            onClick={onSaveToMemory}
+            disabled={ingestBusy}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full border border-donna-border bg-donna-surface px-3 py-1.5",
+              "text-xs font-medium text-donna-muted transition-colors",
+              "hover:border-donna-primary/30 hover:text-donna-text",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
+              "disabled:cursor-not-allowed disabled:opacity-50",
+            )}
+          >
+            <FileUp className="h-3.5 w-3.5" strokeWidth={1.75} />
+            Save to memory
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
 export function NotesPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { toast, busy: ingestBusy, addLink, addFile, showToast } = useAssetIngest();
+  const memoryInputRef = useRef<HTMLInputElement>(null);
   const [notes, setNotes] = useState<NoteSummary[]>([]);
   const [tags, setTags] = useState<TagCount[]>([]);
   const [activeTag, setActiveTag] = useState<string | null>(null);
@@ -116,6 +216,8 @@ export function NotesPage() {
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [linkValue, setLinkValue] = useState("");
 
   const loadNotes = useCallback(async (offset = 0, append = false) => {
     if (offset === 0) {
@@ -164,6 +266,18 @@ export function NotesPage() {
     refresh();
   }, [loadNotes, refresh]);
 
+  useEffect(() => {
+    const state = location.state as {
+      ingestToast?: { message: string; isError: boolean };
+    } | null;
+    if (state?.ingestToast) {
+      showToast(state.ingestToast.message, state.ingestToast.isError);
+      navigate(location.pathname, { replace: true, state: null });
+      void loadNotes();
+      refresh();
+    }
+  }, [location, navigate, showToast, loadNotes, refresh]);
+
   const selectTag = (tag: string | null) => {
     setActiveTag(tag);
     if (tag) {
@@ -188,6 +302,30 @@ export function NotesPage() {
       setError(err instanceof Error ? err.message : "Failed to save note");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSubmitLink = async () => {
+    const trimmed = linkValue.trim();
+    if (!trimmed || ingestBusy) return;
+    const result = await addLink(trimmed);
+    if (result.ok) {
+      setLinkValue("");
+      setLinkOpen(false);
+      setActiveTag(null);
+      setHasMore(true);
+      void loadNotes();
+      refresh();
+    }
+  };
+
+  const handleSaveFile = async (file: File) => {
+    const result = await addFile(file);
+    if (result.ok) {
+      setActiveTag(null);
+      setHasMore(true);
+      void loadNotes();
+      refresh();
     }
   };
 
@@ -216,7 +354,13 @@ export function NotesPage() {
   };
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col bg-white">
+    <div className="relative flex h-full min-h-0 w-full flex-col bg-white">
+      {ingestBusy ? (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70">
+          <Spinner />
+        </div>
+      ) : null}
+
       <header className="flex shrink-0 items-center justify-between border-b border-donna-border px-6 py-5 md:px-8">
         <h1 className="text-xl font-semibold text-donna-text">Notes</h1>
         <IconButton
@@ -228,7 +372,33 @@ export function NotesPage() {
         </IconButton>
       </header>
 
-      <NoteComposeBar onSave={handleCreateNote} saving={saving} />
+      <NoteComposeBar
+        onSave={handleCreateNote}
+        saving={saving}
+        ingestBusy={ingestBusy}
+        linkOpen={linkOpen}
+        linkValue={linkValue}
+        onLinkValueChange={setLinkValue}
+        onAddLink={() => setLinkOpen(true)}
+        onSaveToMemory={() => memoryInputRef.current?.click()}
+        onSubmitLink={() => void handleSubmitLink()}
+        onCancelLink={() => {
+          setLinkOpen(false);
+          setLinkValue("");
+        }}
+      />
+
+      <input
+        ref={memoryInputRef}
+        type="file"
+        hidden
+        accept="image/*,.pdf,.txt,.md,.doc,.docx,.csv,.json,.html,audio/*"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (file) void handleSaveFile(file);
+        }}
+      />
 
       {tags.length > 0 ? (
         <div className="flex shrink-0 flex-wrap gap-1.5 border-b border-donna-border px-5 py-3 md:px-8">
@@ -373,6 +543,8 @@ export function NotesPage() {
           </div>
         ) : null}
       </div>
+
+      <IngestToast toast={toast} />
     </div>
   );
 }

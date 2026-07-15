@@ -91,7 +91,7 @@ export function ChatApp() {
     dismissError: dismissVoiceError,
     clearTurns: clearVoiceTurns,
   } = useVoiceSessionContext();
-  const { toast, showToast, addFile } = useAssetIngest();
+  const { toast, showToast } = useAssetIngest();
   const activeError = voiceError ?? error;
   const dismissActiveError = voiceError ? dismissVoiceError : dismissError;
   const inputDisabled = busy || micDisabled || sessionActive;
@@ -122,15 +122,6 @@ export function ChatApp() {
       // ignore
     }
   }, [historyPanelOpen]);
-
-  async function handleSaveToMemory(file: File) {
-    const result = await addFile(file);
-    if (result.ok) {
-      showToast(result.message, false);
-    } else {
-      showToast(result.message || "Could not save to memory", true);
-    }
-  }
 
   function handleNewChat() {
     clearChat();
@@ -247,11 +238,10 @@ export function ChatApp() {
         <ChatInput
           onSend={(text, attachments) => void sendMessage(text, attachments)}
           onStop={stopGeneration}
-          onSaveToMemory={(file) => void handleSaveToMemory(file)}
           onError={(message) => showToast(message, true)}
           disabled={inputDisabled}
           busy={busy}
-          placeholder="Message Donna… attach for this turn, or save to memory"
+          placeholder="Message Donna…"
           showMic={hasMessages}
           micState={micState}
           onMicPress={() => void toggleTalk()}

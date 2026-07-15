@@ -22,7 +22,7 @@ export function AddMemoryPage() {
     }
     const result = await addLink(trimmed);
     if (result.ok) {
-      navigate("/app", {
+      navigate("/app/notes", {
         state: { ingestToast: { message: result.message, isError: false } },
       });
       return;
@@ -33,7 +33,7 @@ export function AddMemoryPage() {
   async function handleFile(file: File) {
     const result = await addFile(file);
     if (result.ok) {
-      navigate("/app", {
+      navigate("/app/notes", {
         state: { ingestToast: { message: result.message, isError: false } },
       });
     }
