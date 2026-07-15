@@ -166,10 +166,12 @@ export function ChatApp() {
     }
   }, [historyPanelOpen]);
 
-  async function handleFileSelect(file: File) {
+  async function handleSaveToMemory(file: File) {
     const result = await addFile(file);
     if (result.ok) {
       showToast(result.message, false);
+    } else {
+      showToast(result.message || "Could not save to memory", true);
     }
   }
 
@@ -286,12 +288,13 @@ export function ChatApp() {
         ) : null}
 
         <ChatInput
-          onSend={(text) => void sendMessage(text)}
+          onSend={(text, attachments) => void sendMessage(text, attachments)}
           onStop={stopGeneration}
-          onFileSelect={(file) => void handleFileSelect(file)}
+          onSaveToMemory={(file) => void handleSaveToMemory(file)}
+          onError={(message) => showToast(message, true)}
           disabled={inputDisabled}
           busy={busy}
-          placeholder="Type your message here..."
+          placeholder="Message Donna… attach for this turn, or save to memory"
           showMic={hasMessages}
           micState={micState}
           onMicPress={() => void toggleTalk()}

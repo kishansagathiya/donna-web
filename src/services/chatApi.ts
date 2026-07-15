@@ -2,6 +2,7 @@ import { API_BASE_URL } from "../config";
 import { getAccessToken } from "./auth";
 import type { DonnaMode } from "../types/mode";
 import type { MemoryCitation } from "../types/citations";
+import type { ChatAttachmentPayload } from "../lib/chatAttachments";
 
 export type ChatMessage = {
   role: "user" | "assistant" | "system";
@@ -12,6 +13,14 @@ export type ChatReply = {
   reply: string;
   sessionId: string;
   citations?: MemoryCitation[];
+  groundedUserMessage?: string;
+  attachmentLabels?: string[];
+};
+
+export type ChatStreamDoneMeta = {
+  citations?: MemoryCitation[];
+  groundedUserMessage?: string;
+  attachmentLabels?: string[];
 };
 
 export class ChatAbortedError extends Error {
@@ -26,6 +35,33 @@ export function isChatAbortError(err: unknown): boolean {
   if (err instanceof DOMException && err.name === "AbortError") return true;
   if (err instanceof Error && err.name === "AbortError") return true;
   return false;
+}
+
+type ChatRequestBody = {
+  message: string;
+  history: ChatMessage[];
+  session_id?: string;
+  mode: DonnaMode;
+  attachments?: ChatAttachmentPayload[];
+};
+
+function buildBody(
+  message: string,
+  history: ChatMessage[],
+  sessionId: string | undefined,
+  mode: DonnaMode,
+  attachments?: ChatAttachmentPayload[],
+): ChatRequestBody {
+  const body: ChatRequestBody = {
+    message,
+    history: history.filter((m) => m.role === "user" || m.role === "assistant"),
+    session_id: sessionId,
+    mode,
+  };
+  if (attachments && attachments.length > 0) {
+    body.attachments = attachments;
+  }
+  return body;
 }
 
 async function authorizedFetch(
@@ -73,21 +109,19 @@ export async function sendChatMessage(
   history: ChatMessage[],
   sessionId?: string,
   mode: DonnaMode = "talk",
+  attachments?: ChatAttachmentPayload[],
 ): Promise<ChatReply> {
   const res = await authorizedFetch("/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      message,
-      history: history.filter((m) => m.role === "user" || m.role === "assistant"),
-      session_id: sessionId,
-      mode,
-    }),
+    body: JSON.stringify(buildBody(message, history, sessionId, mode, attachments)),
   });
 
   const body = (await res.json()) as ChatReply & {
     session_id?: string;
     citations?: unknown;
+    grounded_user_message?: string;
+    attachment_labels?: string[];
     error?: string;
     message?: string;
   };
@@ -102,6 +136,8 @@ export async function sendChatMessage(
     reply: body.reply,
     sessionId: body.sessionId ?? body.session_id ?? sessionId ?? "",
     citations: parseCitations(body.citations),
+    groundedUserMessage: body.groundedUserMessage ?? body.grounded_user_message,
+    attachmentLabels: body.attachmentLabels ?? body.attachment_labels,
   };
 }
 
@@ -111,6 +147,7 @@ export async function streamChatMessage(
   sessionId: string | undefined,
   callbacks: {
     mode?: DonnaMode;
+    attachments?: ChatAttachmentPayload[];
     signal?: AbortSignal;
     onSessionId?: (id: string) => void;
     onChunk?: (partial: string) => void;
@@ -119,7 +156,7 @@ export async function streamChatMessage(
     onDone?: (
       reply: string,
       sessionId: string,
-      citations?: MemoryCitation[],
+      meta?: ChatStreamDoneMeta,
     ) => void;
     onError?: (message: string) => void;
   },
@@ -142,12 +179,15 @@ export async function streamChatMessage(
         "Content-Type": "application/json",
         Accept: "text/event-stream",
       },
-      body: JSON.stringify({
-        message,
-        history: history.filter((m) => m.role === "user" || m.role === "assistant"),
-        session_id: sessionId,
-        mode: callbacks.mode ?? "talk",
-      }),
+      body: JSON.stringify(
+        buildBody(
+          message,
+          history,
+          sessionId,
+          callbacks.mode ?? "talk",
+          callbacks.attachments,
+        ),
+      ),
       signal: callbacks.signal,
     });
   } catch (err) {
@@ -243,6 +283,8 @@ export async function streamChatMessage(
                 reply?: string;
                 session_id?: string;
                 citations?: unknown;
+                grounded_user_message?: string;
+                attachment_labels?: string[];
               };
               const cites =
                 parseCitations(doneBody.citations) ?? latestCitations;
@@ -253,7 +295,11 @@ export async function streamChatMessage(
               callbacks.onDone?.(
                 doneBody.reply ?? "",
                 doneBody.session_id ?? sessionId ?? "",
-                cites,
+                {
+                  citations: cites,
+                  groundedUserMessage: doneBody.grounded_user_message,
+                  attachmentLabels: doneBody.attachment_labels,
+                },
               );
               break;
             }

@@ -8,13 +8,29 @@ import {
   submitTurnFeedback,
   truncateConversationTurns,
 } from "../services/conversationsApi";
-
+import type {
+  ChatAttachmentPayload,
+  PendingAttachment,
+} from "../lib/chatAttachments";
+import { revokePendingAttachment } from "../lib/chatAttachments";
 import type { MemoryCitation } from "../types/citations";
+
+export type UiAttachment = {
+  id: string;
+  kind: "file" | "url";
+  filename: string;
+  mime?: string;
+  previewUrl?: string;
+};
 
 export type UiMessage = {
   id: string;
   role: "user" | "assistant";
   content: string;
+  /** Grounded text used for follow-up history (includes extracted attachment content). */
+  historyContent?: string;
+  attachments?: UiAttachment[];
+  attachmentPayloads?: ChatAttachmentPayload[];
   streaming?: boolean;
   error?: boolean;
   cancelled?: boolean;
@@ -39,7 +55,25 @@ function userTurnIndex(messages: UiMessage[], userMessageId: string): number {
 function toHistory(messages: UiMessage[]): ChatMessage[] {
   return messages.map((m) => ({
     role: m.role,
-    content: m.content,
+    content: m.historyContent ?? m.content,
+  }));
+}
+
+function displayUserContent(text: string, attachments: PendingAttachment[]): string {
+  const trimmed = text.trim();
+  if (attachments.length === 0) return trimmed;
+  const labels = attachments.map((a) => a.filename).join(", ");
+  if (!trimmed) return `📎 ${labels}`;
+  return `${trimmed}\n\n📎 ${labels}`;
+}
+
+function toUiAttachments(attachments: PendingAttachment[]): UiAttachment[] {
+  return attachments.map((a) => ({
+    id: a.id,
+    kind: a.kind,
+    filename: a.filename,
+    mime: a.mime,
+    previewUrl: a.previewUrl,
   }));
 }
 
@@ -67,7 +101,9 @@ export function useChatSession() {
       trimmed: string,
       history: ChatMessage[],
       assistantId: string,
+      userMessageId: string,
       activeSessionId: string | undefined,
+      attachments?: ChatAttachmentPayload[],
     ) => {
       const controller = new AbortController();
       abortControllerRef.current = controller;
@@ -78,6 +114,7 @@ export function useChatSession() {
       try {
         await streamChatMessage(trimmed, history, activeSessionId, {
           signal: controller.signal,
+          attachments,
           onSessionId: (id) => setSessionId(id),
           onPhase: (p) => setPhase(p),
           onChunk: (partial) => {
@@ -102,21 +139,30 @@ export function useChatSession() {
               ),
             );
           },
-          onDone: (reply, newSessionId, citations) => {
+          onDone: (reply, newSessionId, meta) => {
             setSessionId(newSessionId);
             setMessages((prev) =>
-              prev.map((m) =>
-                m.id === assistantId
-                  ? {
-                      ...m,
-                      content: reply,
-                      streaming: false,
-                      error: false,
-                      cancelled: false,
-                      citations: citations ?? m.citations,
-                    }
-                  : m,
-              ),
+              prev.map((m) => {
+                if (m.id === assistantId) {
+                  return {
+                    ...m,
+                    content: reply,
+                    streaming: false,
+                    error: false,
+                    cancelled: false,
+                    citations: meta?.citations ?? m.citations,
+                  };
+                }
+                if (m.id === userMessageId && meta?.groundedUserMessage) {
+                  return {
+                    ...m,
+                    historyContent: meta.groundedUserMessage,
+                    // Payloads no longer needed once grounded into history.
+                    attachmentPayloads: undefined,
+                  };
+                }
+                return m;
+              }),
             );
           },
           onError: (message) => setError(message),
@@ -167,14 +213,19 @@ export function useChatSession() {
   );
 
   const sendMessage = useCallback(
-    async (text: string) => {
+    async (text: string, pendingAttachments: PendingAttachment[] = []) => {
       const trimmed = text.trim();
-      if (!trimmed || busyRef.current) return;
+      if ((!trimmed && pendingAttachments.length === 0) || busyRef.current) {
+        return;
+      }
 
+      const payloads = pendingAttachments.map((a) => a.payload);
       const userMessage: UiMessage = {
         id: nextId(),
         role: "user",
-        content: trimmed,
+        content: displayUserContent(trimmed, pendingAttachments),
+        attachments: toUiAttachments(pendingAttachments),
+        attachmentPayloads: payloads.length > 0 ? payloads : undefined,
       };
       const assistantId = nextId();
       const history = toHistory(messagesRef.current);
@@ -190,7 +241,15 @@ export function useChatSession() {
         },
       ]);
 
-      await runStream(trimmed, history, assistantId, sessionIdRef.current);
+      // Pending previews are owned by the message now; caller should not revoke.
+      await runStream(
+        trimmed,
+        history,
+        assistantId,
+        userMessage.id,
+        sessionIdRef.current,
+        payloads.length > 0 ? payloads : undefined,
+      );
     },
     [runStream],
   );
@@ -241,7 +300,26 @@ export function useChatSession() {
       },
     ]);
 
-    await runStream(user.content, history, assistantId, activeSessionId);
+    if (user.historyContent) {
+      await runStream(
+        user.historyContent,
+        history,
+        assistantId,
+        user.id,
+        activeSessionId,
+      );
+    } else {
+      // Strip the display-only attachment footer from content when re-sending.
+      const typed = user.content.replace(/\n\n📎 .+$/s, "").replace(/^📎 .+$/s, "");
+      await runStream(
+        typed === user.content ? user.content : typed.trim(),
+        history,
+        assistantId,
+        user.id,
+        activeSessionId,
+        user.attachmentPayloads,
+      );
+    }
   }, [runStream]);
 
   const editAndResend = useCallback(
@@ -254,6 +332,13 @@ export function useChatSession() {
         (m) => m.id === userMessageId && m.role === "user",
       );
       if (userIndex < 0) return;
+
+      const previous = current[userIndex];
+      if (previous?.attachments) {
+        for (const att of previous.attachments) {
+          if (att.previewUrl) URL.revokeObjectURL(att.previewUrl);
+        }
+      }
 
       const turnIndex = userTurnIndex(current, userMessageId);
       if (turnIndex < 0) return;
@@ -290,7 +375,7 @@ export function useChatSession() {
         },
       ]);
 
-      await runStream(trimmed, history, assistantId, activeSessionId);
+      await runStream(trimmed, history, assistantId, userMessage.id, activeSessionId);
     },
     [runStream],
   );
@@ -330,7 +415,27 @@ export function useChatSession() {
         },
       ]);
       setError(null);
-      await runStream(user.content, history, assistantId, activeSessionId);
+      if (user.historyContent) {
+        await runStream(
+          user.historyContent,
+          history,
+          assistantId,
+          user.id,
+          activeSessionId,
+        );
+      } else {
+        const typed = user.content
+          .replace(/\n\n📎 .+$/s, "")
+          .replace(/^📎 .+$/s, "");
+        await runStream(
+          typed === user.content ? user.content : typed.trim(),
+          history,
+          assistantId,
+          user.id,
+          activeSessionId,
+          user.attachmentPayloads,
+        );
+      }
       return;
     }
 
@@ -347,7 +452,27 @@ export function useChatSession() {
         },
       ]);
       setError(null);
-      await runStream(last.content, history, assistantId, sessionIdRef.current);
+      if (last.historyContent) {
+        await runStream(
+          last.historyContent,
+          history,
+          assistantId,
+          last.id,
+          sessionIdRef.current,
+        );
+      } else {
+        const typed = last.content
+          .replace(/\n\n📎 .+$/s, "")
+          .replace(/^📎 .+$/s, "");
+        await runStream(
+          typed === last.content ? last.content : typed.trim(),
+          history,
+          assistantId,
+          last.id,
+          sessionIdRef.current,
+          last.attachmentPayloads,
+        );
+      }
     }
   }, [runStream]);
 
@@ -389,6 +514,11 @@ export function useChatSession() {
   const clearChat = useCallback(() => {
     abortControllerRef.current?.abort();
     abortControllerRef.current = null;
+    for (const message of messagesRef.current) {
+      for (const att of message.attachments ?? []) {
+        if (att.previewUrl) URL.revokeObjectURL(att.previewUrl);
+      }
+    }
     setMessages([]);
     setSessionId(undefined);
     setError(null);
@@ -400,6 +530,11 @@ export function useChatSession() {
     (nextSessionId: string | undefined, nextMessages: UiMessage[]) => {
       abortControllerRef.current?.abort();
       abortControllerRef.current = null;
+      for (const message of messagesRef.current) {
+        for (const att of message.attachments ?? []) {
+          if (att.previewUrl) URL.revokeObjectURL(att.previewUrl);
+        }
+      }
       setMessages(nextMessages);
       setSessionId(nextSessionId);
       setError(null);
@@ -426,3 +561,6 @@ export function useChatSession() {
     dismissError: () => setError(null),
   };
 }
+
+// Re-export helper so callers can clean up unused pending chips.
+export { revokePendingAttachment };

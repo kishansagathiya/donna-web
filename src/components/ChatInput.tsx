@@ -1,6 +1,31 @@
-import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { Code2, FileText, Mail, Mic, Paperclip, Send, Square } from "lucide-react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ClipboardEvent,
+  type FormEvent,
+  type KeyboardEvent,
+} from "react";
+import {
+  Code2,
+  FileText,
+  Link2,
+  Mail,
+  Mic,
+  Paperclip,
+  Send,
+  Square,
+  X,
+} from "lucide-react";
 import { cn } from "../lib/cn";
+import {
+  assertAttachmentBudget,
+  fileToChatAttachment,
+  isImageMime,
+  revokePendingAttachment,
+  urlToChatAttachment,
+  type PendingAttachment,
+} from "../lib/chatAttachments";
 import { isDonnaThinkingPhase } from "../lib/thinkingPhrases";
 import type { MicState } from "./MicButton";
 import { ThinkingIndicator } from "./ThinkingIndicator";
@@ -12,9 +37,11 @@ type QuickAction = {
 };
 
 type Props = {
-  onSend: (text: string) => void;
+  onSend: (text: string, attachments: PendingAttachment[]) => void;
   onStop?: () => void;
-  onFileSelect?: (file: File) => void;
+  /** Save file to long-term knowledge/memory (not in-turn chat). */
+  onSaveToMemory?: (file: File) => void;
+  onError?: (message: string) => void;
   disabled?: boolean;
   busy?: boolean;
   placeholder?: string;
@@ -35,7 +62,8 @@ const quickActionIcons: Record<string, typeof FileText> = {
 export function ChatInput({
   onSend,
   onStop,
-  onFileSelect,
+  onSaveToMemory,
+  onError,
   disabled,
   busy = false,
   placeholder = "Type your message here...",
@@ -47,11 +75,19 @@ export function ChatInput({
   sessionLabel,
 }: Props) {
   const [text, setText] = useState("");
+  const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [linkValue, setLinkValue] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const attachInputRef = useRef<HTMLInputElement>(null);
+  const memoryInputRef = useRef<HTMLInputElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const hasText = text.trim().length > 0;
+  const hasAttachments = attachments.length > 0;
+  const canSend = hasText || hasAttachments;
   const showStop = busy && Boolean(onStop);
-  const showInlineMic = showMic && !hasText && onMicPress && !showStop;
+  const showInlineMic = showMic && !hasText && !hasAttachments && onMicPress && !showStop;
   const isListening = micState === "listening";
   const isProcessing = micState === "processing";
   const isRequesting = micState === "requesting";
@@ -67,11 +103,38 @@ export function ChatInput({
     resize();
   }, [text]);
 
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (!menuRef.current?.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    }
+    if (menuOpen) {
+      document.addEventListener("mousedown", onDocClick);
+      return () => document.removeEventListener("mousedown", onDocClick);
+    }
+  }, [menuOpen]);
+
+  useEffect(() => {
+    return () => {
+      for (const att of attachments) {
+        revokePendingAttachment(att);
+      }
+    };
+    // Only on unmount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function submit() {
+    if (disabled || !canSend) return;
     const trimmed = text.trim();
-    if (!trimmed || disabled) return;
-    onSend(trimmed);
+    const pending = attachments;
+    onSend(trimmed, pending);
     setText("");
+    setAttachments([]);
+    setMenuOpen(false);
+    setLinkOpen(false);
+    setLinkValue("");
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
     }
@@ -86,6 +149,57 @@ export function ChatInput({
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       submit();
+    }
+  }
+
+  async function addFiles(files: FileList | File[]) {
+    const list = Array.from(files);
+    if (list.length === 0) return;
+    try {
+      assertAttachmentBudget(attachments.length, list.length);
+      const next: PendingAttachment[] = [];
+      for (const file of list) {
+        next.push(await fileToChatAttachment(file));
+      }
+      setAttachments((prev) => [...prev, ...next]);
+    } catch (err) {
+      onError?.(err instanceof Error ? err.message : "Could not attach file");
+    }
+  }
+
+  function removeAttachment(id: string) {
+    setAttachments((prev) => {
+      const target = prev.find((a) => a.id === id);
+      if (target) revokePendingAttachment(target);
+      return prev.filter((a) => a.id !== id);
+    });
+  }
+
+  async function handlePaste(e: ClipboardEvent<HTMLTextAreaElement>) {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+    const imageFiles: File[] = [];
+    for (const item of Array.from(items)) {
+      if (item.kind === "file" && item.type.startsWith("image/")) {
+        const file = item.getAsFile();
+        if (file) imageFiles.push(file);
+      }
+    }
+    if (imageFiles.length === 0) return;
+    e.preventDefault();
+    await addFiles(imageFiles);
+  }
+
+  function addLink() {
+    try {
+      assertAttachmentBudget(attachments.length, 1);
+      const att = urlToChatAttachment(linkValue);
+      setAttachments((prev) => [...prev, att]);
+      setLinkValue("");
+      setLinkOpen(false);
+      setMenuOpen(false);
+    } catch (err) {
+      onError?.(err instanceof Error ? err.message : "Could not add link");
     }
   }
 
@@ -104,113 +218,244 @@ export function ChatInput({
       <form onSubmit={handleSubmit}>
         <div
           className={cn(
-            "flex items-end gap-2 rounded-2xl border border-donna-border bg-white px-3 py-2 shadow-sm",
+            "rounded-2xl border border-donna-border bg-white px-3 py-2 shadow-sm",
             "focus-within:border-donna-primary focus-within:ring-2 focus-within:ring-donna-primary-ring/20",
           )}
         >
-          <textarea
-            ref={textareaRef}
-            className={cn(
-              "max-h-32 min-h-10 flex-1 resize-none bg-transparent px-1 py-2 text-[0.9375rem] leading-snug text-donna-text",
-              "placeholder:text-donna-muted",
-              "focus:outline-none",
-              "disabled:opacity-60",
-            )}
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            rows={1}
-            disabled={disabled}
-            aria-label={placeholder}
-          />
+          {attachments.length > 0 ? (
+            <div className="mb-2 flex flex-wrap gap-2">
+              {attachments.map((att) => (
+                <div
+                  key={att.id}
+                  className="group relative flex max-w-[11rem] items-center gap-2 rounded-xl border border-donna-border bg-donna-surface px-2 py-1.5"
+                >
+                  {att.previewUrl && isImageMime(att.mime) ? (
+                    <img
+                      src={att.previewUrl}
+                      alt=""
+                      className="h-8 w-8 rounded-md object-cover"
+                    />
+                  ) : att.kind === "url" ? (
+                    <Link2 className="h-4 w-4 shrink-0 text-donna-muted" />
+                  ) : (
+                    <FileText className="h-4 w-4 shrink-0 text-donna-muted" />
+                  )}
+                  <span className="truncate text-xs font-medium text-donna-text">
+                    {att.filename}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => removeAttachment(att.id)}
+                    aria-label={`Remove ${att.filename}`}
+                    className="rounded p-0.5 text-donna-muted hover:bg-white hover:text-donna-text"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : null}
 
-          {onFileSelect ? (
-            <>
+          {linkOpen ? (
+            <div className="mb-2 flex gap-2">
+              <input
+                value={linkValue}
+                onChange={(e) => setLinkValue(e.target.value)}
+                placeholder="https://…"
+                className="min-w-0 flex-1 rounded-lg border border-donna-border bg-donna-surface px-3 py-2 text-sm text-donna-text placeholder:text-donna-muted focus:outline-none focus:ring-2 focus:ring-donna-primary-ring/30"
+                aria-label="URL to discuss"
+              />
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={addLink}
+                className="rounded-lg bg-donna-primary px-3 py-2 text-sm font-medium text-white hover:bg-donna-primary-hover"
+              >
+                Add
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setLinkOpen(false);
+                  setLinkValue("");
+                }}
+                className="rounded-lg px-2 text-sm text-donna-muted hover:text-donna-text"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : null}
+
+          <div className="flex items-end gap-2">
+            <textarea
+              ref={textareaRef}
+              className={cn(
+                "max-h-32 min-h-10 flex-1 resize-none bg-transparent px-1 py-2 text-[0.9375rem] leading-snug text-donna-text",
+                "placeholder:text-donna-muted",
+                "focus:outline-none",
+                "disabled:opacity-60",
+              )}
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onPaste={(e) => void handlePaste(e)}
+              placeholder={placeholder}
+              rows={1}
+              disabled={disabled}
+              aria-label={placeholder}
+            />
+
+            <div className="relative mb-0.5" ref={menuRef}>
+              <button
+                type="button"
+                onClick={() => setMenuOpen((open) => !open)}
                 disabled={disabled}
-                aria-label="Attach file"
+                aria-label="Attach"
+                aria-expanded={menuOpen}
                 className={cn(
-                  "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-donna-muted",
+                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-donna-muted",
                   "transition-colors hover:bg-donna-surface hover:text-donna-text",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
                   "disabled:cursor-not-allowed disabled:opacity-50",
+                  menuOpen && "bg-donna-surface text-donna-text",
                 )}
               >
                 <Paperclip className="h-5 w-5" strokeWidth={1.75} />
               </button>
+              {menuOpen ? (
+                <div className="absolute bottom-full right-0 z-20 mb-2 w-56 overflow-hidden rounded-xl border border-donna-border bg-white py-1 shadow-lg">
+                  <button
+                    type="button"
+                    className="flex w-full flex-col items-start px-3 py-2 text-left hover:bg-donna-surface"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      attachInputRef.current?.click();
+                    }}
+                  >
+                    <span className="text-sm font-medium text-donna-text">
+                      Attach to message
+                    </span>
+                    <span className="text-xs text-donna-muted">
+                      For this chat turn only
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className="flex w-full flex-col items-start px-3 py-2 text-left hover:bg-donna-surface"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      setLinkOpen(true);
+                    }}
+                  >
+                    <span className="text-sm font-medium text-donna-text">
+                      Add link
+                    </span>
+                    <span className="text-xs text-donna-muted">
+                      Fetch a URL for this turn
+                    </span>
+                  </button>
+                  {onSaveToMemory ? (
+                    <button
+                      type="button"
+                      className="flex w-full flex-col items-start border-t border-donna-border px-3 py-2 text-left hover:bg-donna-surface"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        memoryInputRef.current?.click();
+                      }}
+                    >
+                      <span className="text-sm font-medium text-donna-text">
+                        Save to memory
+                      </span>
+                      <span className="text-xs text-donna-muted">
+                        Keep in Donna&apos;s knowledge
+                      </span>
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
               <input
-                ref={fileInputRef}
+                ref={attachInputRef}
                 type="file"
                 hidden
-                accept="image/*,.pdf,.txt,.md,.doc,.docx,.csv,.json"
+                multiple
+                accept="image/*,.pdf,.txt,.md,.doc,.docx,.csv,.json,.html"
                 onChange={(e) => {
-                  const file = e.target.files?.[0];
+                  const files = e.target.files;
                   e.target.value = "";
-                  if (file) onFileSelect(file);
+                  if (files) void addFiles(files);
                 }}
               />
-            </>
-          ) : null}
+              {onSaveToMemory ? (
+                <input
+                  ref={memoryInputRef}
+                  type="file"
+                  hidden
+                  accept="image/*,.pdf,.txt,.md,.doc,.docx,.csv,.json,.html,audio/*"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (file) onSaveToMemory(file);
+                  }}
+                />
+              ) : null}
+            </div>
 
-          {showInlineMic ? (
-            <button
-              type="button"
-              onClick={onMicPress}
-              disabled={micDisabled}
-              aria-label={
-                isListening || isProcessing
-                  ? "Stop listening"
-                  : "Start listening"
-              }
-              aria-busy={isRequesting}
-              className={cn(
-                "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-donna-primary text-white",
-                "transition-colors hover:bg-donna-primary-hover",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring focus-visible:ring-offset-2",
-                "disabled:cursor-not-allowed disabled:opacity-60",
-                isListening && "ring-2 ring-donna-primary-ring",
-                micState === "error" && "border-[3px] border-donna-destructive",
-              )}
-            >
-              {isProcessing ? (
-                <Spinner className="!h-4 !w-4 !border-white/30 !border-t-white" />
-              ) : isListening ? (
+            {showInlineMic ? (
+              <button
+                type="button"
+                onClick={onMicPress}
+                disabled={micDisabled}
+                aria-label={
+                  isListening || isProcessing
+                    ? "Stop listening"
+                    : "Start listening"
+                }
+                aria-busy={isRequesting}
+                className={cn(
+                  "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-donna-primary text-white",
+                  "transition-colors hover:bg-donna-primary-hover",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring focus-visible:ring-offset-2",
+                  "disabled:cursor-not-allowed disabled:opacity-60",
+                  isListening && "ring-2 ring-donna-primary-ring",
+                  micState === "error" && "border-[3px] border-donna-destructive",
+                )}
+              >
+                {isProcessing ? (
+                  <Spinner className="!h-4 !w-4 !border-white/30 !border-t-white" />
+                ) : isListening ? (
+                  <Square className="h-3.5 w-3.5 fill-current" strokeWidth={0} />
+                ) : (
+                  <Mic className="h-4 w-4" strokeWidth={1.75} />
+                )}
+              </button>
+            ) : showStop ? (
+              <button
+                type="button"
+                onClick={onStop}
+                aria-label="Stop generating"
+                className={cn(
+                  "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-donna-primary text-white",
+                  "transition-colors hover:bg-donna-primary-hover",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring focus-visible:ring-offset-2",
+                )}
+              >
                 <Square className="h-3.5 w-3.5 fill-current" strokeWidth={0} />
-              ) : (
-                <Mic className="h-4 w-4" strokeWidth={1.75} />
-              )}
-            </button>
-          ) : showStop ? (
-            <button
-              type="button"
-              onClick={onStop}
-              aria-label="Stop generating"
-              className={cn(
-                "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-donna-primary text-white",
-                "transition-colors hover:bg-donna-primary-hover",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring focus-visible:ring-offset-2",
-              )}
-            >
-              <Square className="h-3.5 w-3.5 fill-current" strokeWidth={0} />
-            </button>
-          ) : (
-            <button
-              type="submit"
-              disabled={disabled || !hasText}
-              aria-label="Send message"
-              className={cn(
-                "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-donna-primary text-white",
-                "transition-colors hover:bg-donna-primary-hover",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring focus-visible:ring-offset-2",
-                "disabled:cursor-not-allowed disabled:opacity-40",
-              )}
-            >
-              <Send className="h-4 w-4" strokeWidth={2} />
-            </button>
-          )}
+              </button>
+            ) : (
+              <button
+                type="submit"
+                disabled={disabled || !canSend}
+                aria-label="Send message"
+                className={cn(
+                  "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-donna-primary text-white",
+                  "transition-colors hover:bg-donna-primary-hover",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring focus-visible:ring-offset-2",
+                  "disabled:cursor-not-allowed disabled:opacity-40",
+                )}
+              >
+                <Send className="h-4 w-4" strokeWidth={2} />
+              </button>
+            )}
+          </div>
         </div>
       </form>
 

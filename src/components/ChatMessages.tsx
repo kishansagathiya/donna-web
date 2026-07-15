@@ -170,8 +170,34 @@ export function ChatMessages({
                     message.cancelled && "opacity-80",
                   )}
                 >
+                  {message.role === "user" &&
+                  message.attachments &&
+                  message.attachments.length > 0 ? (
+                    <div className="mb-2 flex flex-wrap gap-2">
+                      {message.attachments.map((att) => (
+                        <div
+                          key={att.id}
+                          className="flex max-w-[10rem] items-center gap-1.5 rounded-lg bg-white/15 px-2 py-1 text-xs"
+                        >
+                          {att.previewUrl ? (
+                            <img
+                              src={att.previewUrl}
+                              alt=""
+                              className="h-7 w-7 rounded object-cover"
+                            />
+                          ) : null}
+                          <span className="truncate">{att.filename}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
                   <MessageContent
-                    content={message.content}
+                    content={
+                      message.role === "user" && message.attachments?.length
+                        ? message.content.replace(/\n\n📎 .+$/s, "").replace(/^📎 .+$/s, "") ||
+                          ""
+                        : message.content
+                    }
                     variant={message.role === "user" ? "user" : "assistant"}
                   />
                   {message.cancelled && !message.content ? (
