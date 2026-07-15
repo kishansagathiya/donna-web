@@ -12,16 +12,8 @@ import { useAssetIngest } from "../hooks/useAssetIngest";
 import { useAuth } from "../hooks/useAuth";
 import { useChatSessionContext } from "../hooks/ChatSessionProvider";
 import { useVoiceSessionContext } from "../hooks/VoiceSessionProvider";
-import {
-  getConversation,
-  turnsToMessages,
-} from "../services/conversationsApi";
 import { isDonnaThinkingPhase } from "../lib/thinkingPhrases";
 import { cn } from "../lib/cn";
-
-function nextMessageId(): string {
-  return crypto.randomUUID();
-}
 
 const quickActions = [
   { label: "Summarize PDF", prompt: "Summarize the PDF I shared" },
@@ -108,7 +100,6 @@ export function ChatApp() {
     const state = location.state as {
       ingestToast?: { message: string; isError: boolean };
       newChat?: boolean;
-      resumeConversationId?: string;
     } | null;
 
     if (state?.newChat) {
@@ -116,47 +107,13 @@ export function ChatApp() {
       clearVoiceTurns();
       setActiveConversationId(null);
       navigate("/app", { replace: true, state: null });
-      return;
-    }
-
-    if (state?.resumeConversationId) {
-      const conversationId = state.resumeConversationId;
-      navigate("/app", { replace: true, state: null });
-      void (async () => {
-        try {
-          const detail = await getConversation(conversationId);
-          const nextMessages = turnsToMessages(detail.turns).map((m) => ({
-            id: nextMessageId(),
-            role: m.role,
-            content: m.content,
-          }));
-          const sessionId =
-            detail.channel === "text" ? detail.client_session_id : undefined;
-          clearVoiceTurns();
-          setActiveConversationId(conversationId);
-          loadConversation(sessionId, nextMessages);
-        } catch (err) {
-          showToast(
-            err instanceof Error ? err.message : "Failed to open conversation",
-            true,
-          );
-        }
-      })();
-      return;
     }
 
     if (state?.ingestToast) {
       showToast(state.ingestToast.message, state.ingestToast.isError);
       navigate(location.pathname, { replace: true, state: null });
     }
-  }, [
-    location,
-    navigate,
-    showToast,
-    clearChat,
-    clearVoiceTurns,
-    loadConversation,
-  ]);
+  }, [location, navigate, showToast, clearChat, clearVoiceTurns]);
 
   useEffect(() => {
     try {
