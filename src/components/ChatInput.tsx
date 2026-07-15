@@ -13,8 +13,10 @@ type QuickAction = {
 
 type Props = {
   onSend: (text: string) => void;
+  onStop?: () => void;
   onFileSelect?: (file: File) => void;
   disabled?: boolean;
+  busy?: boolean;
   placeholder?: string;
   quickActions?: QuickAction[];
   showMic?: boolean;
@@ -32,8 +34,10 @@ const quickActionIcons: Record<string, typeof FileText> = {
 
 export function ChatInput({
   onSend,
+  onStop,
   onFileSelect,
   disabled,
+  busy = false,
   placeholder = "Type your message here...",
   quickActions,
   showMic = false,
@@ -46,7 +50,8 @@ export function ChatInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const hasText = text.trim().length > 0;
-  const showInlineMic = showMic && !hasText && onMicPress;
+  const showStop = busy && Boolean(onStop);
+  const showInlineMic = showMic && !hasText && onMicPress && !showStop;
   const isListening = micState === "listening";
   const isProcessing = micState === "processing";
   const isRequesting = micState === "requesting";
@@ -177,6 +182,19 @@ export function ChatInput({
               ) : (
                 <Mic className="h-4 w-4" strokeWidth={1.75} />
               )}
+            </button>
+          ) : showStop ? (
+            <button
+              type="button"
+              onClick={onStop}
+              aria-label="Stop generating"
+              className={cn(
+                "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-donna-primary text-white",
+                "transition-colors hover:bg-donna-primary-hover",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring focus-visible:ring-offset-2",
+              )}
+            >
+              <Square className="h-3.5 w-3.5 fill-current" strokeWidth={0} />
             </button>
           ) : (
             <button

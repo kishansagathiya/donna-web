@@ -3,6 +3,7 @@ import type { UiMessage } from "../hooks/useChatSession";
 import type { VoiceTurn } from "../hooks/useVoiceSession";
 import { ChatHero } from "./ChatHero";
 import type { MicState } from "./MicButton";
+import { MessageActions } from "./MessageActions";
 import { MessageContent } from "./MessageContent";
 import { AssistantThinkingBlock } from "./ThinkingIndicator";
 import { cn } from "../lib/cn";
@@ -20,6 +21,12 @@ type Props = {
   liveReply?: string | null;
   voicePhaseLabel?: string | null;
   showMic?: boolean;
+  busy?: boolean;
+  onCopyMessage?: (content: string) => void;
+  onRegenerate?: () => void;
+  onEditMessage?: (messageId: string, nextText: string) => void;
+  onFeedback?: (messageId: string, rating: "up" | "down") => void;
+  onRetry?: () => void;
 };
 
 function voiceTurnsToMessages(turns: VoiceTurn[]): UiMessage[] {
@@ -55,6 +62,12 @@ export function ChatMessages({
   liveReply,
   voicePhaseLabel,
   showMic = true,
+  busy = false,
+  onCopyMessage,
+  onRegenerate,
+  onEditMessage,
+  onFeedback,
+  onRetry,
 }: Props) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -90,6 +103,25 @@ export function ChatMessages({
       message.role === "assistant" && message.streaming && !message.content,
   );
 
+  const latestAssistantId = useMemo(() => {
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      if (messages[i]?.role === "assistant") {
+        return messages[i]!.id;
+      }
+    }
+    return null;
+  }, [messages]);
+
+  const lastTextMessage = messages[messages.length - 1];
+  const showRetry =
+    Boolean(onRetry) &&
+    !busy &&
+    Boolean(
+      lastTextMessage &&
+        ((lastTextMessage.role === "assistant" && lastTextMessage.error) ||
+          lastTextMessage.role === "user"),
+    );
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [allMessages, displayPhase]);
@@ -111,21 +143,69 @@ export function ChatMessages({
               return <AssistantThinkingBlock key={message.id} />;
             }
 
+            const isTextMessage = messages.some((m) => m.id === message.id);
+            const showActions =
+              isTextMessage &&
+              Boolean(onCopyMessage) &&
+              !message.streaming &&
+              Boolean(message.content);
+
             return (
               <div
                 key={message.id}
                 className={cn(
-                  "max-w-[85%] min-w-0 rounded-2xl px-4 py-3 text-[0.9375rem] leading-relaxed",
-                  message.role === "user"
-                    ? "ml-auto break-words rounded-br-md bg-donna-primary text-white"
-                    : "mr-auto overflow-x-auto break-words rounded-bl-md border border-donna-border bg-donna-surface text-donna-text",
-                  message.streaming && "opacity-95",
+                  "flex flex-col",
+                  message.role === "user" ? "items-end" : "items-start",
                 )}
               >
-                <MessageContent
-                  content={message.content}
-                  variant={message.role === "user" ? "user" : "assistant"}
-                />
+                <div
+                  className={cn(
+                    "max-w-[85%] min-w-0 rounded-2xl px-4 py-3 text-[0.9375rem] leading-relaxed",
+                    message.role === "user"
+                      ? "break-words rounded-br-md bg-donna-primary text-white"
+                      : "overflow-x-auto break-words rounded-bl-md border border-donna-border bg-donna-surface text-donna-text",
+                    message.streaming && "opacity-95",
+                    message.error && "border-donna-destructive/40",
+                    message.cancelled && "opacity-80",
+                  )}
+                >
+                  <MessageContent
+                    content={message.content}
+                    variant={message.role === "user" ? "user" : "assistant"}
+                  />
+                  {message.cancelled && !message.content ? (
+                    <p className="text-sm italic text-donna-muted">
+                      Generation stopped
+                    </p>
+                  ) : null}
+                </div>
+
+                {showActions ? (
+                  <MessageActions
+                    message={message}
+                    isLatestAssistant={message.id === latestAssistantId}
+                    busy={busy}
+                    onCopy={onCopyMessage!}
+                    onRegenerate={
+                      message.id === latestAssistantId ? onRegenerate : undefined
+                    }
+                    onEdit={onEditMessage}
+                    onFeedback={onFeedback}
+                  />
+                ) : null}
+
+                {message.role === "assistant" &&
+                message.error &&
+                showRetry &&
+                message.id === latestAssistantId ? (
+                  <button
+                    type="button"
+                    className="mt-1 rounded-lg px-2 py-1 text-sm font-medium text-donna-primary hover:bg-donna-surface"
+                    onClick={onRetry}
+                  >
+                    Retry
+                  </button>
+                ) : null}
               </div>
             );
           })}
