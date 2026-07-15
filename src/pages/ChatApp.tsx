@@ -51,6 +51,11 @@ export function ChatApp() {
   const {
     messages,
     sendMessage,
+    stopGeneration,
+    regenerate,
+    editAndResend,
+    retryFailed,
+    setMessageFeedback,
     clearChat,
     loadConversation,
     busy,
@@ -148,16 +153,40 @@ export function ChatApp() {
         liveReply={liveReply}
         voicePhaseLabel={voicePhaseLabel}
         showMic={!hasMessages}
+        busy={busy}
+        onCopyMessage={async (content) => {
+          try {
+            await navigator.clipboard.writeText(content);
+            showToast("Copied", false);
+          } catch {
+            showToast("Could not copy", true);
+          }
+        }}
+        onRegenerate={() => void regenerate()}
+        onEditMessage={(id, text) => void editAndResend(id, text)}
+        onFeedback={(id, rating) => void setMessageFeedback(id, rating)}
+        onRetry={() => void retryFailed()}
       />
 
       {activeError ? (
-        <AlertBanner onDismiss={dismissActiveError}>{activeError}</AlertBanner>
+        <AlertBanner
+          onDismiss={dismissActiveError}
+          action={
+            !voiceError && error
+              ? { label: "Retry", onClick: () => void retryFailed() }
+              : undefined
+          }
+        >
+          {activeError}
+        </AlertBanner>
       ) : null}
 
       <ChatInput
         onSend={(text) => void sendMessage(text)}
+        onStop={stopGeneration}
         onFileSelect={(file) => void handleFileSelect(file)}
         disabled={inputDisabled}
+        busy={busy}
         placeholder="Type your message here..."
         showMic={hasMessages}
         micState={micState}
