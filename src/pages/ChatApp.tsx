@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { History, Settings } from "lucide-react";
+import { History, PanelRightOpen, Settings } from "lucide-react";
 import { ChatHistorySheet } from "../components/ChatHistorySheet";
 import { ChatHistorySidebar } from "../components/ChatHistorySidebar";
 import { ChatInput } from "../components/ChatInput";
@@ -21,7 +21,7 @@ const quickActions = [
   { label: "Draft email", prompt: "Help me draft an email" },
 ] as const;
 
-const SIDEBAR_COLLAPSE_KEY = "donna.chatHistory.collapsed";
+const HISTORY_PANEL_KEY = "donna.chatHistory.panelOpen";
 
 function UserAvatar({ onClick }: { onClick: () => void }) {
   const { session } = useAuth();
@@ -50,13 +50,14 @@ function UserAvatar({ onClick }: { onClick: () => void }) {
 export function ChatApp() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historySheetOpen, setHistorySheetOpen] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<string | null>(
     null,
   );
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+  // Desktop right panel starts closed; open only via the expand button.
+  const [historyPanelOpen, setHistoryPanelOpen] = useState(() => {
     try {
-      return localStorage.getItem(SIDEBAR_COLLAPSE_KEY) === "1";
+      return localStorage.getItem(HISTORY_PANEL_KEY) === "1";
     } catch {
       return false;
     }
@@ -115,14 +116,11 @@ export function ChatApp() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(
-        SIDEBAR_COLLAPSE_KEY,
-        sidebarCollapsed ? "1" : "0",
-      );
+      localStorage.setItem(HISTORY_PANEL_KEY, historyPanelOpen ? "1" : "0");
     } catch {
       // ignore
     }
-  }, [sidebarCollapsed]);
+  }, [historyPanelOpen]);
 
   async function handleFileSelect(file: File) {
     const result = await addFile(file);
@@ -160,26 +158,37 @@ export function ChatApp() {
 
   return (
     <div className="flex h-full min-h-0 w-full">
-      <ChatHistorySidebar
-        collapsed={sidebarCollapsed}
-        onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
-        selectedId={activeConversationId}
-        onNewChat={handleNewChat}
-        onResume={(conversationId, sessionId, nextMessages) => {
-          handleResume(conversationId, sessionId, nextMessages);
-        }}
-      />
-
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <header className="flex shrink-0 items-center justify-between gap-2 px-5 py-3">
           <h1 className="text-lg font-semibold text-donna-text">Chat</h1>
           <div className="flex items-center gap-2">
+            {/* Mobile: bottom sheet */}
             <IconButton
-              onClick={() => setHistoryOpen(true)}
+              onClick={() => setHistorySheetOpen(true)}
               aria-label="Chat history"
               className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface lg:hidden"
             >
               <History className="h-5 w-5" strokeWidth={1.75} />
+            </IconButton>
+            {/* Desktop: expand/collapse right panel */}
+            <IconButton
+              onClick={() => setHistoryPanelOpen((open) => !open)}
+              aria-label={
+                historyPanelOpen ? "Close chat history" : "Open chat history"
+              }
+              aria-pressed={historyPanelOpen}
+              className={cn(
+                "!h-9 !w-9 !border-transparent !bg-transparent hover:!bg-donna-surface hidden lg:inline-flex",
+                historyPanelOpen
+                  ? "!text-donna-primary"
+                  : "!text-donna-muted",
+              )}
+            >
+              {historyPanelOpen ? (
+                <History className="h-5 w-5" strokeWidth={1.75} />
+              ) : (
+                <PanelRightOpen className="h-5 w-5" strokeWidth={1.75} />
+              )}
             </IconButton>
             <IconButton
               onClick={() => navigate("/app/profile")}
@@ -259,13 +268,23 @@ export function ChatApp() {
         <IngestToast toast={toast} />
 
         <ChatHistorySheet
-          open={historyOpen}
-          onClose={() => setHistoryOpen(false)}
+          open={historySheetOpen}
+          onClose={() => setHistorySheetOpen(false)}
           onResume={(conversationId, sessionId, nextMessages) => {
             handleResume(conversationId, sessionId, nextMessages);
           }}
         />
       </div>
+
+      <ChatHistorySidebar
+        open={historyPanelOpen}
+        onClose={() => setHistoryPanelOpen(false)}
+        selectedId={activeConversationId}
+        onNewChat={handleNewChat}
+        onResume={(conversationId, sessionId, nextMessages) => {
+          handleResume(conversationId, sessionId, nextMessages);
+        }}
+      />
     </div>
   );
 }
