@@ -162,7 +162,15 @@ export function ChatApp() {
         <header className="flex shrink-0 items-center justify-between gap-2 px-5 py-3">
           <h1 className="text-lg font-semibold text-donna-text">Chat</h1>
           <div className="flex items-center gap-2">
-            {/* Mobile: bottom sheet */}
+            <UserAvatar onClick={() => navigate("/app/profile")} />
+            <IconButton
+              onClick={() => navigate("/app/profile")}
+              aria-label="Profile and settings"
+              className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
+            >
+              <Settings className="h-5 w-5" strokeWidth={1.75} />
+            </IconButton>
+            {/* Mobile: bottom sheet — far right, away from profile */}
             <IconButton
               onClick={() => setHistorySheetOpen(true)}
               aria-label="Chat history"
@@ -170,7 +178,7 @@ export function ChatApp() {
             >
               <History className="h-5 w-5" strokeWidth={1.75} />
             </IconButton>
-            {/* Desktop: expand/collapse right panel */}
+            {/* Desktop: expand right panel — sits next to where the panel opens */}
             <IconButton
               onClick={() => setHistoryPanelOpen((open) => !open)}
               aria-label={
@@ -190,14 +198,6 @@ export function ChatApp() {
                 <PanelRightOpen className="h-5 w-5" strokeWidth={1.75} />
               )}
             </IconButton>
-            <IconButton
-              onClick={() => navigate("/app/profile")}
-              aria-label="Profile and settings"
-              className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
-            >
-              <Settings className="h-5 w-5" strokeWidth={1.75} />
-            </IconButton>
-            <UserAvatar onClick={() => navigate("/app/profile")} />
           </div>
         </header>
 
