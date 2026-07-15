@@ -1,6 +1,12 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Brain, ChevronDown, ChevronUp, StickyNote } from "lucide-react";
+import {
+  Brain,
+  ChevronDown,
+  ChevronUp,
+  Globe2,
+  StickyNote,
+} from "lucide-react";
 import type { MemoryCitation } from "../types/citations";
 import { cn } from "../lib/cn";
 
@@ -16,9 +22,13 @@ export function MemoryCitations({ citations, className }: Props) {
     return null;
   }
 
+  const webCount = citations.filter((c) => c.source === "web").length;
   const noteCount = citations.filter((c) => c.source === "note").length;
-  const factCount = citations.length - noteCount;
+  const factCount = citations.length - noteCount - webCount;
   const labelParts: string[] = [];
+  if (webCount > 0) {
+    labelParts.push(`${webCount} web source${webCount === 1 ? "" : "s"}`);
+  }
   if (factCount > 0) {
     labelParts.push(`${factCount} memor${factCount === 1 ? "y" : "ies"}`);
   }
@@ -54,7 +64,8 @@ export function MemoryCitations({ citations, className }: Props) {
           {citations.map((citation, index) => {
             const key = `${citation.source}-${citation.id ?? index}`;
             const isNote = citation.source === "note" && citation.id;
-            const Icon = isNote ? StickyNote : Brain;
+            const isWeb = citation.source === "web" && citation.url;
+            const Icon = isWeb ? Globe2 : isNote ? StickyNote : Brain;
             const body = (
               <span className="flex items-start gap-2">
                 <Icon
@@ -74,6 +85,15 @@ export function MemoryCitations({ citations, className }: Props) {
                   >
                     {body}
                   </Link>
+                ) : isWeb ? (
+                  <a
+                    href={citation.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block rounded-lg px-1.5 py-1 hover:bg-black/[0.04]"
+                  >
+                    {body}
+                  </a>
                 ) : (
                   <div className="rounded-lg px-1.5 py-1">{body}</div>
                 )}

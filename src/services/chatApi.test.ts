@@ -37,6 +37,24 @@ describe("sendChatMessage", () => {
     expect(body.history).toEqual([]);
   });
 
+  it("posts web search flag when requested", async () => {
+    const fetchMock = vi.fn(async () =>
+      Response.json({
+        reply: "Hello!",
+        sessionId: "sess-1",
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await sendChatMessage("latest news", [], undefined, "talk", undefined, {
+      webSearch: true,
+    });
+
+    const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(String(init.body));
+    expect(body.web_search).toBe(true);
+  });
+
   it("throws when not signed in", async () => {
     const { getAccessToken } = await import("./auth");
     vi.mocked(getAccessToken).mockResolvedValueOnce(null);
