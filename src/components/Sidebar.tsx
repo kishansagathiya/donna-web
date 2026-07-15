@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   CalendarCheck,
@@ -10,8 +9,6 @@ import {
   User,
 } from "lucide-react";
 import { DonnaLogo } from "./DonnaLogo";
-import { SidebarRecentChats } from "./SidebarRecentChats";
-import type { ConversationSummary } from "../services/conversationsApi";
 import { cn } from "../lib/cn";
 
 const navItems = [
@@ -30,26 +27,14 @@ type Props = {
 
 export function Sidebar({ onNewChat, onNavigate, className }: Props) {
   const navigate = useNavigate();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   function handleNewChat() {
-    setSelectedId(null);
-    setRefreshKey((k) => k + 1);
     onNavigate?.();
     if (onNewChat) {
       onNewChat();
       return;
     }
     navigate("/app", { state: { newChat: true } });
-  }
-
-  function handleSelectConversation(conversation: ConversationSummary) {
-    setSelectedId(conversation.id);
-    onNavigate?.();
-    navigate("/app", {
-      state: { resumeConversationId: conversation.id },
-    });
   }
 
   return (
@@ -71,7 +56,7 @@ export function Sidebar({ onNewChat, onNavigate, className }: Props) {
         </div>
       </div>
 
-      <div className="px-4 pb-3">
+      <div className="px-4 pb-4">
         <button
           type="button"
           onClick={handleNewChat}
@@ -86,7 +71,7 @@ export function Sidebar({ onNewChat, onNavigate, className }: Props) {
         </button>
       </div>
 
-      <nav className="flex shrink-0 flex-col gap-1 px-3" aria-label="Main">
+      <nav className="flex flex-col gap-1 px-3" aria-label="Main">
         {navItems.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -109,15 +94,7 @@ export function Sidebar({ onNewChat, onNavigate, className }: Props) {
         ))}
       </nav>
 
-      <div className="mx-3 mt-2 border-t border-donna-border" />
-
-      <SidebarRecentChats
-        selectedId={selectedId}
-        refreshKey={refreshKey}
-        onSelect={handleSelectConversation}
-      />
-
-      <div className="border-t border-donna-border px-3 py-4">
+      <div className="mt-2 border-t border-donna-border px-3 py-3">
         <NavLink
           to="/support"
           onClick={onNavigate}
