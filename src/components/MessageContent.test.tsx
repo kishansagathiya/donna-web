@@ -18,6 +18,27 @@ describe("MessageContent", () => {
     expect(screen.getByText("Done.").tagName).toBe("STRONG");
   });
 
+  it("renders GFM tables for assistant messages", () => {
+    render(
+      <MessageContent
+        variant="assistant"
+        content={[
+          "| Use case | Model |",
+          "| --- | --- |",
+          "| **Coding** | Claude |",
+          "| Writing | GPT |",
+        ].join("\n")}
+      />,
+    );
+
+    const table = screen.getByRole("table");
+    expect(table).toBeInTheDocument();
+    expect(screen.getByText("Use case").tagName).toBe("TH");
+    expect(screen.getByText("Coding").tagName).toBe("STRONG");
+    expect(screen.getByText("Claude")).toBeInTheDocument();
+    expect(screen.getByText("Writing")).toBeInTheDocument();
+  });
+
   it("preserves line breaks for user messages", () => {
     render(<MessageContent variant="user" content={"Line one\nLine two"} />);
 

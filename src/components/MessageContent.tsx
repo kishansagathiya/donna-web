@@ -65,6 +65,34 @@ const assistantComponents: Components = {
     </pre>
   ),
   hr: () => <hr className="my-3 border-donna-border" />,
+  table: ({ children }) => (
+    <div className="mb-2 max-w-full overflow-x-auto last:mb-0">
+      <table className="w-max min-w-full border-collapse text-left text-[0.875rem]">
+        {children}
+      </table>
+    </div>
+  ),
+  thead: ({ children }) => (
+    <thead className="border-b border-donna-border bg-black/[0.04]">{children}</thead>
+  ),
+  tbody: ({ children }) => <tbody>{children}</tbody>,
+  tr: ({ children }) => (
+    <tr className="border-b border-donna-border last:border-b-0">{children}</tr>
+  ),
+  th: ({ children, style }) => (
+    <th
+      style={style}
+      className="whitespace-nowrap px-3 py-2 align-top font-semibold"
+    >
+      {children}
+    </th>
+  ),
+  td: ({ children, style }) => (
+    <td style={style} className="whitespace-nowrap px-3 py-2 align-top">
+      {children}
+    </td>
+  ),
+  del: ({ children }) => <del className="line-through opacity-80">{children}</del>,
 };
 
 export function MessageContent({ content, variant, className }: Props) {

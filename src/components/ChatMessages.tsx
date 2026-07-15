@@ -115,10 +115,10 @@ export function ChatMessages({
               <div
                 key={message.id}
                 className={cn(
-                  "max-w-[85%] rounded-2xl px-4 py-3 text-[0.9375rem] leading-relaxed break-words",
+                  "max-w-[85%] min-w-0 rounded-2xl px-4 py-3 text-[0.9375rem] leading-relaxed",
                   message.role === "user"
-                    ? "ml-auto rounded-br-md bg-donna-primary text-white"
-                    : "mr-auto rounded-bl-md border border-donna-border bg-donna-surface text-donna-text",
+                    ? "ml-auto break-words rounded-br-md bg-donna-primary text-white"
+                    : "mr-auto overflow-x-auto break-words rounded-bl-md border border-donna-border bg-donna-surface text-donna-text",
                   message.streaming && "opacity-95",
                 )}
               >
