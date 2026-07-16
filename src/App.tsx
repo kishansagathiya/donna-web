@@ -17,6 +17,7 @@ import { Login } from "./pages/Login";
 import { Consent } from "./pages/Consent";
 import { ChatApp } from "./pages/ChatApp";
 import { DailyTasksPage } from "./pages/DailyTasksPage";
+import { IntentsInboxPage } from "./pages/IntentsInboxPage";
 import { NoteDetailPage } from "./pages/NoteDetailPage";
 import { NotesPage } from "./pages/NotesPage";
 import { SearchNotesPage } from "./pages/SearchContextPage";
@@ -42,6 +43,7 @@ function PageTitle() {
       "/app": "Donna",
       "/app/notes": "Notes — Donna",
       "/app/notes/search": "Search notes — Donna",
+      "/app/actions": "Actions — Donna",
       "/app/today": "Today — Donna",
       "/app/search": "Memory — Donna",
       "/app/profile": "Profile — Donna",
@@ -78,6 +80,7 @@ export default function App() {
           <Route element={<AppShell />}>
             <Route element={<AppLayout />}>
               <Route path="app" element={<ChatApp />} />
+              <Route path="app/actions" element={<IntentsInboxPage />} />
               <Route path="app/today" element={<DailyTasksPage />} />
               <Route path="app/search" element={<ExtractedMemoryPage />} />
               <Route path="app/add" element={<AddMemoryPage />} />

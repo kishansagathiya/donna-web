@@ -3,6 +3,7 @@ import {
   CalendarCheck,
   CircleHelp,
   Database,
+  Inbox,
   MessageSquare,
   Plus,
   StickyNote,
@@ -14,6 +15,7 @@ import { cn } from "../lib/cn";
 const navItems = [
   { to: "/app", label: "Chat", icon: MessageSquare, end: true },
   { to: "/app/notes", label: "Notes", icon: StickyNote, end: false },
+  { to: "/app/actions", label: "Actions", icon: Inbox, end: false },
   { to: "/app/today", label: "Today", icon: CalendarCheck, end: false },
   { to: "/app/search", label: "Memory", icon: Database, end: false },
   { to: "/app/profile", label: "Profile", icon: User, end: false },
