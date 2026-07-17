@@ -169,6 +169,7 @@ describe("useChatSession", () => {
 
     expect(result.current.messages[1]).toMatchObject({
       role: "assistant",
+      content: "boom",
       error: true,
     });
 

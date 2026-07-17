@@ -202,6 +202,9 @@ export function useChatSession() {
             m.id === assistantId
               ? {
                   ...m,
+                  // Keep any partial tokens; otherwise show the failure reason
+                  // in-bubble so it is visible without hunting the banner.
+                  content: m.content.trim() ? m.content : message,
                   streaming: false,
                   error: true,
                   cancelled: false,

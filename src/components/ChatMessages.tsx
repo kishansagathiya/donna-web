@@ -261,6 +261,13 @@ export function ChatMessages({
                         : "No response received."}
                     </p>
                   ) : null}
+                  {message.role === "assistant" &&
+                  message.error &&
+                  message.content ? (
+                    <p className="mt-2 text-xs text-donna-destructive">
+                      Tap Retry to try again.
+                    </p>
+                  ) : null}
                   {message.cancelled && !message.content ? (
                     <p className="text-sm italic text-donna-muted">
                       Generation stopped
