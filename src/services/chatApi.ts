@@ -229,6 +229,9 @@ export async function streamChatMessage(
   let buffer = "";
   let streamError: string | null = null;
   let latestCitations: MemoryCitation[] | undefined;
+  let latestReply = "";
+  let latestSessionId = sessionId ?? "";
+  let sawDone = false;
 
   try {
     while (true) {
@@ -260,6 +263,8 @@ export async function streamChatMessage(
         let data = "";
 
         for (const line of part.split("\n")) {
+          // SSE comments / keepalives
+          if (line.startsWith(":")) continue;
           if (line.startsWith("event: ")) {
             event = line.slice(7);
           } else if (line.startsWith("data: ")) {
@@ -270,19 +275,30 @@ export async function streamChatMessage(
         if (!data) continue;
 
         try {
+          if (event === "phase") {
+            // Server sends JSON strings (`"generating"`); tolerate raw too.
+            const phase =
+              data.startsWith('"') && data.endsWith('"')
+                ? (JSON.parse(data) as string)
+                : data.replace(/^"|"$/g, "");
+            if (typeof phase === "string" && phase) {
+              callbacks.onPhase?.(phase);
+            }
+            continue;
+          }
+
           const parsed = JSON.parse(data) as Record<string, unknown>;
 
           switch (event) {
             case "session":
               if (typeof parsed.session_id === "string") {
+                latestSessionId = parsed.session_id;
                 callbacks.onSessionId?.(parsed.session_id);
               }
               break;
-            case "phase":
-              callbacks.onPhase?.(data.replace(/"/g, ""));
-              break;
             case "chunk":
               if (typeof parsed.text === "string") {
+                latestReply = parsed.text;
                 callbacks.onChunk?.(parsed.text);
               }
               break;
@@ -308,15 +324,19 @@ export async function streamChatMessage(
                 latestCitations = cites;
                 callbacks.onCitations?.(cites);
               }
-              callbacks.onDone?.(
-                doneBody.reply ?? "",
-                doneBody.session_id ?? sessionId ?? "",
-                {
-                  citations: cites,
-                  groundedUserMessage: doneBody.grounded_user_message,
-                  attachmentLabels: doneBody.attachment_labels,
-                },
-              );
+              const reply = (doneBody.reply ?? latestReply).trim();
+              latestSessionId = doneBody.session_id ?? latestSessionId;
+              sawDone = true;
+              if (!reply) {
+                streamError = "Donna returned an empty reply. Please try again.";
+                callbacks.onError?.(streamError);
+                break;
+              }
+              callbacks.onDone?.(reply, latestSessionId, {
+                citations: cites,
+                groundedUserMessage: doneBody.grounded_user_message,
+                attachmentLabels: doneBody.attachment_labels,
+              });
               break;
             }
             case "error":
@@ -338,5 +358,8 @@ export async function streamChatMessage(
 
   if (streamError) {
     throw new Error(streamError);
+  }
+  if (!sawDone) {
+    throw new Error("Connection closed before Donna finished responding");
   }
 }

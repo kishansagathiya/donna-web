@@ -251,6 +251,16 @@ export function ChatMessages({
                     }
                     variant={message.role === "user" ? "user" : "assistant"}
                   />
+                  {message.role === "assistant" &&
+                  !message.streaming &&
+                  !message.content &&
+                  !message.cancelled ? (
+                    <p className="text-sm italic text-donna-muted">
+                      {message.error
+                        ? "No response received. Tap Retry to try again."
+                        : "No response received."}
+                    </p>
+                  ) : null}
                   {message.cancelled && !message.content ? (
                     <p className="text-sm italic text-donna-muted">
                       Generation stopped
