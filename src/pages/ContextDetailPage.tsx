@@ -13,7 +13,6 @@ import {
 import { AppPageHeader } from "../components/ui/AppPageHeader";
 import { Button } from "../components/ui/Button";
 import { TextArea } from "../components/ui/TextArea";
-import { Spinner } from "../components/ui/Spinner";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { cn } from "../lib/cn";
 
@@ -116,6 +115,11 @@ export function ContextDetailPage() {
 
       <div className="flex flex-1 flex-col overflow-y-auto px-5 py-4">
         <div className="mb-4 flex flex-wrap items-center gap-2">
+          {item.source_type === "integration" ? (
+            <span className="inline-flex min-h-9 items-center rounded-full border border-donna-border bg-donna-surface px-3 py-1.5 text-[0.8125rem] font-medium text-donna-text">
+              From Granola
+            </span>
+          ) : null}
           <button
             type="button"
             className={cn(
@@ -168,7 +172,7 @@ export function ContextDetailPage() {
 
         <p className="mt-3 text-xs text-donna-muted">
           Created {formatNoteDate(item.created_at)}
-          {item.source_type !== "manual"
+          {item.source_type !== "manual" && item.source_type !== "integration"
             ? ` · from ${item.source_type.replace("_", " ")}`
             : ""}
         </p>
