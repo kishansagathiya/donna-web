@@ -18,11 +18,22 @@ export type ConversationSummary = {
   tags?: string[];
 };
 
+export type ConversationAttachment = {
+  kind: "file" | "url";
+  filename: string;
+  mime?: string;
+  url?: string;
+  preview_url?: string;
+};
+
 export type ConversationTurn = {
   turn_index: number;
   user_transcript: string;
+  /** LLM grounding text (includes extracted attachment content). */
+  user_grounded_transcript?: string;
   assistant_transcript: string;
   created_at: string;
+  attachments?: ConversationAttachment[];
 };
 
 export type ConversationDetail = {
@@ -184,16 +195,66 @@ export function formatConversationDate(iso: string): string {
   });
 }
 
+/** Marker written into older user_transcript rows that stored vision grounding. */
+const GROUNDED_MARKER =
+  "The user shared the following attachment(s) for this turn only";
+
+/**
+ * Prefer the short user-facing prompt. Older rows stored vision-grounded text
+ * in user_transcript; strip that dump when present.
+ */
+export function displayUserTranscript(transcript: string): string {
+  const trimmed = transcript.trim();
+  if (!trimmed) return "";
+  const idx = trimmed.indexOf(GROUNDED_MARKER);
+  if (idx === -1) return trimmed;
+  const before = trimmed.slice(0, idx).trim();
+  if (before) return before;
+  const labels = [...trimmed.matchAll(/^Attached:\s*(.+)$/gm)].map((m) =>
+    m[1].trim(),
+  );
+  if (labels.length > 0) return `📎 ${labels.join(", ")}`;
+  return "📎 attachment";
+}
+
+export type HydratedChatMessage = {
+  role: "user" | "assistant";
+  content: string;
+  historyContent?: string;
+  attachments?: {
+    id: string;
+    kind: "file" | "url";
+    filename: string;
+    mime?: string;
+    previewUrl?: string;
+  }[];
+};
+
 export function turnsToMessages(
   turns: ConversationTurn[],
-): { role: "user" | "assistant"; content: string }[] {
-  const messages: { role: "user" | "assistant"; content: string }[] = [];
+): HydratedChatMessage[] {
+  const messages: HydratedChatMessage[] = [];
 
   for (const turn of turns) {
-    const user = turn.user_transcript.trim();
+    const user = displayUserTranscript(turn.user_transcript);
     const assistant = turn.assistant_transcript.trim();
-    if (user) {
-      messages.push({ role: "user", content: user });
+    const grounded = turn.user_grounded_transcript?.trim();
+    const attachments = (turn.attachments ?? []).map((att, index) => ({
+      id: `turn-${turn.turn_index}-att-${index}`,
+      kind: (att.kind === "url" ? "url" : "file") as "file" | "url",
+      filename: att.filename || (att.kind === "url" ? att.url || "link" : "attachment"),
+      mime: att.mime,
+      previewUrl: att.preview_url || undefined,
+    }));
+
+    if (user || attachments.length > 0) {
+      messages.push({
+        role: "user",
+        content: user || (attachments.length > 0 ? `📎 ${attachments.map((a) => a.filename).join(", ")}` : ""),
+        historyContent:
+          grounded && grounded !== user ? grounded : undefined,
+        attachments: attachments.length > 0 ? attachments : undefined,
+      });
     }
     if (assistant) {
       messages.push({ role: "assistant", content: assistant });
