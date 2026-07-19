@@ -104,10 +104,9 @@ export function ChatMessages({
 
   const hasMessages = allMessages.length > 0;
   const displayPhase = voicePhaseLabel ?? phase;
-  const generating = isGeneratingPhase(displayPhase);
   const showThinking =
     isDonnaThinkingPhase(displayPhase) ||
-    generating ||
+    isGeneratingPhase(displayPhase) ||
     (busy &&
       allMessages.some(
         (message) =>
@@ -115,16 +114,15 @@ export function ChatMessages({
           message.streaming &&
           !message.content,
       ));
-  const thinkingVerb = generating ? "generating" : undefined;
   const hasWaitingBubble = allMessages.some(
     (message) =>
       message.role === "assistant" && message.streaming && !message.content,
   );
-  // Human status only (never "generating" / raw JSON).
+  // Concrete status only (browse / read / analyze) — never protocol tokens.
   const statusLabel =
     displayPhase &&
     !isDonnaThinkingPhase(displayPhase) &&
-    !generating
+    !isGeneratingPhase(displayPhase)
       ? displayPhase
       : null;
 
@@ -208,12 +206,7 @@ export function ChatMessages({
               message.streaming &&
               !message.content
             ) {
-              return (
-                <AssistantThinkingBlock
-                  key={message.id}
-                  verb={thinkingVerb}
-                />
-              );
+              return <AssistantThinkingBlock key={message.id} />;
             }
 
             const isTextMessage = messages.some((m) => m.id === message.id);
@@ -333,7 +326,7 @@ export function ChatMessages({
             );
           })}
           {hasWaitingBubble ? null : showThinking ? (
-            <AssistantThinkingBlock verb={thinkingVerb} />
+            <AssistantThinkingBlock />
           ) : statusLabel ? (
             <p className="mr-auto text-sm text-donna-muted">{statusLabel}</p>
           ) : null}

@@ -82,7 +82,7 @@ export function ThinkingLabel({ className, verb, visible = true }: LabelProps) {
 
 type BlockProps = {
   className?: string;
-  /** Fixed verb (e.g. "generating"); omit to rotate thinking phrases. */
+  /** Fixed verb; omit to rotate thinking phrases. */
   verb?: string;
 };
 
