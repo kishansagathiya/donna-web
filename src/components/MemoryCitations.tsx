@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Brain,
+  CalendarDays,
   ChevronDown,
   ChevronUp,
   Globe2,
@@ -24,7 +25,8 @@ export function MemoryCitations({ citations, className }: Props) {
 
   const webCount = citations.filter((c) => c.source === "web").length;
   const noteCount = citations.filter((c) => c.source === "note").length;
-  const factCount = citations.length - noteCount - webCount;
+  const granolaCount = citations.filter((c) => c.source === "granola").length;
+  const factCount = citations.length - noteCount - webCount - granolaCount;
   const labelParts: string[] = [];
   if (webCount > 0) {
     labelParts.push(`${webCount} web source${webCount === 1 ? "" : "s"}`);
@@ -34,6 +36,11 @@ export function MemoryCitations({ citations, className }: Props) {
   }
   if (noteCount > 0) {
     labelParts.push(`${noteCount} note${noteCount === 1 ? "" : "s"}`);
+  }
+  if (granolaCount > 0) {
+    labelParts.push(
+      `${granolaCount} Granola source${granolaCount === 1 ? "" : "s"}`,
+    );
   }
   const chipLabel = `Used ${labelParts.join(" · ")}`;
 
@@ -65,14 +72,28 @@ export function MemoryCitations({ citations, className }: Props) {
             const key = `${citation.source}-${citation.id ?? index}`;
             const isNote = citation.source === "note" && citation.id;
             const isWeb = citation.source === "web" && citation.url;
-            const Icon = isWeb ? Globe2 : isNote ? StickyNote : Brain;
+            const isGranola = citation.source === "granola";
+            const Icon = isWeb
+              ? Globe2
+              : isNote
+                ? StickyNote
+                : isGranola
+                  ? CalendarDays
+                  : Brain;
             const body = (
               <span className="flex items-start gap-2">
                 <Icon
                   className="mt-0.5 h-3.5 w-3.5 shrink-0 text-donna-gold"
                   aria-hidden
                 />
-                <span className="min-w-0 leading-relaxed">{citation.text}</span>
+                <span className="min-w-0 leading-relaxed">
+                  {isGranola ? (
+                    <span className="mb-0.5 block text-[0.6875rem] font-semibold uppercase tracking-wide text-donna-muted">
+                      Granola
+                    </span>
+                  ) : null}
+                  {citation.text}
+                </span>
               </span>
             );
 

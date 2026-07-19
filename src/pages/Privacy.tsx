@@ -96,6 +96,11 @@ export function Privacy() {
           to operate the service until you delete your account or we no longer
           need the data to provide Donna.
         </p>
+        <p>
+          Imported meeting snapshots from integrations remain in Donna after
+          disconnect or source-side permission changes until you explicitly
+          delete them from Integrations.
+        </p>
 
         <h2>Account deletion</h2>
         <p>
