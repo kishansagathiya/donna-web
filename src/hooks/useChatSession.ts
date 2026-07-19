@@ -13,7 +13,11 @@ import type {
   PendingAttachment,
 } from "../lib/chatAttachments";
 import { revokePendingAttachment } from "../lib/chatAttachments";
-import { chatPhaseLabel } from "../lib/chatPhaseLabel";
+import {
+  chatPhaseLabel,
+  coerceChatPhase,
+  isGeneratingPhase,
+} from "../lib/chatPhaseLabel";
 import type { MemoryCitation } from "../types/citations";
 
 export type UiAttachment = {
@@ -133,7 +137,21 @@ export function useChatSession() {
           attachments,
           webSearch: options.webSearch,
           onSessionId: (id) => setSessionId(id),
-          onPhase: (p, meta) => setPhase(chatPhaseLabel(p, meta?.host) ?? p),
+          onPhase: (p, meta) => {
+            const label = chatPhaseLabel(p, meta?.host);
+            if (label) {
+              setPhase(label);
+              return;
+            }
+            if (isGeneratingPhase(p) || coerceChatPhase(p)?.phase === "thinking") {
+              setPhase("generating");
+              return;
+            }
+            const raw = coerceChatPhase(p)?.phase;
+            if (raw === "idle" || raw === "done") {
+              setPhase(null);
+            }
+          },
           onChunk: (partial) => {
             setPhase(null);
             setMessages((prev) =>

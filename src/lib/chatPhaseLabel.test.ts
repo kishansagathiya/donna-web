@@ -1,22 +1,39 @@
 import { describe, expect, it } from "vitest";
-import { chatPhaseLabel } from "./chatPhaseLabel";
+import {
+  chatPhaseLabel,
+  coerceChatPhase,
+  isGeneratingPhase,
+} from "./chatPhaseLabel";
 
 describe("chatPhaseLabel", () => {
-  it("maps browse phases with optional host", () => {
-    expect(chatPhaseLabel("fetching")).toBe("Reading the page…");
-    expect(chatPhaseLabel("fetching", "example.com")).toBe("Reading example.com…");
-    expect(chatPhaseLabel("browsing")).toBe("Scraping the page…");
-    expect(chatPhaseLabel("browsing", "news.ycombinator.com")).toBe(
-      "Scraping news.ycombinator.com…",
+  it("maps concrete browse / fetch / image phases", () => {
+    expect(chatPhaseLabel("fetching")).toBe("Reading this page…");
+    expect(chatPhaseLabel("fetching", "example.com")).toBe(
+      "Reading example.com…",
     );
+    expect(chatPhaseLabel("browsing")).toBe("Browsing this site…");
+    expect(chatPhaseLabel("browsing", "news.ycombinator.com")).toBe(
+      "Browsing news.ycombinator.com…",
+    );
+    expect(chatPhaseLabel("analyzing")).toBe("Analyzing images…");
   });
 
-  it("maps analyzing and finishing", () => {
-    expect(chatPhaseLabel("analyzing")).toBe("Looking at your image…");
-    expect(chatPhaseLabel("finishing")).toBe("Putting finishing touches…");
+  it("hides vague phases", () => {
+    expect(chatPhaseLabel("generating")).toBeNull();
+    expect(chatPhaseLabel("finishing")).toBeNull();
+    expect(chatPhaseLabel('{"phase":"generating"}')).toBeNull();
+    expect(isGeneratingPhase('{"phase":"generating"}')).toBe(true);
   });
 
-  it("passes through generating for thinking UI", () => {
-    expect(chatPhaseLabel("generating")).toBe("generating");
+  it("unwraps JSON browse payloads", () => {
+    expect(coerceChatPhase('{"phase":"browsing","host":"example.com"}')).toEqual(
+      {
+        phase: "browsing",
+        host: "example.com",
+      },
+    );
+    expect(chatPhaseLabel('{"phase":"browsing","host":"example.com"}')).toBe(
+      "Browsing example.com…",
+    );
   });
 });
