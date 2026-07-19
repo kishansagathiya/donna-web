@@ -82,10 +82,14 @@ export function ThinkingLabel({ className, verb, visible = true }: LabelProps) {
 
 type BlockProps = {
   className?: string;
+  /** Fixed verb; omit to rotate thinking phrases. */
+  verb?: string;
 };
 
-export function AssistantThinkingBlock({ className }: BlockProps) {
-  const { verb, visible } = useThinkingPhrase();
+export function AssistantThinkingBlock({ className, verb }: BlockProps) {
+  const phrase = useThinkingPhrase();
+  const labelVerb = verb ?? phrase.verb;
+  const visible = verb !== undefined ? true : phrase.visible;
 
   return (
     <div
@@ -97,7 +101,7 @@ export function AssistantThinkingBlock({ className }: BlockProps) {
       <div className="rounded-2xl rounded-bl-md border border-donna-border bg-donna-surface px-4 py-3 text-donna-muted">
         <BouncingDots size="md" />
       </div>
-      <ThinkingLabel verb={verb} visible={visible} className="pl-1" />
+      <ThinkingLabel verb={labelVerb} visible={visible} className="pl-1" />
     </div>
   );
 }

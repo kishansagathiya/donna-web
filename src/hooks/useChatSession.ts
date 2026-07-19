@@ -13,6 +13,12 @@ import type {
   PendingAttachment,
 } from "../lib/chatAttachments";
 import { revokePendingAttachment } from "../lib/chatAttachments";
+import {
+  chatPhaseLabel,
+  coerceChatPhase,
+  isGeneratingPhase,
+} from "../lib/chatPhaseLabel";
+import { DONNA_THINKING_PHASE } from "../lib/thinkingPhrases";
 import type { MemoryCitation } from "../types/citations";
 
 export type UiAttachment = {
@@ -85,6 +91,12 @@ function toUiAttachments(attachments: PendingAttachment[]): UiAttachment[] {
   }));
 }
 
+function revokePreviewUrl(url?: string) {
+  if (url?.startsWith("blob:")) {
+    URL.revokeObjectURL(url);
+  }
+}
+
 export function useChatSession() {
   const [messages, setMessages] = useState<UiMessage[]>([]);
   const [sessionId, setSessionId] = useState<string | undefined>();
@@ -118,7 +130,7 @@ export function useChatSession() {
       abortControllerRef.current = controller;
       setError(null);
       setBusy(true);
-      setPhase("generating");
+      setPhase(DONNA_THINKING_PHASE);
 
       try {
         await streamChatMessage(trimmed, history, activeSessionId, {
@@ -126,8 +138,23 @@ export function useChatSession() {
           attachments,
           webSearch: options.webSearch,
           onSessionId: (id) => setSessionId(id),
-          onPhase: (p) => setPhase(p),
+          onPhase: (p, meta) => {
+            const label = chatPhaseLabel(p, meta?.host);
+            if (label) {
+              setPhase(label);
+              return;
+            }
+            if (isGeneratingPhase(p) || coerceChatPhase(p)?.phase === "thinking") {
+              setPhase(DONNA_THINKING_PHASE);
+              return;
+            }
+            const raw = coerceChatPhase(p)?.phase;
+            if (raw === "idle" || raw === "done") {
+              setPhase(null);
+            }
+          },
           onChunk: (partial) => {
+            setPhase(null);
             setMessages((prev) =>
               prev.map((m) =>
                 m.id === assistantId
@@ -358,7 +385,7 @@ export function useChatSession() {
       const previous = current[userIndex];
       if (previous?.attachments) {
         for (const att of previous.attachments) {
-          if (att.previewUrl) URL.revokeObjectURL(att.previewUrl);
+          revokePreviewUrl(att.previewUrl);
         }
       }
 
@@ -555,7 +582,7 @@ export function useChatSession() {
     abortControllerRef.current = null;
     for (const message of messagesRef.current) {
       for (const att of message.attachments ?? []) {
-        if (att.previewUrl) URL.revokeObjectURL(att.previewUrl);
+        revokePreviewUrl(att.previewUrl);
       }
     }
     setMessages([]);
@@ -571,7 +598,7 @@ export function useChatSession() {
       abortControllerRef.current = null;
       for (const message of messagesRef.current) {
         for (const att of message.attachments ?? []) {
-          if (att.previewUrl) URL.revokeObjectURL(att.previewUrl);
+          revokePreviewUrl(att.previewUrl);
         }
       }
       setMessages(nextMessages);

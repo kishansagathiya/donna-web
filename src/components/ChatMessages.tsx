@@ -9,6 +9,7 @@ import { MessageActions } from "./MessageActions";
 import { MessageContent } from "./MessageContent";
 import { AssistantThinkingBlock } from "./ThinkingIndicator";
 import { cn } from "../lib/cn";
+import { isGeneratingPhase } from "../lib/chatPhaseLabel";
 import { isDonnaThinkingPhase } from "../lib/thinkingPhrases";
 
 /** Distance from bottom (px) that still counts as "following" the stream. */
@@ -105,12 +106,25 @@ export function ChatMessages({
   const displayPhase = voicePhaseLabel ?? phase;
   const showThinking =
     isDonnaThinkingPhase(displayPhase) ||
-    (displayPhase === "generating" &&
-      allMessages[allMessages.length - 1]?.streaming);
+    isGeneratingPhase(displayPhase) ||
+    (busy &&
+      allMessages.some(
+        (message) =>
+          message.role === "assistant" &&
+          message.streaming &&
+          !message.content,
+      ));
   const hasWaitingBubble = allMessages.some(
     (message) =>
       message.role === "assistant" && message.streaming && !message.content,
   );
+  // Concrete status only (browse / read / analyze) — never protocol tokens.
+  const statusLabel =
+    displayPhase &&
+    !isDonnaThinkingPhase(displayPhase) &&
+    !isGeneratingPhase(displayPhase)
+      ? displayPhase
+      : null;
 
   const latestAssistantId = useMemo(() => {
     for (let i = messages.length - 1; i >= 0; i -= 1) {
@@ -311,10 +325,10 @@ export function ChatMessages({
               </div>
             );
           })}
-          {showThinking && !hasWaitingBubble ? (
+          {hasWaitingBubble ? null : showThinking ? (
             <AssistantThinkingBlock />
-          ) : displayPhase && !showThinking ? (
-            <p className="mr-auto text-sm text-donna-muted">{displayPhase}</p>
+          ) : statusLabel ? (
+            <p className="mr-auto text-sm text-donna-muted">{statusLabel}</p>
           ) : null}
           <div ref={bottomRef} />
           </div>
