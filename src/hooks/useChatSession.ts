@@ -133,8 +133,9 @@ export function useChatSession() {
           attachments,
           webSearch: options.webSearch,
           onSessionId: (id) => setSessionId(id),
-          onPhase: (p) => setPhase(chatPhaseLabel(p) ?? p),
+          onPhase: (p, meta) => setPhase(chatPhaseLabel(p, meta?.host) ?? p),
           onChunk: (partial) => {
+            setPhase(null);
             setMessages((prev) =>
               prev.map((m) =>
                 m.id === assistantId

@@ -135,6 +135,22 @@ describe("streamChatMessage", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     await streamChatMessage("hi", [], undefined, { onPhase });
-    expect(onPhase).toHaveBeenCalledWith("generating");
+    expect(onPhase).toHaveBeenCalledWith("generating", undefined);
+  });
+
+  it("accepts object phase payloads with host", async () => {
+    const onPhase = vi.fn();
+    const fetchMock = vi.fn(async () =>
+      sseResponse([
+        'event: session\ndata: {"session_id":"sess-1"}\n\n',
+        'event: phase\ndata: {"phase":"browsing","host":"example.com"}\n\n',
+        'event: chunk\ndata: {"text":"ok"}\n\n',
+        'event: done\ndata: {"reply":"ok","session_id":"sess-1"}\n\n',
+      ]),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await streamChatMessage("hi", [], undefined, { onPhase });
+    expect(onPhase).toHaveBeenCalledWith("browsing", { host: "example.com" });
   });
 });

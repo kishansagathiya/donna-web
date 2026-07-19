@@ -23,6 +23,10 @@ export type ChatStreamDoneMeta = {
   attachmentLabels?: string[];
 };
 
+export type ChatPhaseMeta = {
+  host?: string;
+};
+
 export type ChatRequestOptions = {
   webSearch?: boolean;
 };
@@ -166,7 +170,7 @@ export async function streamChatMessage(
     signal?: AbortSignal;
     onSessionId?: (id: string) => void;
     onChunk?: (partial: string) => void;
-    onPhase?: (phase: string) => void;
+    onPhase?: (phase: string, meta?: ChatPhaseMeta) => void;
     onCitations?: (citations: MemoryCitation[]) => void;
     onDone?: (
       reply: string,
@@ -276,13 +280,12 @@ export async function streamChatMessage(
 
         try {
           if (event === "phase") {
-            // Server sends JSON strings (`"generating"`); tolerate raw too.
-            const phase =
-              data.startsWith('"') && data.endsWith('"')
-                ? (JSON.parse(data) as string)
-                : data.replace(/^"|"$/g, "");
-            if (typeof phase === "string" && phase) {
-              callbacks.onPhase?.(phase);
+            const parsed = parsePhaseEvent(data);
+            if (parsed) {
+              callbacks.onPhase?.(
+                parsed.phase,
+                parsed.host ? { host: parsed.host } : undefined,
+              );
             }
             continue;
           }
@@ -362,4 +365,32 @@ export async function streamChatMessage(
   if (!sawDone) {
     throw new Error("Connection closed before Donna finished responding");
   }
+}
+
+/** Accepts `"generating"`, `generating`, or `{"phase":"fetching","host":"…"}`. */
+function parsePhaseEvent(
+  data: string,
+): { phase: string; host?: string } | null {
+  const trimmed = data.trim();
+  if (!trimmed) return null;
+
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    if (typeof parsed === "string" && parsed) {
+      return { phase: parsed };
+    }
+    if (parsed && typeof parsed === "object") {
+      const obj = parsed as { phase?: unknown; host?: unknown };
+      if (typeof obj.phase === "string" && obj.phase) {
+        return {
+          phase: obj.phase,
+          host: typeof obj.host === "string" ? obj.host : undefined,
+        };
+      }
+    }
+  } catch {
+    const raw = trimmed.replace(/^"|"$/g, "");
+    if (raw) return { phase: raw };
+  }
+  return null;
 }
