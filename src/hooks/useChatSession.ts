@@ -13,6 +13,7 @@ import type {
   PendingAttachment,
 } from "../lib/chatAttachments";
 import { revokePendingAttachment } from "../lib/chatAttachments";
+import { chatPhaseLabel } from "../lib/chatPhaseLabel";
 import type { MemoryCitation } from "../types/citations";
 
 export type UiAttachment = {
@@ -126,7 +127,7 @@ export function useChatSession() {
           attachments,
           webSearch: options.webSearch,
           onSessionId: (id) => setSessionId(id),
-          onPhase: (p) => setPhase(p),
+          onPhase: (p) => setPhase(chatPhaseLabel(p) ?? p),
           onChunk: (partial) => {
             setMessages((prev) =>
               prev.map((m) =>
