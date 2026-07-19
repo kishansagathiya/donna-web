@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { History, PanelRightOpen, Settings } from "lucide-react";
 import { ChatHistorySheet } from "../components/ChatHistorySheet";
 import { ChatHistorySidebar } from "../components/ChatHistorySidebar";
@@ -59,6 +59,7 @@ function UserAvatar({ onClick }: { onClick: () => void }) {
 export function ChatApp() {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [historySheetOpen, setHistorySheetOpen] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
@@ -123,6 +124,30 @@ export function ChatApp() {
       navigate(location.pathname, { replace: true, state: null });
     }
   }, [location, navigate, showToast, clearChat, clearVoiceTurns]);
+
+  // Granola OAuth return lands on /app?integrations=granola&ok=…
+  useEffect(() => {
+    if (searchParams.get("integrations") !== "granola") {
+      return;
+    }
+    const ok = searchParams.get("ok");
+    const oauthError = searchParams.get("error");
+    if (ok === "0" || oauthError) {
+      showToast(
+        oauthError
+          ? `Granola connection failed: ${oauthError}`
+          : "Granola connection failed.",
+        true,
+      );
+    } else {
+      showToast("Connected to Granola. Importing meetings…", false);
+    }
+    const next = new URLSearchParams(searchParams);
+    next.delete("integrations");
+    next.delete("ok");
+    next.delete("error");
+    setSearchParams(next, { replace: true });
+  }, [searchParams, setSearchParams, showToast]);
 
   useEffect(() => {
     try {
