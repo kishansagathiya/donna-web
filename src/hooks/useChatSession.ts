@@ -13,6 +13,7 @@ import type {
   PendingAttachment,
 } from "../lib/chatAttachments";
 import { revokePendingAttachment } from "../lib/chatAttachments";
+import { chatPhaseLabel } from "../lib/chatPhaseLabel";
 import type { MemoryCitation } from "../types/citations";
 
 export type UiAttachment = {
@@ -85,6 +86,12 @@ function toUiAttachments(attachments: PendingAttachment[]): UiAttachment[] {
   }));
 }
 
+function revokePreviewUrl(url?: string) {
+  if (url?.startsWith("blob:")) {
+    URL.revokeObjectURL(url);
+  }
+}
+
 export function useChatSession() {
   const [messages, setMessages] = useState<UiMessage[]>([]);
   const [sessionId, setSessionId] = useState<string | undefined>();
@@ -126,7 +133,7 @@ export function useChatSession() {
           attachments,
           webSearch: options.webSearch,
           onSessionId: (id) => setSessionId(id),
-          onPhase: (p) => setPhase(p),
+          onPhase: (p) => setPhase(chatPhaseLabel(p) ?? p),
           onChunk: (partial) => {
             setMessages((prev) =>
               prev.map((m) =>
@@ -358,7 +365,7 @@ export function useChatSession() {
       const previous = current[userIndex];
       if (previous?.attachments) {
         for (const att of previous.attachments) {
-          if (att.previewUrl) URL.revokeObjectURL(att.previewUrl);
+          revokePreviewUrl(att.previewUrl);
         }
       }
 
@@ -555,7 +562,7 @@ export function useChatSession() {
     abortControllerRef.current = null;
     for (const message of messagesRef.current) {
       for (const att of message.attachments ?? []) {
-        if (att.previewUrl) URL.revokeObjectURL(att.previewUrl);
+        revokePreviewUrl(att.previewUrl);
       }
     }
     setMessages([]);
@@ -571,7 +578,7 @@ export function useChatSession() {
       abortControllerRef.current = null;
       for (const message of messagesRef.current) {
         for (const att of message.attachments ?? []) {
-          if (att.previewUrl) URL.revokeObjectURL(att.previewUrl);
+          revokePreviewUrl(att.previewUrl);
         }
       }
       setMessages(nextMessages);

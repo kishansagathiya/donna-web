@@ -48,6 +48,8 @@ export function ChatHistorySidebar({
         id: nextId(),
         role: m.role,
         content: m.content,
+        historyContent: m.historyContent,
+        attachments: m.attachments,
       }));
       const sessionId =
         detail.channel === "text" ? detail.client_session_id : undefined;
