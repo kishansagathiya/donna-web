@@ -52,6 +52,7 @@ export function ContextDetailPage() {
       const updated = await updateNote(id, {
         content,
         note_date: noteDate ? fromDatetimeLocalValue(noteDate) : undefined,
+        content_version: item.content_version,
       });
       setItem(updated);
     } catch (err: unknown) {

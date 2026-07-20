@@ -15,6 +15,24 @@ export type NoteSummary = {
   keywords: string[] | null;
   category: string | null;
   has_audio: boolean;
+  content_version?: number;
+  enrichment_status?: string;
+  enrichment_version?: number;
+  tags?: string[];
+};
+
+export type TagFacet = {
+  tag: string;
+  canonical: string;
+  count: number;
+  pinned: boolean;
+  alias_of?: string | null;
+};
+
+export type NotesFeed = {
+  items: NoteSummary[];
+  next_cursor?: string;
+  facets: { tags: TagFacet[] };
 };
 
 export type DailyTask = {
@@ -61,6 +79,18 @@ export type TagCount = {
   count: number;
 };
 
+export class NotesApiError extends Error {
+  status: number;
+  code: string;
+
+  constructor(status: number, code: string, message: string) {
+    super(message);
+    this.name = "NotesApiError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
 async function authorizedFetch(
   path: string,
   init: RequestInit = {},
@@ -88,18 +118,70 @@ async function authorizedFetch(
 async function parseJSON<T>(res: Response): Promise<T> {
   const body = (await res.json()) as T & { error?: string; message?: string };
   if (!res.ok) {
-    throw new Error(body.message ?? body.error ?? `Request failed (${res.status})`);
+    throw new NotesApiError(
+      res.status,
+      body.error ?? "request_failed",
+      body.message ?? body.error ?? `Request failed (${res.status})`,
+    );
   }
   return body;
 }
 
 export async function checkDailyNotes(): Promise<DailyBriefing> {
-  const res = await authorizedFetch(
-    "/notes/daily-check",
-    { method: "POST" },
-    true,
-  );
+  const res = await authorizedFetch("/notes/daily-check", { method: "POST" });
   return parseJSON(res);
+}
+
+export async function listNotesFeed(params: {
+  limit?: number;
+  cursor?: string;
+  q?: string;
+  tag?: string;
+  curated?: boolean;
+} = {}): Promise<NotesFeed> {
+  const qs = new URLSearchParams();
+  qs.set("limit", String(params.limit ?? 50));
+  if (params.cursor) qs.set("cursor", params.cursor);
+  if (params.q?.trim()) qs.set("q", params.q.trim());
+  if (params.tag?.trim()) qs.set("tag", params.tag.trim());
+  if (params.curated !== undefined) qs.set("curated", String(params.curated));
+  const res = await authorizedFetch(`/notes/feed?${qs.toString()}`);
+  return parseJSON(res);
+}
+
+/** Prefers the V2 feed; falls back to /notes/recent when the feed flag is off. */
+export async function listNotesPage(params: {
+  limit?: number;
+  cursor?: string;
+  offset?: number;
+  tag?: string;
+  curated?: boolean;
+} = {}): Promise<{ items: NoteSummary[]; nextCursor?: string; facets?: TagFacet[] }> {
+  try {
+    const feed = await listNotesFeed({
+      limit: params.limit,
+      cursor: params.cursor,
+      tag: params.tag,
+      curated: params.curated ?? true,
+    });
+    return {
+      items: feed.items,
+      nextCursor: feed.next_cursor,
+      facets: feed.facets.tags,
+    };
+  } catch (err) {
+    if (
+      err instanceof NotesApiError &&
+      (err.status === 404 || err.code === "notes_feed_disabled")
+    ) {
+      const batch = await listRecentNotes(params.limit ?? 50, params.offset ?? 0);
+      return {
+        items: batch,
+        nextCursor: batch.length === (params.limit ?? 50) ? "offset" : undefined,
+      };
+    }
+    throw err;
+  }
 }
 
 export async function listRecentNotes(
@@ -108,8 +190,6 @@ export async function listRecentNotes(
 ): Promise<NoteSummary[]> {
   const res = await authorizedFetch(
     `/notes/recent?limit=${limit}&offset=${offset}`,
-    {},
-    true,
   );
   return parseJSON(res);
 }
@@ -122,23 +202,23 @@ export async function searchNotes(query: string): Promise<NoteSummary[]> {
 }
 
 export async function getNote(id: string): Promise<Note> {
-  const res = await authorizedFetch(`/notes/${id}`, {}, true);
+  const res = await authorizedFetch(`/notes/${id}`);
   return parseJSON(res);
 }
 
 export async function createNote(
   content: string,
-  noteDate?: string,
+  opts?: { noteDate?: string; id?: string },
 ): Promise<Note> {
-  const res = await authorizedFetch(
-    "/notes",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content, note_date: noteDate }),
-    },
-    true,
-  );
+  const res = await authorizedFetch("/notes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: opts?.id,
+      content,
+      note_date: opts?.noteDate,
+    }),
+  });
   return parseJSON(res);
 }
 
@@ -149,67 +229,50 @@ export async function updateNote(
     note_date?: string;
     is_important?: boolean;
     is_urgent?: boolean;
+    content_version?: number;
   },
 ): Promise<Note> {
-  const res = await authorizedFetch(
-    `/notes/${id}`,
-    {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(patch),
-    },
-    true,
-  );
+  const res = await authorizedFetch(`/notes/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+  });
   return parseJSON(res);
 }
 
 export async function deleteNote(id: string): Promise<void> {
-  const res = await authorizedFetch(
-    `/notes/${id}`,
-    { method: "DELETE" },
-    true,
-  );
+  const res = await authorizedFetch(`/notes/${id}`, { method: "DELETE" });
   await parseJSON(res);
 }
 
 export async function listTags(limit = 30): Promise<TagCount[]> {
-  const res = await authorizedFetch(`/notes/tags?limit=${limit}`, {}, true);
+  const res = await authorizedFetch(`/notes/tags?limit=${limit}`);
   return parseJSON(res);
 }
 
 export async function getNoteTags(id: string): Promise<NoteTags> {
-  const res = await authorizedFetch(`/notes/${id}/tags`, {}, true);
+  const res = await authorizedFetch(`/notes/${id}/tags`);
   return parseJSON(res);
 }
 
 export async function setNoteTags(id: string, tags: string[]): Promise<NoteTags> {
-  const res = await authorizedFetch(
-    `/notes/${id}/tags`,
-    {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tags }),
-    },
-    true,
-  );
+  const res = await authorizedFetch(`/notes/${id}/tags`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ tags }),
+  });
   return parseJSON(res);
 }
 
 export async function listNotesForTag(tag: string, limit = 50): Promise<NoteSummary[]> {
   const res = await authorizedFetch(
     `/notes/tags/${encodeURIComponent(tag.trim().toLowerCase())}?limit=${limit}`,
-    {},
-    true,
   );
   return parseJSON(res);
 }
 
 export async function recomputeTagCounts(): Promise<void> {
-  const res = await authorizedFetch(
-    `/notes/recompute-tags`,
-    { method: "POST" },
-    true,
-  );
+  const res = await authorizedFetch(`/notes/recompute-tags`, { method: "POST" });
   await parseJSON(res);
 }
 
@@ -250,4 +313,11 @@ export function toDatetimeLocalValue(iso: string): string {
 
 export function fromDatetimeLocalValue(value: string): string {
   return new Date(value).toISOString();
+}
+
+export function newNoteId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `00000000-0000-4000-8000-${Date.now().toString(16).padStart(12, "0").slice(-12)}`;
 }

@@ -5,8 +5,9 @@ import {
   createNote,
   formatNoteDate,
   listNotesForTag,
-  listRecentNotes,
+  listNotesPage,
   listTags,
+  newNoteId,
   updateNote,
   type NoteSummary,
   type TagCount,
@@ -214,22 +215,37 @@ export function NotesPage() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [nextCursor, setNextCursor] = useState<string | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkValue, setLinkValue] = useState("");
 
-  const loadNotes = useCallback(async (offset = 0, append = false) => {
-    if (offset === 0) {
+  const loadNotes = useCallback(async (opts?: {
+    cursor?: string;
+    append?: boolean;
+    offset?: number;
+  }) => {
+    const append = Boolean(opts?.append);
+    if (!append) {
       setLoading(true);
     } else {
       setLoadingMore(true);
     }
     setError(null);
     try {
-      const batch = await listRecentNotes(PAGE_SIZE, offset);
-      setNotes((prev) => (append ? [...prev, ...batch] : batch));
-      setHasMore(batch.length === PAGE_SIZE);
+      const page = await listNotesPage({
+        limit: PAGE_SIZE,
+        cursor: append ? opts?.cursor : undefined,
+        offset: append && opts?.cursor === "offset" ? (opts.offset ?? 0) : 0,
+        curated: true,
+      });
+      setNotes((prev) => (append ? [...prev, ...page.items] : page.items));
+      setNextCursor(page.nextCursor);
+      setHasMore(Boolean(page.nextCursor));
+      if (page.facets?.length) {
+        setTags(page.facets.map((f) => ({ tag: f.tag, count: f.count })));
+      }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to load notes");
       if (!append) {
@@ -291,10 +307,11 @@ export function NotesPage() {
     setSaving(true);
     setError(null);
     try {
-      const created = await createNote(text);
+      const created = await createNote(text, { id: newNoteId() });
       if (activeTag) {
         setActiveTag(null);
         setHasMore(true);
+        setNextCursor(undefined);
       }
       setNotes((prev) => [created, ...prev.filter((note) => note.id !== created.id)]);
       refresh();
@@ -531,7 +548,13 @@ export function NotesPage() {
             <button
               type="button"
               disabled={loadingMore}
-              onClick={() => void loadNotes(notes.length, true)}
+              onClick={() =>
+                void loadNotes({
+                  cursor: nextCursor,
+                  append: true,
+                  offset: notes.length,
+                })
+              }
               className={cn(
                 "rounded-full border border-donna-border px-4 py-2 text-sm font-medium text-donna-muted",
                 "transition-colors hover:border-donna-gold-ring hover:text-donna-text",
