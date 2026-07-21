@@ -46,6 +46,7 @@ describe("notesCache", () => {
         keywords: null,
         category: null,
         has_audio: false,
+        tags: ["work", "ideas"],
       },
       { curated: true },
     );
@@ -54,6 +55,29 @@ describe("notesCache", () => {
       notesQueryKeys.feed(userId, { curated: true }),
     );
     expect(feed?.pages[0]?.items[0]?.id).toBe("n1");
+
+    // Update responses omit tags — must not wipe cached chips.
+    upsertNoteInFeeds(
+      client,
+      userId,
+      {
+        id: "n1",
+        title: "Hello edited",
+        preview: "World",
+        note_date: "2026-07-21T00:00:00.000Z",
+        is_important: false,
+        is_urgent: false,
+        source_type: "manual",
+        keywords: null,
+        category: null,
+        has_audio: false,
+      },
+      { curated: true },
+    );
+    const after = client.getQueryData<InfiniteData<NotesFeedPage>>(
+      notesQueryKeys.feed(userId, { curated: true }),
+    );
+    expect(after?.pages[0]?.items[0]?.tags).toEqual(["work", "ideas"]);
 
     pushFailedMutation(client, userId, {
       id: "create:n1",
