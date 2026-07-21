@@ -1,9 +1,22 @@
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import { LOGO_LANDING } from "../lib/logo";
 import { APP_STORE_URL } from "../config";
+import { useAuth } from "../hooks/useAuth";
+import { hasAiDataConsent } from "../services/privacyConsent";
 import "../App.css";
 
 export function Landing() {
+  const { isAuthenticated, loading } = useAuth();
+
+  if (!loading && isAuthenticated) {
+    return (
+      <Navigate
+        to={hasAiDataConsent() ? "/app" : "/consent"}
+        replace
+      />
+    );
+  }
+
   return (
     <div className="page">
       <main className="landing">
