@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FileUp, Flame, Link2, Search, Send, StickyNote, Star } from "lucide-react";
+import { FileUp, Flame, Link2, Pin, Search, Send, StickyNote, Star } from "lucide-react";
 import {
   formatNoteDate,
   newNoteId,
@@ -10,7 +10,6 @@ import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Spinner } from "../components/ui/Spinner";
 import { AlertBanner } from "../components/ui/AlertBanner";
-import { IconButton } from "../components/ui/IconButton";
 import { IngestToast } from "../components/IngestToast";
 import { useAssetIngest } from "../hooks/useAssetIngest";
 import {
@@ -22,6 +21,11 @@ import {
   useUpdateNoteMutation,
 } from "../hooks/useNotes";
 import { cn } from "../lib/cn";
+import {
+  enrichmentLabel,
+  noteTagList,
+  sourceLabel,
+} from "../lib/noteDisplay";
 
 function NoteComposeBar({
   onSave,
@@ -210,11 +214,22 @@ export function NotesPage() {
   const { toast, busy: ingestBusy, addLink, addFile, showToast } = useAssetIngest();
   const memoryInputRef = useRef<HTMLInputElement>(null);
   const [activeTag, setActiveTag] = useState<string | null>(null);
+  const [pinnedOnly, setPinnedOnly] = useState(false);
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkValue, setLinkValue] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const feedQuery = useNotesFeed(activeTag);
+  useEffect(() => {
+    const handle = window.setTimeout(() => {
+      setDebouncedSearch(searchInput.trim());
+    }, 200);
+    return () => window.clearTimeout(handle);
+  }, [searchInput]);
+
+  const feedQuery = useNotesFeed({ tag: activeTag, q: debouncedSearch });
   const tagsQuery = useNotesTags();
   const createMutation = useCreateNoteMutation();
   const updateMutation = useUpdateNoteMutation();
@@ -227,11 +242,41 @@ export function NotesPage() {
   );
   const tags = useMemo(() => {
     const fromFacets = feedQuery.data?.pages[0]?.facets;
-    if (fromFacets?.length) {
-      return fromFacets;
-    }
-    return tagsQuery.data ?? [];
+    const base = fromFacets?.length
+      ? fromFacets
+      : (tagsQuery.data ?? []).map((t) => ({
+          tag: t.tag,
+          count: t.count,
+          pinned: false,
+        }));
+    return [...base].sort((a, b) => {
+      const ap = a.pinned ? 1 : 0;
+      const bp = b.pinned ? 1 : 0;
+      if (ap !== bp) return bp - ap;
+      return b.count - a.count;
+    });
   }, [feedQuery.data, tagsQuery.data]);
+
+  const visibleTags = pinnedOnly ? tags.filter((t) => t.pinned) : tags;
+
+  useEffect(() => {
+    const el = loadMoreRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries.some((entry) => entry.isIntersecting) &&
+          feedQuery.hasNextPage &&
+          !feedQuery.isFetchingNextPage
+        ) {
+          void feedQuery.fetchNextPage();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [feedQuery.hasNextPage, feedQuery.isFetchingNextPage, feedQuery.fetchNextPage]);
 
   const failedByNoteId = useMemo(() => {
     const map = new Map<string, (typeof failedMutations)[number]>();
@@ -319,15 +364,38 @@ export function NotesPage() {
         </div>
       ) : null}
 
-      <header className="flex shrink-0 items-center justify-between border-b border-donna-border px-6 py-5 md:px-8">
-        <h1 className="text-xl font-semibold text-donna-text">Notes</h1>
-        <IconButton
-          onClick={() => navigate("/app/notes/search")}
-          aria-label="Search notes"
-          className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
-        >
-          <Search className="h-5 w-5" strokeWidth={1.75} />
-        </IconButton>
+      <header className="shrink-0 border-b border-donna-border px-6 py-4 md:px-8">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h1 className="text-xl font-semibold text-donna-text">Notes</h1>
+          <button
+            type="button"
+            onClick={() => setPinnedOnly((prev) => !prev)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+              pinnedOnly
+                ? "border-donna-primary/40 bg-donna-primary/10 text-donna-primary"
+                : "border-donna-border bg-donna-surface text-donna-muted hover:text-donna-text",
+            )}
+            aria-pressed={pinnedOnly}
+          >
+            <Pin className="h-3.5 w-3.5" strokeWidth={1.75} />
+            Pinned tags
+          </button>
+        </div>
+        <label className="relative block">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-donna-muted" />
+          <input
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            placeholder="Search notes…"
+            className={cn(
+              "w-full rounded-donna border border-donna-border bg-white py-2.5 pl-9 pr-3",
+              "text-sm text-donna-text placeholder:text-donna-muted",
+              "focus:border-donna-gold-ring focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30",
+            )}
+            aria-label="Search notes"
+          />
+        </label>
       </header>
 
       <NoteComposeBar
@@ -358,7 +426,7 @@ export function NotesPage() {
         }}
       />
 
-      {tags.length > 0 ? (
+      {visibleTags.length > 0 || pinnedOnly ? (
         <div className="flex shrink-0 flex-wrap gap-1.5 border-b border-donna-border px-5 py-3 md:px-8">
           <button
             type="button"
@@ -372,22 +440,26 @@ export function NotesPage() {
           >
             All
           </button>
-          {tags.map((t) => (
+          {visibleTags.map((t) => (
             <button
               key={t.tag}
               type="button"
               onClick={() => setActiveTag(t.tag)}
               className={cn(
-                "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
+                "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
                 activeTag === t.tag
                   ? "bg-donna-primary text-white"
                   : "bg-donna-surface text-donna-muted hover:text-donna-text",
               )}
             >
+              {t.pinned ? <Pin className="h-3 w-3" strokeWidth={2} /> : null}
               #{t.tag}
-              <span className="ml-1 opacity-60">{t.count}</span>
+              <span className="opacity-60">{t.count}</span>
             </button>
           ))}
+          {pinnedOnly && visibleTags.length === 0 ? (
+            <span className="text-xs text-donna-muted">No pinned tags yet.</span>
+          ) : null}
         </div>
       ) : null}
 
@@ -445,6 +517,9 @@ export function NotesPage() {
         <ul className="flex flex-col gap-3 px-5 py-3 pb-6">
           {notes.map((note) => {
             const failure = failedByNoteId.get(note.id);
+            const source = sourceLabel(note.source_type);
+            const enrichment = enrichmentLabel(note.enrichment_status);
+            const tagsForNote = noteTagList(note);
             return (
               <li key={note.id}>
                 <Card onClick={() => navigate(`/app/notes/${note.id}`)}>
@@ -493,12 +568,31 @@ export function NotesPage() {
                       {note.preview}
                     </p>
                   ) : null}
-                  <p className="mt-2 text-xs text-donna-muted">
-                    {formatNoteDate(note.note_date)}
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-donna-muted">
+                    <span>{formatNoteDate(note.note_date)}</span>
+                    {source ? (
+                      <span className="rounded-full bg-donna-surface px-2 py-0.5 capitalize">
+                        {source}
+                      </span>
+                    ) : null}
+                    {enrichment ? (
+                      <span
+                        className={cn(
+                          "rounded-full px-2 py-0.5",
+                          enrichment.tone === "error" &&
+                            "bg-donna-destructive/10 text-donna-destructive",
+                          enrichment.tone === "warn" &&
+                            "bg-donna-gold/15 text-donna-gold",
+                          enrichment.tone === "muted" && "bg-donna-surface",
+                        )}
+                      >
+                        {enrichment.label}
+                      </span>
+                    ) : null}
                     {failure ? (
                       <button
                         type="button"
-                        className="ml-2 text-donna-destructive hover:underline"
+                        className="text-donna-destructive hover:underline"
                         onClick={(e) => {
                           e.stopPropagation();
                           void retryFailed(failure).catch((err: unknown) => {
@@ -511,20 +605,15 @@ export function NotesPage() {
                         Sync failed · Retry
                       </button>
                     ) : null}
-                  </p>
-                  {note.category || (note.keywords && note.keywords.length > 0) ? (
+                  </div>
+                  {tagsForNote.length > 0 ? (
                     <div className="mt-1.5 flex flex-wrap gap-1">
-                      {note.category ? (
-                        <span className="rounded-full bg-donna-surface px-2 py-0.5 text-[0.6875rem] font-medium capitalize text-donna-muted">
-                          {note.category}
-                        </span>
-                      ) : null}
-                      {(note.keywords ?? []).slice(0, 4).map((kw) => (
+                      {tagsForNote.slice(0, 6).map((tag) => (
                         <span
-                          key={kw}
+                          key={tag}
                           className="rounded-full bg-donna-surface px-2 py-0.5 text-[0.6875rem] text-donna-muted"
                         >
-                          {kw}
+                          #{tag}
                         </span>
                       ))}
                     </div>
@@ -535,22 +624,11 @@ export function NotesPage() {
           })}
         </ul>
 
-        {!showInitialSpinner && feedQuery.hasNextPage ? (
-          <div className="flex justify-center px-5 pb-6">
-            <button
-              type="button"
-              disabled={feedQuery.isFetchingNextPage}
-              onClick={() => void feedQuery.fetchNextPage()}
-              className={cn(
-                "rounded-full border border-donna-border px-4 py-2 text-sm font-medium text-donna-muted",
-                "transition-colors hover:border-donna-gold-ring hover:text-donna-text",
-                "disabled:cursor-not-allowed disabled:opacity-50",
-              )}
-            >
-              {feedQuery.isFetchingNextPage ? "Loading…" : "Load more"}
-            </button>
-          </div>
-        ) : null}
+        <div ref={loadMoreRef} className="flex justify-center px-5 pb-6">
+          {feedQuery.isFetchingNextPage ? (
+            <Spinner className="h-5 w-5" />
+          ) : null}
+        </div>
       </div>
 
       <IngestToast toast={toast} />

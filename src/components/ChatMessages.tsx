@@ -32,6 +32,7 @@ type Props = {
   onRegenerate?: () => void;
   onEditMessage?: (messageId: string, nextText: string) => void;
   onFeedback?: (messageId: string, rating: "up" | "down") => void;
+  onSaveAsNote?: (content: string) => void | Promise<void>;
   onRetry?: () => void;
 };
 
@@ -73,6 +74,7 @@ export function ChatMessages({
   onRegenerate,
   onEditMessage,
   onFeedback,
+  onSaveAsNote,
   onRetry,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -307,6 +309,7 @@ export function ChatMessages({
                     }
                     onEdit={onEditMessage}
                     onFeedback={onFeedback}
+                    onSaveAsNote={onSaveAsNote}
                   />
                 ) : null}
 

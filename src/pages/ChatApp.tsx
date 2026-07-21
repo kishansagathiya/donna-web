@@ -11,9 +11,11 @@ import { IconButton } from "../components/ui/IconButton";
 import { useAssetIngest } from "../hooks/useAssetIngest";
 import { useAuth } from "../hooks/useAuth";
 import { useChatSessionContext } from "../hooks/ChatSessionProvider";
+import { useCreateNoteMutation } from "../hooks/useNotes";
 import { useVoiceSessionContext } from "../hooks/VoiceSessionProvider";
 import { isDonnaThinkingPhase } from "../lib/thinkingPhrases";
 import { cn } from "../lib/cn";
+import { newNoteId } from "../services/notesApi";
 
 const quickActions = [
   {
@@ -102,6 +104,7 @@ export function ChatApp() {
     clearTurns: clearVoiceTurns,
   } = useVoiceSessionContext();
   const { toast, showToast } = useAssetIngest();
+  const createNoteMutation = useCreateNoteMutation();
   const activeError = voiceError ?? error;
   const dismissActiveError = voiceError ? dismissVoiceError : dismissError;
   const inputDisabled = busy || micDisabled || sessionActive;
@@ -251,6 +254,21 @@ export function ChatApp() {
           onRegenerate={() => void regenerate()}
           onEditMessage={(id, text) => void editAndResend(id, text)}
           onFeedback={(id, rating) => void setMessageFeedback(id, rating)}
+          onSaveAsNote={async (content) => {
+            try {
+              await createNoteMutation.mutateAsync({
+                content,
+                id: newNoteId(),
+              });
+              showToast("Saved to Notes", false);
+            } catch (err: unknown) {
+              showToast(
+                err instanceof Error ? err.message : "Could not save note",
+                true,
+              );
+              throw err;
+            }
+          }}
           onRetry={() => void retryFailed()}
         />
 

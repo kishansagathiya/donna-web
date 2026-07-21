@@ -4,6 +4,7 @@ import {
   Copy,
   Pencil,
   RefreshCw,
+  StickyNote,
   ThumbsDown,
   ThumbsUp,
 } from "lucide-react";
@@ -18,6 +19,7 @@ type Props = {
   onRegenerate?: () => void;
   onEdit?: (messageId: string, nextText: string) => void;
   onFeedback?: (messageId: string, rating: "up" | "down") => void;
+  onSaveAsNote?: (content: string) => void | Promise<void>;
 };
 
 export function MessageActions({
@@ -28,8 +30,10 @@ export function MessageActions({
   onRegenerate,
   onEdit,
   onFeedback,
+  onSaveAsNote,
 }: Props) {
   const [copied, setCopied] = useState(false);
+  const [saved, setSaved] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(message.content);
 
@@ -110,6 +114,27 @@ export function MessageActions({
           <Copy className="h-3.5 w-3.5" strokeWidth={1.75} />
         )}
       </button>
+
+      {onSaveAsNote && message.content.trim() ? (
+        <button
+          type="button"
+          className={actionClass}
+          aria-label={saved ? "Saved as note" : "Save as note"}
+          disabled={busy || saved}
+          onClick={() => {
+            void Promise.resolve(onSaveAsNote(message.content)).then(() => {
+              setSaved(true);
+              window.setTimeout(() => setSaved(false), 2000);
+            });
+          }}
+        >
+          {saved ? (
+            <Check className="h-3.5 w-3.5" strokeWidth={2} />
+          ) : (
+            <StickyNote className="h-3.5 w-3.5" strokeWidth={1.75} />
+          )}
+        </button>
+      ) : null}
 
       {message.role === "user" && onEdit ? (
         <button
