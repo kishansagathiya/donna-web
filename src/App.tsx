@@ -8,6 +8,7 @@ import {
   useParams,
 } from "react-router-dom";
 import { AuthProvider } from "./hooks/useAuth";
+import { NotesQueryProvider } from "./hooks/NotesQueryProvider";
 import { ThemeProvider } from "./hooks/useTheme";
 import { Layout } from "./components/Layout";
 import { Landing } from "./pages/Landing";
@@ -61,6 +62,7 @@ export default function App() {
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
+          <NotesQueryProvider>
           <PageTitle />
         <Routes>
           <Route element={<Layout />}>
@@ -93,6 +95,7 @@ export default function App() {
             </Route>
           </Route>
         </Routes>
+          </NotesQueryProvider>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

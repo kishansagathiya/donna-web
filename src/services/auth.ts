@@ -332,7 +332,17 @@ function isAppleSignInCancellation(error: unknown): boolean {
 }
 
 export async function signOut(): Promise<void> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  const userId = session?.user.id;
   const { error } = await supabase.auth.signOut();
+  if (userId) {
+    const { clearNotesCacheForUser } = await import(
+      "../hooks/NotesQueryProvider"
+    );
+    await clearNotesCacheForUser(userId);
+  }
   if (error) {
     throw new Error(error.message);
   }

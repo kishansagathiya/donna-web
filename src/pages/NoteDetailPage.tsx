@@ -2,72 +2,68 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Flame, Star } from "lucide-react";
 import {
-  deleteNote,
   extractHashtags,
   formatNoteDate,
   fromDatetimeLocalValue,
-  getNote,
-  getNoteTags,
-  setNoteTags,
   toDatetimeLocalValue,
-  updateNote,
-  type Note,
 } from "../services/notesApi";
 import { AppPageHeader } from "../components/ui/AppPageHeader";
 import { Button } from "../components/ui/Button";
 import { TextArea } from "../components/ui/TextArea";
 import { AlertBanner } from "../components/ui/AlertBanner";
+import {
+  useDeleteNoteMutation,
+  useFailedNoteMutations,
+  useNote,
+  useNoteTags,
+  useRetryFailedNoteMutation,
+  useSetNoteTagsMutation,
+  useUpdateNoteMutation,
+} from "../hooks/useNotes";
 import { cn } from "../lib/cn";
 
 export function NoteDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [item, setItem] = useState<Note | null>(null);
+  const noteQuery = useNote(id);
+  const tagsQuery = useNoteTags(id);
+  const updateMutation = useUpdateNoteMutation();
+  const deleteMutation = useDeleteNoteMutation();
+  const tagsMutation = useSetNoteTagsMutation();
+  const failedMutations = useFailedNoteMutations();
+  const retryFailed = useRetryFailedNoteMutation();
+
+  const item = noteQuery.data ?? null;
   const [content, setContent] = useState("");
   const [noteDate, setNoteDate] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [savingTags, setSavingTags] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const tags = tagsQuery.data ?? [];
+  const failure = failedMutations.find((f) => f.noteId === id);
 
   useEffect(() => {
-    if (!id) {
-      return;
-    }
-    void getNote(id)
-      .then((loaded) => {
-        setItem(loaded);
-        setContent(loaded.content);
-        setNoteDate(toDatetimeLocalValue(loaded.note_date));
-      })
-      .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : "Note not found");
-      })
-      .finally(() => setLoading(false));
-    void getNoteTags(id)
-      .then((t) => setTags(t.tags ?? []))
-      .catch(() => setTags([]));
-  }, [id]);
+    if (!item) return;
+    setContent(item.content);
+    setNoteDate(toDatetimeLocalValue(item.note_date));
+  }, [item?.id, item?.updated_at]);
 
   const handleSave = async () => {
     if (!item || !id) {
       return;
     }
-    setSaving(true);
-    setError(null);
+    setActionError(null);
     try {
-      const updated = await updateNote(id, {
-        content,
-        note_date: noteDate ? fromDatetimeLocalValue(noteDate) : undefined,
-        content_version: item.content_version,
+      await updateMutation.mutateAsync({
+        id,
+        patch: {
+          content,
+          note_date: noteDate ? fromDatetimeLocalValue(noteDate) : undefined,
+          content_version: item.content_version,
+        },
       });
-      setItem(updated);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to save");
-    } finally {
-      setSaving(false);
+      setActionError(err instanceof Error ? err.message : "Failed to save");
     }
   };
 
@@ -75,12 +71,14 @@ export function NoteDetailPage() {
     if (!item || !id) {
       return;
     }
-    const next = !item[field];
+    setActionError(null);
     try {
-      const updated = await updateNote(id, { [field]: next });
-      setItem(updated);
+      await updateMutation.mutateAsync({
+        id,
+        patch: { [field]: !item[field] },
+      });
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to update");
+      setActionError(err instanceof Error ? err.message : "Failed to update");
     }
   };
 
@@ -88,11 +86,12 @@ export function NoteDetailPage() {
     if (!id || !window.confirm("Delete this note?")) {
       return;
     }
+    setActionError(null);
     try {
-      await deleteNote(id);
+      await deleteMutation.mutateAsync(id);
       navigate("/app/notes");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to delete");
+      setActionError(err instanceof Error ? err.message : "Failed to delete");
     }
   };
 
@@ -100,15 +99,11 @@ export function NoteDetailPage() {
     if (!id) {
       return;
     }
-    setSavingTags(true);
-    setError(null);
+    setActionError(null);
     try {
-      const res = await setNoteTags(id, next);
-      setTags(res.tags ?? []);
+      await tagsMutation.mutateAsync({ id, tags: next });
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to save tags");
-    } finally {
-      setSavingTags(false);
+      setActionError(err instanceof Error ? err.message : "Failed to save tags");
     }
   };
 
@@ -119,14 +114,12 @@ export function NoteDetailPage() {
       return;
     }
     const next = [...tags, tag];
-    setTags(next);
     setTagInput("");
     void persistTags(next);
   };
 
   const removeTag = (tag: string) => {
     const next = tags.filter((t) => t !== tag);
-    setTags(next);
     void persistTags(next);
   };
 
@@ -137,7 +130,13 @@ export function NoteDetailPage() {
     return item.keywords.filter((k) => !tags.includes(k.toLowerCase())).slice(0, 8);
   })();
 
-  if (loading) {
+  const showInitialLoading =
+    noteQuery.isLoading && !noteQuery.isPlaceholderData && !item;
+  const error =
+    actionError ??
+    (noteQuery.error instanceof Error ? noteQuery.error.message : null);
+
+  if (showInitialLoading) {
     return (
       <div className="flex h-full min-h-0 w-full flex-col bg-white">
         <AppPageHeader title="Note" onBack={() => navigate("/app/notes")} />
@@ -224,7 +223,7 @@ export function NoteDetailPage() {
                   aria-label={`Remove tag ${tag}`}
                   className="text-donna-muted hover:text-donna-destructive"
                   onClick={() => removeTag(tag)}
-                  disabled={savingTags}
+                  disabled={tagsMutation.isPending}
                 >
                   ×
                 </button>
@@ -241,9 +240,9 @@ export function NoteDetailPage() {
                 <button
                   key={kw}
                   type="button"
-                  disabled={savingTags}
+                  disabled={tagsMutation.isPending}
                   onClick={() => addTag(kw)}
-                  className="rounded-full border border-danna-border px-2 py-0.5 text-xs text-donna-muted transition-colors hover:border-donna-gold-ring hover:text-donna-text"
+                  className="rounded-full border border-donna-border px-2 py-0.5 text-xs text-donna-muted transition-colors hover:border-donna-gold-ring hover:text-donna-text"
                 >
                   +{kw}
                 </button>
@@ -261,7 +260,7 @@ export function NoteDetailPage() {
                   addTag(tagInput);
                 }
               }}
-              disabled={savingTags}
+              disabled={tagsMutation.isPending}
               placeholder="Add a tag…"
               className="w-full max-w-64 rounded-donna border border-donna-border px-3 py-1.5 text-xs text-donna-text focus:border-donna-gold-ring focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30"
             />
@@ -295,6 +294,25 @@ export function NoteDetailPage() {
           <AlertBanner className="mx-0 mt-3">{error}</AlertBanner>
         ) : null}
 
+        {failure ? (
+          <div className="mt-3 flex items-center justify-between gap-2 rounded-donna border border-donna-destructive/30 bg-donna-destructive/5 px-3 py-2 text-sm">
+            <span className="text-donna-destructive">{failure.message}</span>
+            <button
+              type="button"
+              className="shrink-0 text-donna-primary hover:underline"
+              onClick={() => {
+                void retryFailed(failure).catch((err: unknown) => {
+                  setActionError(
+                    err instanceof Error ? err.message : "Retry failed",
+                  );
+                });
+              }}
+            >
+              Retry
+            </button>
+          </div>
+        ) : null}
+
         <p className="mt-3 text-xs text-donna-muted">
           Created {formatNoteDate(item.created_at)}
           {item.source_type !== "manual" && item.source_type !== "integration"
@@ -318,9 +336,9 @@ export function NoteDetailPage() {
         <Button
           className="flex-1"
           onClick={() => void handleSave()}
-          disabled={saving}
+          disabled={updateMutation.isPending}
         >
-          {saving ? "Saving…" : "Save"}
+          {updateMutation.isPending ? "Saving…" : "Save"}
         </Button>
       </div>
     </div>

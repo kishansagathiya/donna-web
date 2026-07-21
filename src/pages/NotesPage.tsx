@@ -1,16 +1,10 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FileUp, Flame, Link2, Search, Send, StickyNote, Star } from "lucide-react";
 import {
-  createNote,
   formatNoteDate,
-  listNotesForTag,
-  listNotesPage,
-  listTags,
   newNoteId,
-  updateNote,
   type NoteSummary,
-  type TagCount,
 } from "../services/notesApi";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -19,9 +13,15 @@ import { AlertBanner } from "../components/ui/AlertBanner";
 import { IconButton } from "../components/ui/IconButton";
 import { IngestToast } from "../components/IngestToast";
 import { useAssetIngest } from "../hooks/useAssetIngest";
+import {
+  useCreateNoteMutation,
+  useFailedNoteMutations,
+  useNotesFeed,
+  useNotesTags,
+  useRetryFailedNoteMutation,
+  useUpdateNoteMutation,
+} from "../hooks/useNotes";
 import { cn } from "../lib/cn";
-
-const PAGE_SIZE = 50;
 
 function NoteComposeBar({
   onSave,
@@ -209,78 +209,40 @@ export function NotesPage() {
   const location = useLocation();
   const { toast, busy: ingestBusy, addLink, addFile, showToast } = useAssetIngest();
   const memoryInputRef = useRef<HTMLInputElement>(null);
-  const [notes, setNotes] = useState<NoteSummary[]>([]);
-  const [tags, setTags] = useState<TagCount[]>([]);
   const [activeTag, setActiveTag] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [nextCursor, setNextCursor] = useState<string | undefined>();
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkValue, setLinkValue] = useState("");
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  const loadNotes = useCallback(async (opts?: {
-    cursor?: string;
-    append?: boolean;
-    offset?: number;
-  }) => {
-    const append = Boolean(opts?.append);
-    if (!append) {
-      setLoading(true);
-    } else {
-      setLoadingMore(true);
+  const feedQuery = useNotesFeed(activeTag);
+  const tagsQuery = useNotesTags();
+  const createMutation = useCreateNoteMutation();
+  const updateMutation = useUpdateNoteMutation();
+  const failedMutations = useFailedNoteMutations();
+  const retryFailed = useRetryFailedNoteMutation();
+
+  const notes = useMemo(
+    () => feedQuery.data?.pages.flatMap((page) => page.items) ?? [],
+    [feedQuery.data],
+  );
+  const tags = useMemo(() => {
+    const fromFacets = feedQuery.data?.pages[0]?.facets;
+    if (fromFacets?.length) {
+      return fromFacets;
     }
-    setError(null);
-    try {
-      const page = await listNotesPage({
-        limit: PAGE_SIZE,
-        cursor: append ? opts?.cursor : undefined,
-        offset: append && opts?.cursor === "offset" ? (opts.offset ?? 0) : 0,
-        curated: true,
-      });
-      setNotes((prev) => (append ? [...prev, ...page.items] : page.items));
-      setNextCursor(page.nextCursor);
-      setHasMore(Boolean(page.nextCursor));
-      if (page.facets?.length) {
-        setTags(page.facets.map((f) => ({ tag: f.tag, count: f.count })));
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to load notes");
-      if (!append) {
-        setNotes([]);
-      }
-    } finally {
-      setLoading(false);
-      setLoadingMore(false);
+    return tagsQuery.data ?? [];
+  }, [feedQuery.data, tagsQuery.data]);
+
+  const failedByNoteId = useMemo(() => {
+    const map = new Map<string, (typeof failedMutations)[number]>();
+    for (const failure of failedMutations) {
+      map.set(failure.noteId, failure);
     }
-  }, []);
+    return map;
+  }, [failedMutations]);
 
-  const loadTagged = useCallback(async (tag: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const batch = await listNotesForTag(tag, PAGE_SIZE);
-      setNotes(batch);
-      setHasMore(false);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to load tag");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const refresh = useCallback(() => {
-    listTags(30)
-      .then(setTags)
-      .catch(() => setTags([]));
-  }, []);
-
-  useEffect(() => {
-    void loadNotes();
-    refresh();
-  }, [loadNotes, refresh]);
+  const showInitialSpinner =
+    feedQuery.isLoading && !feedQuery.isPlaceholderData && notes.length === 0;
 
   useEffect(() => {
     const state = location.state as {
@@ -289,36 +251,20 @@ export function NotesPage() {
     if (state?.ingestToast) {
       showToast(state.ingestToast.message, state.ingestToast.isError);
       navigate(location.pathname, { replace: true, state: null });
-      void loadNotes();
-      refresh();
+      void feedQuery.refetch();
+      void tagsQuery.refetch();
     }
-  }, [location, navigate, showToast, loadNotes, refresh]);
-
-  const selectTag = (tag: string | null) => {
-    setActiveTag(tag);
-    if (tag) {
-      void loadTagged(tag);
-    } else {
-      void loadNotes();
-    }
-  };
+  }, [location, navigate, showToast, feedQuery, tagsQuery]);
 
   const handleCreateNote = async (text: string) => {
-    setSaving(true);
-    setError(null);
+    setActionError(null);
     try {
-      const created = await createNote(text, { id: newNoteId() });
+      await createMutation.mutateAsync({ content: text, id: newNoteId() });
       if (activeTag) {
         setActiveTag(null);
-        setHasMore(true);
-        setNextCursor(undefined);
       }
-      setNotes((prev) => [created, ...prev.filter((note) => note.id !== created.id)]);
-      refresh();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to save note");
-    } finally {
-      setSaving(false);
+      setActionError(err instanceof Error ? err.message : "Failed to save note");
     }
   };
 
@@ -330,9 +276,8 @@ export function NotesPage() {
       setLinkValue("");
       setLinkOpen(false);
       setActiveTag(null);
-      setHasMore(true);
-      void loadNotes();
-      refresh();
+      void feedQuery.refetch();
+      void tagsQuery.refetch();
     }
   };
 
@@ -340,9 +285,8 @@ export function NotesPage() {
     const result = await addFile(file);
     if (result.ok) {
       setActiveTag(null);
-      setHasMore(true);
-      void loadNotes();
-      refresh();
+      void feedQuery.refetch();
+      void tagsQuery.refetch();
     }
   };
 
@@ -352,23 +296,20 @@ export function NotesPage() {
     e: React.MouseEvent,
   ) => {
     e.stopPropagation();
-    const next = !note[field];
-    setNotes((prev) =>
-      prev.map((item) =>
-        item.id === note.id ? { ...item, [field]: next } : item,
-      ),
-    );
+    setActionError(null);
     try {
-      await updateNote(note.id, { [field]: next });
+      await updateMutation.mutateAsync({
+        id: note.id,
+        patch: { [field]: !note[field] },
+      });
     } catch (err: unknown) {
-      setNotes((prev) =>
-        prev.map((item) =>
-          item.id === note.id ? { ...item, [field]: note[field] } : item,
-        ),
-      );
-      setError(err instanceof Error ? err.message : "Failed to update note");
+      setActionError(err instanceof Error ? err.message : "Failed to update note");
     }
   };
+
+  const error =
+    actionError ??
+    (feedQuery.error instanceof Error ? feedQuery.error.message : null);
 
   return (
     <div className="relative flex h-full min-h-0 w-full flex-col bg-white">
@@ -391,7 +332,7 @@ export function NotesPage() {
 
       <NoteComposeBar
         onSave={handleCreateNote}
-        saving={saving}
+        saving={createMutation.isPending}
         ingestBusy={ingestBusy}
         linkOpen={linkOpen}
         linkValue={linkValue}
@@ -421,7 +362,7 @@ export function NotesPage() {
         <div className="flex shrink-0 flex-wrap gap-1.5 border-b border-donna-border px-5 py-3 md:px-8">
           <button
             type="button"
-            onClick={() => selectTag(null)}
+            onClick={() => setActiveTag(null)}
             className={cn(
               "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
               activeTag === null
@@ -435,7 +376,7 @@ export function NotesPage() {
             <button
               key={t.tag}
               type="button"
-              onClick={() => selectTag(t.tag)}
+              onClick={() => setActiveTag(t.tag)}
               className={cn(
                 "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
                 activeTag === t.tag
@@ -455,13 +396,45 @@ export function NotesPage() {
           <AlertBanner className="mx-5 mt-3">{error}</AlertBanner>
         ) : null}
 
-        {loading ? (
+        {failedMutations.length > 0 ? (
+          <div className="mx-5 mt-3 rounded-donna border border-donna-destructive/30 bg-donna-destructive/5 px-3 py-2 text-sm text-donna-text">
+            <p className="font-medium text-donna-destructive">
+              {failedMutations.length} sync{" "}
+              {failedMutations.length === 1 ? "change" : "changes"} failed
+            </p>
+            <ul className="mt-1 space-y-1">
+              {failedMutations.slice(0, 3).map((failure) => (
+                <li
+                  key={failure.id}
+                  className="flex items-center justify-between gap-2 text-donna-muted"
+                >
+                  <span className="truncate">{failure.message}</span>
+                  <button
+                    type="button"
+                    className="shrink-0 text-donna-primary hover:underline"
+                    onClick={() => {
+                      void retryFailed(failure).catch((err: unknown) => {
+                        setActionError(
+                          err instanceof Error ? err.message : "Retry failed",
+                        );
+                      });
+                    }}
+                  >
+                    Retry
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {showInitialSpinner ? (
           <div className="flex flex-1 items-center justify-center py-12">
             <Spinner />
           </div>
         ) : null}
 
-        {!loading && notes.length === 0 && !error ? (
+        {!showInitialSpinner && notes.length === 0 && !error ? (
           <EmptyState
             icon={StickyNote}
             title="No notes yet"
@@ -470,98 +443,111 @@ export function NotesPage() {
         ) : null}
 
         <ul className="flex flex-col gap-3 px-5 py-3 pb-6">
-          {notes.map((note) => (
-            <li key={note.id}>
-              <Card onClick={() => navigate(`/app/notes/${note.id}`)}>
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-base font-semibold text-donna-text">
-                    {note.title}
-                  </span>
-                  <span className="flex shrink-0 gap-1">
-                    <button
-                      type="button"
-                      aria-label={note.is_urgent ? "Mark not urgent" : "Mark urgent"}
-                      className={cn(
-                        "rounded-full p-1 transition-colors",
-                        note.is_urgent
-                          ? "text-donna-destructive"
-                          : "text-donna-muted hover:text-donna-destructive",
-                      )}
-                      onClick={(e) => void toggleFlag(note, "is_urgent", e)}
-                    >
-                      <Flame className="h-4 w-4" />
-                    </button>
-                    <button
-                      type="button"
-                      aria-label={
-                        note.is_important ? "Mark not important" : "Mark important"
-                      }
-                      className={cn(
-                        "rounded-full p-1 transition-colors",
-                        note.is_important
-                          ? "fill-donna-primary text-donna-primary"
-                          : "text-donna-muted hover:text-donna-primary",
-                      )}
-                      onClick={(e) => void toggleFlag(note, "is_important", e)}
-                    >
-                      <Star
+          {notes.map((note) => {
+            const failure = failedByNoteId.get(note.id);
+            return (
+              <li key={note.id}>
+                <Card onClick={() => navigate(`/app/notes/${note.id}`)}>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-base font-semibold text-donna-text">
+                      {note.title}
+                    </span>
+                    <span className="flex shrink-0 gap-1">
+                      <button
+                        type="button"
+                        aria-label={note.is_urgent ? "Mark not urgent" : "Mark urgent"}
                         className={cn(
-                          "h-4 w-4",
-                          note.is_important && "fill-current",
+                          "rounded-full p-1 transition-colors",
+                          note.is_urgent
+                            ? "text-donna-destructive"
+                            : "text-donna-muted hover:text-donna-destructive",
                         )}
-                      />
-                    </button>
-                  </span>
-                </div>
-                {note.preview ? (
-                  <p className="mt-1.5 line-clamp-3 text-sm leading-snug text-donna-muted">
-                    {note.preview}
-                  </p>
-                ) : null}
-                <p className="mt-2 text-xs text-donna-muted">
-                  {formatNoteDate(note.note_date)}
-                </p>
-                {note.category || (note.keywords && note.keywords.length > 0) ? (
-                  <div className="mt-1.5 flex flex-wrap gap-1">
-                    {note.category ? (
-                      <span className="rounded-full bg-donna-surface px-2 py-0.5 text-[0.6875rem] font-medium capitalize text-donna-muted">
-                        {note.category}
-                      </span>
-                    ) : null}
-                    {(note.keywords ?? []).slice(0, 4).map((kw) => (
-                      <span
-                        key={kw}
-                        className="rounded-full bg-donna-surface px-2 py-0.5 text-[0.6875rem] text-donna-muted"
+                        onClick={(e) => void toggleFlag(note, "is_urgent", e)}
                       >
-                        {kw}
-                      </span>
-                    ))}
+                        <Flame className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={
+                          note.is_important ? "Mark not important" : "Mark important"
+                        }
+                        className={cn(
+                          "rounded-full p-1 transition-colors",
+                          note.is_important
+                            ? "fill-donna-primary text-donna-primary"
+                            : "text-donna-muted hover:text-donna-primary",
+                        )}
+                        onClick={(e) => void toggleFlag(note, "is_important", e)}
+                      >
+                        <Star
+                          className={cn(
+                            "h-4 w-4",
+                            note.is_important && "fill-current",
+                          )}
+                        />
+                      </button>
+                    </span>
                   </div>
-                ) : null}
-              </Card>
-            </li>
-          ))}
+                  {note.preview ? (
+                    <p className="mt-1.5 line-clamp-3 text-sm leading-snug text-donna-muted">
+                      {note.preview}
+                    </p>
+                  ) : null}
+                  <p className="mt-2 text-xs text-donna-muted">
+                    {formatNoteDate(note.note_date)}
+                    {failure ? (
+                      <button
+                        type="button"
+                        className="ml-2 text-donna-destructive hover:underline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void retryFailed(failure).catch((err: unknown) => {
+                            setActionError(
+                              err instanceof Error ? err.message : "Retry failed",
+                            );
+                          });
+                        }}
+                      >
+                        Sync failed · Retry
+                      </button>
+                    ) : null}
+                  </p>
+                  {note.category || (note.keywords && note.keywords.length > 0) ? (
+                    <div className="mt-1.5 flex flex-wrap gap-1">
+                      {note.category ? (
+                        <span className="rounded-full bg-donna-surface px-2 py-0.5 text-[0.6875rem] font-medium capitalize text-donna-muted">
+                          {note.category}
+                        </span>
+                      ) : null}
+                      {(note.keywords ?? []).slice(0, 4).map((kw) => (
+                        <span
+                          key={kw}
+                          className="rounded-full bg-donna-surface px-2 py-0.5 text-[0.6875rem] text-donna-muted"
+                        >
+                          {kw}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                </Card>
+              </li>
+            );
+          })}
         </ul>
 
-        {!loading && hasMore && notes.length > 0 ? (
+        {!showInitialSpinner && feedQuery.hasNextPage ? (
           <div className="flex justify-center px-5 pb-6">
             <button
               type="button"
-              disabled={loadingMore}
-              onClick={() =>
-                void loadNotes({
-                  cursor: nextCursor,
-                  append: true,
-                  offset: notes.length,
-                })
-              }
+              disabled={feedQuery.isFetchingNextPage}
+              onClick={() => void feedQuery.fetchNextPage()}
               className={cn(
                 "rounded-full border border-donna-border px-4 py-2 text-sm font-medium text-donna-muted",
                 "transition-colors hover:border-donna-gold-ring hover:text-donna-text",
                 "disabled:cursor-not-allowed disabled:opacity-50",
               )}
             >
-              {loadingMore ? "Loading…" : "Load more"}
+              {feedQuery.isFetchingNextPage ? "Loading…" : "Load more"}
             </button>
           </div>
         ) : null}
