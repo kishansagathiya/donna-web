@@ -9,7 +9,6 @@ import {
   createNotesPersister,
 } from "../lib/notesPersister";
 import { createAppQueryClient } from "../lib/queryClient";
-import { notesQueryKeys } from "../lib/notesQueryKeys";
 
 function shouldDehydrateQuery(query: {
   queryKey: readonly unknown[];
@@ -82,5 +81,3 @@ export async function clearNotesCacheForUser(
   if (!userId) return;
   await clearNotesPersistedCache(userId);
 }
-
-export { notesQueryKeys };
