@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Flame, Star } from "lucide-react";
 import {
   extractHashtags,
@@ -10,6 +10,10 @@ import {
   toDatetimeLocalValue,
   type TagSuggestion,
 } from "../services/notesApi";
+import {
+  listDerivedMemories,
+  type MemoryItem,
+} from "../services/memoryApi";
 import { AppPageHeader } from "../components/ui/AppPageHeader";
 import { Button } from "../components/ui/Button";
 import { TextArea } from "../components/ui/TextArea";
@@ -52,6 +56,7 @@ export function NoteDetailPage() {
   const tags = tagsQuery.data ?? [];
   const failure = failedMutations.find((f) => f.noteId === id);
   const [suggestions, setSuggestions] = useState<TagSuggestion[]>([]);
+  const [derivedMemories, setDerivedMemories] = useState<MemoryItem[]>([]);
 
   useEffect(() => {
     if (!id) return;
@@ -59,6 +64,13 @@ export function NoteDetailPage() {
       .then(setSuggestions)
       .catch(() => setSuggestions([]));
   }, [id, tagsQuery.dataUpdatedAt]);
+
+  useEffect(() => {
+    if (!id) return;
+    void listDerivedMemories(id)
+      .then(setDerivedMemories)
+      .catch(() => setDerivedMemories([]));
+  }, [id]);
 
   useEffect(() => {
     if (!item) return;
@@ -420,6 +432,35 @@ export function NoteDetailPage() {
               Retry
             </button>
           </div>
+        ) : null}
+
+        {derivedMemories.length > 0 ? (
+          <section className="mt-5 border-t border-donna-border pt-4">
+            <h2 className="mb-2 text-sm font-semibold text-donna-text">
+              Derived memories
+            </h2>
+            <ul className="space-y-2">
+              {derivedMemories.map((mem) => (
+                <li
+                  key={mem.id}
+                  className="rounded-lg border border-donna-border px-3 py-2 text-sm text-donna-text"
+                >
+                  <p>{mem.fact}</p>
+                  <p className="mt-1 text-xs text-donna-muted">
+                    {[mem.memory_kind, mem.review_status]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                </li>
+              ))}
+            </ul>
+            <Link
+              to="/app/search"
+              className="mt-2 inline-block text-xs font-medium text-donna-muted underline-offset-2 hover:underline"
+            >
+              Open Memory
+            </Link>
+          </section>
         ) : null}
 
         <p className="mt-3 text-xs text-donna-muted">
