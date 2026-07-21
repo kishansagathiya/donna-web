@@ -11,6 +11,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { Spinner } from "../components/ui/Spinner";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { IngestToast } from "../components/IngestToast";
+import { TagTaxonomyPanel } from "../components/TagTaxonomyPanel";
 import { useAssetIngest } from "../hooks/useAssetIngest";
 import {
   useCreateNoteMutation,
@@ -423,6 +424,13 @@ export function NotesPage() {
           const file = e.target.files?.[0];
           e.target.value = "";
           if (file) void handleSaveFile(file);
+        }}
+      />
+
+      <TagTaxonomyPanel
+        onChanged={() => {
+          void feedQuery.refetch();
+          void tagsQuery.refetch();
         }}
       />
 

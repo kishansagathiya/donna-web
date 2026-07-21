@@ -5,7 +5,10 @@ import {
   extractHashtags,
   formatNoteDate,
   fromDatetimeLocalValue,
+  listTagSuggestions,
+  resolveTagSuggestion,
   toDatetimeLocalValue,
+  type TagSuggestion,
 } from "../services/notesApi";
 import { AppPageHeader } from "../components/ui/AppPageHeader";
 import { Button } from "../components/ui/Button";
@@ -48,6 +51,14 @@ export function NoteDetailPage() {
 
   const tags = tagsQuery.data ?? [];
   const failure = failedMutations.find((f) => f.noteId === id);
+  const [suggestions, setSuggestions] = useState<TagSuggestion[]>([]);
+
+  useEffect(() => {
+    if (!id) return;
+    void listTagSuggestions(id)
+      .then(setSuggestions)
+      .catch(() => setSuggestions([]));
+  }, [id, tagsQuery.dataUpdatedAt]);
 
   useEffect(() => {
     if (!item) return;
@@ -296,6 +307,54 @@ export function NoteDetailPage() {
                 >
                   +{kw}
                 </button>
+              ))}
+            </div>
+          ) : null}
+
+          {suggestions.length > 0 ? (
+            <div className="mt-2 space-y-1.5">
+              <span className="text-xs text-donna-muted">Donna suggests:</span>
+              {suggestions.map((s) => (
+                <div
+                  key={s.id}
+                  className="flex items-center justify-between gap-2 rounded-donna bg-donna-surface px-2.5 py-1.5 text-xs"
+                >
+                  <span>
+                    #{s.payload?.tag ?? "tag"}
+                    {typeof s.confidence === "number"
+                      ? ` · ${Math.round(s.confidence * 100)}%`
+                      : ""}
+                  </span>
+                  <span className="flex gap-2">
+                    <button
+                      type="button"
+                      className="text-donna-primary hover:underline"
+                      onClick={() => {
+                        void resolveTagSuggestion(s.id, "accepted").then(() => {
+                          void tagsQuery.refetch();
+                          setSuggestions((prev) =>
+                            prev.filter((item) => item.id !== s.id),
+                          );
+                        });
+                      }}
+                    >
+                      Accept
+                    </button>
+                    <button
+                      type="button"
+                      className="text-donna-destructive hover:underline"
+                      onClick={() => {
+                        void resolveTagSuggestion(s.id, "rejected").then(() => {
+                          setSuggestions((prev) =>
+                            prev.filter((item) => item.id !== s.id),
+                          );
+                        });
+                      }}
+                    >
+                      Reject
+                    </button>
+                  </span>
+                </div>
               ))}
             </div>
           ) : null}
