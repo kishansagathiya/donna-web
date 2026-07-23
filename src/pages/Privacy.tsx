@@ -109,8 +109,8 @@ export function Privacy() {
         </p>
         <ol>
           <li>Open Donna and sign in</li>
-          <li>Tap the gear icon in the top-left corner</li>
-          <li>Choose <strong>Delete account</strong> and confirm</li>
+          <li>Open Profile and choose <strong>Delete account</strong></li>
+          <li>Confirm deletion</li>
         </ol>
         <p>
           Account deletion is permanent. When you confirm, we delete your sign-in

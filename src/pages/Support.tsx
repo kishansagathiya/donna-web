@@ -46,9 +46,9 @@ export function Support() {
           muted and volume is turned up.
         </p>
         <p>
-          <strong>Delete your account.</strong> Open the Donna app, tap the gear
-          icon in the top-left corner, then choose Delete account. This permanently
-          removes your conversations, memories, and sign-in from our servers.
+          <strong>Delete your account.</strong> Open Profile in the Donna app,
+          then choose Delete account. This permanently removes your conversations,
+          memories, and sign-in from our servers.
         </p>
 
         <div className="support-card">

@@ -14,6 +14,11 @@ import { ThemeToggle } from "../components/ThemeToggle";
 import { IntegrationsSection } from "../components/IntegrationsSection";
 import { useAuth } from "../hooks/useAuth";
 
+function normalizePersona(persona: string): string {
+  if (persona === "therapist") return "listener";
+  return persona || "companion";
+}
+
 export function ProfilePage() {
   const { session } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
@@ -44,7 +49,7 @@ export function ProfilePage() {
         setModels(preferences.available_models);
         setSelectedModel(preferences.llm_model);
         setPersonas(preferences.available_personas ?? []);
-        setPersona(preferences.persona ?? "companion");
+        setPersona(normalizePersona(preferences.persona ?? "companion"));
         setPersonaCustom(preferences.persona_custom ?? "");
       })
       .catch((err) => {
@@ -208,7 +213,7 @@ export function ProfilePage() {
           >
             {(personas.length > 0
               ? personas
-              : ["companion", "boss", "coach", "therapist", "custom"]
+              : ["companion", "boss", "coach", "listener", "custom"]
             ).map((p) => (
               <option key={p} value={p} className="capitalize">
                 {p}
