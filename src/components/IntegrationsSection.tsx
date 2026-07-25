@@ -139,7 +139,7 @@ export function IntegrationsSection() {
     }
     const ok = searchParams.get("ok");
     const oauthError = searchParams.get("error");
-    const label = provider === "google" ? "Google Calendar" : "Granola";
+    const label = provider === "google" ? "Google" : "Granola";
     if (ok === "0" || oauthError) {
       setOauthNotice(
         oauthError
@@ -149,7 +149,7 @@ export function IntegrationsSection() {
     } else {
       setOauthNotice(
         provider === "google"
-          ? "Connected to Google Calendar."
+          ? "Connected to Google (Calendar + Gmail)."
           : "Connected to Granola. Importing meetings…",
       );
     }
@@ -324,13 +324,14 @@ export function IntegrationsSection() {
         {googleEnabled && google ? (
           <div className="rounded-donna border border-donna-border bg-donna-surface p-4">
             <div className="mb-3">
-              <p className="text-sm font-semibold text-donna-text">Google Calendar</p>
+              <p className="text-sm font-semibold text-donna-text">Google</p>
               <p className="mt-0.5 text-xs text-donna-muted">
                 {statusLabel(google.status)}
                 {google.account_label ? ` · ${google.account_label}` : ""}
               </p>
               <p className="mt-2 text-xs leading-relaxed text-donna-muted">
-                Create calendar events from confirmed Actions.
+                Create calendar events and send email from confirmed Actions.
+                Reconnect if you connected before email support was added.
               </p>
             </div>
 
@@ -341,7 +342,7 @@ export function IntegrationsSection() {
                 onClick={() => void handleConnectGoogle()}
                 disabled={busy}
               >
-                Connect Google Calendar
+                Connect Google
               </Button>
             ) : null}
 
@@ -360,8 +361,8 @@ export function IntegrationsSection() {
               confirmGoogleDisconnect ? (
                 <div className="rounded-donna border border-donna-border bg-white p-3">
                   <p className="mb-3 text-sm text-donna-text">
-                    Disconnect Google Calendar? Donna will stop creating events
-                    until you reconnect.
+                    Disconnect Google? Donna will stop creating calendar events
+                    and sending email until you reconnect.
                   </p>
                   <div className="flex gap-2">
                     <Button

@@ -18,13 +18,14 @@ function riskLabel(risk?: string | null) {
   if (!risk) return null;
   if (risk === "internal") return { label: "Internal", className: "bg-emerald-50 text-emerald-800 border-emerald-200" };
   if (risk === "external") return { label: "Needs confirm", className: "bg-amber-50 text-amber-800 border-amber-200" };
+  if (risk === "irreversible") return { label: "Sends for real", className: "bg-rose-50 text-rose-800 border-rose-200" };
   return { label: risk, className: "bg-donna-surface text-donna-muted border-donna-border" };
 }
 
 function integrationHint(message: string): string | null {
   const lower = message.toLowerCase();
   if (lower.includes("needs_integration:google") || lower.includes("reauth_required")) {
-    return "Connect Google Calendar in Profile → Integrations, then confirm again.";
+    return "Connect Google (Calendar + Gmail) in Profile → Integrations, then confirm again. If you connected earlier, reconnect to grant Gmail send.";
   }
   return null;
 }
