@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Archive,
   Bell,
   CalendarCheck,
   Flame,
@@ -10,7 +9,6 @@ import {
 } from "lucide-react";
 import {
   checkDailyNotes,
-  formatNoteDate,
   type DailyBriefing,
   type DailyTask,
 } from "../services/notesApi";
@@ -21,20 +19,27 @@ import { Button } from "../components/ui/Button";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { cn } from "../lib/cn";
 
-const PRIORITY_LABELS: Record<string, { label: string; className: string }> = {
-  do_first: {
-    label: "Do first",
-    className: "bg-red-50 text-red-700 border-red-200",
+const PRIORITY_SECTIONS: Array<{
+  key: string;
+  title: string;
+  subtitle: string;
+}> = [
+  {
+    key: "do_first",
+    title: "Do first",
+    subtitle: "Urgent and important",
   },
-  schedule: {
-    label: "Schedule",
-    className: "bg-amber-50 text-amber-800 border-amber-200",
+  {
+    key: "schedule",
+    title: "Schedule",
+    subtitle: "Important, not urgent",
   },
-  delegate: {
-    label: "Quick win",
-    className: "bg-sky-50 text-sky-800 border-sky-200",
+  {
+    key: "delegate",
+    title: "Delegate",
+    subtitle: "Urgent, less important",
   },
-};
+];
 
 function requestNotificationPermission(): Promise<NotificationPermission> {
   if (typeof Notification === "undefined") {
@@ -77,21 +82,11 @@ function TaskCard({
   task: DailyTask;
   onSelect: (id: string) => void;
 }) {
-  const priority = PRIORITY_LABELS[task.priority] ?? PRIORITY_LABELS.schedule;
-
   return (
     <Card onClick={() => onSelect(task.note_id)} className="cursor-pointer">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <span
-              className={cn(
-                "rounded-md border px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-wide",
-                priority.className,
-              )}
-            >
-              {priority.label}
-            </span>
             {task.is_urgent ? (
               <Flame className="h-4 w-4 text-donna-destructive" aria-label="Urgent" />
             ) : null}
@@ -102,12 +97,9 @@ function TaskCard({
               />
             ) : null}
           </div>
-          <p className="mt-2 text-base font-semibold text-donna-text">{task.title}</p>
+          <p className="mt-1 text-base font-semibold text-donna-text">{task.title}</p>
           {task.preview ? (
             <p className="mt-1 line-clamp-2 text-sm text-donna-muted">{task.preview}</p>
-          ) : null}
-          {task.reason ? (
-            <p className="mt-2 text-xs text-donna-muted italic">{task.reason}</p>
           ) : null}
         </div>
       </div>
@@ -139,7 +131,7 @@ export function DailyTasksPage() {
         });
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to check notes");
+      setError(err instanceof Error ? err.message : "Failed to load today");
     } finally {
       setChecking(false);
     }
@@ -162,6 +154,23 @@ export function DailyTasksPage() {
     month: "long",
     day: "numeric",
   });
+
+  const tasksByPriority = useMemo(() => {
+    const grouped: Record<string, DailyTask[]> = {
+      do_first: [],
+      schedule: [],
+      delegate: [],
+    };
+    for (const task of briefing?.tasks ?? []) {
+      if (!Object.prototype.hasOwnProperty.call(grouped, task.priority)) {
+        continue;
+      }
+      grouped[task.priority].push(task);
+    }
+    return grouped;
+  }, [briefing]);
+
+  const hasTasks = (briefing?.tasks.length ?? 0) > 0;
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col bg-white">
@@ -187,7 +196,7 @@ export function DailyTasksPage() {
             disabled={checking}
           >
             <RefreshCw className={cn("h-4 w-4", checking && "animate-spin")} />
-            {checking ? "Checking…" : "Check my notes"}
+            {checking ? "Refreshing…" : "Refresh"}
           </Button>
         </div>
       </header>
@@ -211,72 +220,38 @@ export function DailyTasksPage() {
           </section>
         ) : null}
 
-        {briefing && briefing.tasks.length === 0 && briefing.outdated.length === 0 && !checking ? (
+        {briefing && !hasTasks && !checking ? (
           <EmptyState
             icon={CalendarCheck}
             title="All clear for today"
-            description="Add notes from chat, links, or documents and Donna will build your daily list."
+            description="Mark notes as urgent or important and they will show up here, with do-first items at the top."
           />
         ) : null}
 
-        {briefing && briefing.tasks.length > 0 ? (
-          <section className="px-5 py-4 md:px-8">
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-donna-muted">
-              Focus today ({briefing.tasks.length})
-            </h2>
-            <ul className="flex flex-col gap-3">
-              {briefing.tasks.map((task) => (
-                <li key={task.note_id}>
-                  <TaskCard
-                    task={task}
-                    onSelect={(id) => navigate(`/app/notes/${id}`)}
-                  />
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-
-        {briefing && briefing.outdated.length > 0 ? (
-          <section className="border-t border-donna-border px-5 py-4 md:px-8">
-            <h2 className="mb-1 flex items-center gap-2 text-sm font-semibold uppercase tracking-wide text-donna-muted">
-              <Archive className="h-4 w-4" />
-              May be outdated ({briefing.outdated.length})
-            </h2>
-            <p className="mb-3 text-xs text-donna-muted">
-              These notes might no longer be relevant — review or archive them.
-            </p>
-            <ul className="flex flex-col gap-3">
-              {briefing.outdated.map((note) => (
-                <li key={note.note_id}>
-                  <Card
-                    onClick={() => navigate(`/app/notes/${note.note_id}`)}
-                    className="cursor-pointer opacity-80 hover:opacity-100"
-                  >
-                    <p className="text-base font-medium text-donna-text">{note.title}</p>
-                    {note.preview ? (
-                      <p className="mt-1 line-clamp-2 text-sm text-donna-muted">
-                        {note.preview}
-                      </p>
-                    ) : null}
-                    {note.reason ? (
-                      <p className="mt-2 text-xs text-donna-muted italic">{note.reason}</p>
-                    ) : null}
-                    <p className="mt-2 text-xs text-donna-muted">
-                      Tap to review
-                    </p>
-                  </Card>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
-
-        {briefing?.date ? (
-          <p className="px-5 py-4 text-center text-xs text-donna-muted md:px-8">
-            Last checked for {formatNoteDate(`${briefing.date}T12:00:00.000Z`)}
-          </p>
-        ) : null}
+        {PRIORITY_SECTIONS.map((section) => {
+          const tasks = tasksByPriority[section.key] ?? [];
+          if (tasks.length === 0) {
+            return null;
+          }
+          return (
+            <section key={section.key} className="px-5 py-4 md:px-8">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-donna-muted">
+                {section.title} ({tasks.length})
+              </h2>
+              <p className="mb-3 mt-0.5 text-xs text-donna-muted">{section.subtitle}</p>
+              <ul className="flex flex-col gap-3">
+                {tasks.map((task) => (
+                  <li key={`${section.key}-${task.note_id}`}>
+                    <TaskCard
+                      task={task}
+                      onSelect={(id) => navigate(`/app/notes/${id}`)}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </section>
+          );
+        })}
       </div>
     </div>
   );

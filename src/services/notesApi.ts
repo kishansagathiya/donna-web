@@ -39,7 +39,8 @@ export type DailyTask = {
   note_id: string;
   title: string;
   preview: string;
-  priority: "do_first" | "schedule" | "delegate" | string;
+  /** Eisenhower priority: do_first | schedule | delegate | later */
+  priority: "do_first" | "schedule" | "delegate" | "later" | string;
   reason: string;
   is_urgent: boolean;
   is_important: boolean;
