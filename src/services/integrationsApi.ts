@@ -28,6 +28,7 @@ export type IntegrationCapabilities = {
   get_meetings: boolean;
   transcripts: boolean;
   folders: boolean;
+  calendar_write?: boolean;
   history_days?: number;
   plan_hint?: string;
 };
@@ -139,4 +140,36 @@ export async function deleteGranolaImports(): Promise<void> {
   if (!res.ok) {
     throw new Error(await readError(res, `Delete failed (${res.status})`));
   }
+}
+
+export async function authorizeGoogle(
+  returnTo: "web" | "mobile" = "web",
+): Promise<{ authorization_url: string }> {
+  const res = await authorizedFetch("/integrations/google/authorize", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ return_to: returnTo }),
+  });
+  const body = (await res.json()) as {
+    authorization_url?: string;
+  } & ErrorBody;
+  if (!res.ok || !body.authorization_url) {
+    throw new Error(
+      body.message ?? body.error ?? `Authorize failed (${res.status})`,
+    );
+  }
+  return { authorization_url: body.authorization_url };
+}
+
+export async function disconnectGoogle(): Promise<IntegrationStatus> {
+  const res = await authorizedFetch("/integrations/google", {
+    method: "DELETE",
+  });
+  const body = (await res.json()) as IntegrationStatus & ErrorBody;
+  if (!res.ok) {
+    throw new Error(
+      body.message ?? body.error ?? `Disconnect failed (${res.status})`,
+    );
+  }
+  return body;
 }

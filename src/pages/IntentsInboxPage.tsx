@@ -1,12 +1,8 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Check, Inbox, RefreshCw, X } from "lucide-react";
-import {
-  cancelActionRun,
-  confirmActionRun,
-  dismissIntent,
-  listIntents,
-  type Intent,
-} from "../services/intentsApi";
+import type { Intent } from "../services/intentsApi";
+import { useIntentActions, useOpenIntents } from "../hooks/useIntents";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Spinner } from "../components/ui/Spinner";
@@ -23,6 +19,14 @@ function riskLabel(risk?: string | null) {
   if (risk === "internal") return { label: "Internal", className: "bg-emerald-50 text-emerald-800 border-emerald-200" };
   if (risk === "external") return { label: "Needs confirm", className: "bg-amber-50 text-amber-800 border-amber-200" };
   return { label: risk, className: "bg-donna-surface text-donna-muted border-donna-border" };
+}
+
+function integrationHint(message: string): string | null {
+  const lower = message.toLowerCase();
+  if (lower.includes("needs_integration:google") || lower.includes("reauth_required")) {
+    return "Connect Google Calendar in Profile → Integrations, then confirm again.";
+  }
+  return null;
 }
 
 function IntentCard({
@@ -112,36 +116,23 @@ function IntentCard({
 }
 
 export function IntentsInboxPage() {
-  const [intents, setIntents] = useState<Intent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: intents = [], isLoading, isFetching, error: queryError, refetch } = useOpenIntents();
+  const { confirmMutation, cancelMutation, dismissMutation } = useIntentActions();
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const rows = await listIntents("open");
-      setIntents(rows);
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to load intents");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    void refresh();
-  }, [refresh]);
+  const error =
+    actionError ??
+    (queryError instanceof Error ? queryError.message : queryError ? "Failed to load intents" : null);
+  const hint = error ? integrationHint(error) : null;
 
   const handleConfirm = async (runId: string) => {
     setBusyId(runId);
-    setError(null);
+    setActionError(null);
     try {
-      await confirmActionRun(runId);
-      await refresh();
+      await confirmMutation.mutateAsync(runId);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Confirm failed");
+      setActionError(err instanceof Error ? err.message : "Confirm failed");
     } finally {
       setBusyId(null);
     }
@@ -149,12 +140,11 @@ export function IntentsInboxPage() {
 
   const handleDismiss = async (intentId: string) => {
     setBusyId(intentId);
-    setError(null);
+    setActionError(null);
     try {
-      await dismissIntent(intentId);
-      setIntents((prev) => prev.filter((i) => i.id !== intentId));
+      await dismissMutation.mutateAsync(intentId);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Dismiss failed");
+      setActionError(err instanceof Error ? err.message : "Dismiss failed");
     } finally {
       setBusyId(null);
     }
@@ -162,12 +152,11 @@ export function IntentsInboxPage() {
 
   const handleCancel = async (runId: string) => {
     setBusyId(runId);
-    setError(null);
+    setActionError(null);
     try {
-      await cancelActionRun(runId);
-      await refresh();
+      await cancelMutation.mutateAsync(runId);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Cancel failed");
+      setActionError(err instanceof Error ? err.message : "Cancel failed");
     } finally {
       setBusyId(null);
     }
@@ -184,24 +173,36 @@ export function IntentsInboxPage() {
         </div>
         <Button
           className="!w-auto gap-2 px-4 py-2.5 text-sm"
-          onClick={() => void refresh()}
-          disabled={loading}
+          onClick={() => void refetch()}
+          disabled={isFetching}
         >
-          <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
-          {loading ? "Refreshing…" : "Refresh"}
+          <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
+          {isFetching ? "Refreshing…" : "Refresh"}
         </Button>
       </header>
 
       <div className="flex flex-1 flex-col overflow-y-auto">
-        {error ? <AlertBanner className="mx-5 mt-3">{error}</AlertBanner> : null}
+        {error ? (
+          <AlertBanner className="mx-5 mt-3">
+            <span>{error}</span>
+            {hint ? (
+              <span className="mt-1 block text-sm">
+                {hint}{" "}
+                <Link to="/app/profile" className="underline">
+                  Open Profile
+                </Link>
+              </span>
+            ) : null}
+          </AlertBanner>
+        ) : null}
 
-        {loading && intents.length === 0 ? (
+        {isLoading && intents.length === 0 ? (
           <div className="flex flex-1 items-center justify-center py-12">
             <Spinner />
           </div>
         ) : null}
 
-        {!loading && intents.length === 0 ? (
+        {!isLoading && intents.length === 0 ? (
           <EmptyState
             icon={Inbox}
             title="Inbox clear"
