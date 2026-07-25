@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Flame, Star } from "lucide-react";
 import {
@@ -45,13 +45,6 @@ export function NoteDetailPage() {
   const [noteDate, setNoteDate] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
-  const [autosaveStatus, setAutosaveStatus] = useState<
-    "idle" | "saving" | "saved" | "error"
-  >("idle");
-  const hydratedRef = useRef(false);
-  const lastSavedRef = useRef<{ content: string; noteDate: string } | null>(
-    null,
-  );
 
   const tags = tagsQuery.data ?? [];
   const failure = failedMutations.find((f) => f.noteId === id);
@@ -76,53 +69,15 @@ export function NoteDetailPage() {
     if (!item) return;
     setContent(item.content);
     setNoteDate(toDatetimeLocalValue(item.note_date));
-    lastSavedRef.current = {
-      content: item.content,
-      noteDate: toDatetimeLocalValue(item.note_date),
-    };
-    hydratedRef.current = true;
-  }, [item?.id, item?.updated_at]);
-
-  useEffect(() => {
-    if (!item || !id || !hydratedRef.current) return;
-    const last = lastSavedRef.current;
-    if (
-      last &&
-      last.content === content &&
-      last.noteDate === noteDate
-    ) {
-      return;
-    }
-    setAutosaveStatus("saving");
-    const handle = window.setTimeout(() => {
-      void (async () => {
-        try {
-          await updateMutation.mutateAsync({
-            id,
-            patch: {
-              content,
-              note_date: noteDate ? fromDatetimeLocalValue(noteDate) : undefined,
-              content_version: item.content_version,
-            },
-          });
-          lastSavedRef.current = { content, noteDate };
-          setAutosaveStatus("saved");
-          setActionError(null);
-        } catch (err: unknown) {
-          setAutosaveStatus("error");
-          setActionError(err instanceof Error ? err.message : "Failed to save");
-        }
-      })();
-    }, 400);
-    return () => window.clearTimeout(handle);
-  }, [content, noteDate, id, item?.id, item?.content_version]);
+    // Only re-hydrate when opening a different note — not after save/cache updates.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
+  }, [item?.id]);
 
   const handleSave = async () => {
     if (!item || !id) {
       return;
     }
     setActionError(null);
-    setAutosaveStatus("saving");
     try {
       await updateMutation.mutateAsync({
         id,
@@ -132,10 +87,7 @@ export function NoteDetailPage() {
           content_version: item.content_version,
         },
       });
-      lastSavedRef.current = { content, noteDate };
-      setAutosaveStatus("saved");
     } catch (err: unknown) {
-      setAutosaveStatus("error");
       setActionError(err instanceof Error ? err.message : "Failed to save");
     }
   };
@@ -488,11 +440,7 @@ export function NoteDetailPage() {
           onClick={() => void handleSave()}
           disabled={updateMutation.isPending}
         >
-          {autosaveStatus === "saving" || updateMutation.isPending
-            ? "Saving…"
-            : autosaveStatus === "saved"
-              ? "Saved"
-              : "Save"}
+          Save
         </Button>
       </div>
     </div>
