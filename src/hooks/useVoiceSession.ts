@@ -89,6 +89,7 @@ export function useVoiceSession() {
   const rejectReadyRef = useRef<((err: Error) => void) | null>(null);
   const isPlayingRef = useRef(false);
   const messageChainRef = useRef(Promise.resolve());
+  const stopSessionRef = useRef<() => Promise<void>>(async () => {});
 
   const stopCapture = useCallback(() => {
     activeRef.current = false;
@@ -136,16 +137,9 @@ export function useVoiceSession() {
           if (BUSY_PHASES.includes(message.phase)) {
             captureEnabledRef.current = false;
             setState("processing");
-          } else if (
-            message.phase === "idle" &&
-            activeRef.current &&
-            !isPlayingRef.current
-          ) {
-            // Resume listening after a turn; do not reset chunkSeq here —
-            // turn.done already did, and resetting later would drop in-flight audio.
-            captureEnabledRef.current = true;
-            setState("listening");
           }
+          // Push-to-talk: never auto-resume listening on idle — only the mic
+          // button starts the next utterance.
           break;
         case "turn.transcript":
           transcriptRef.current = message.text;
@@ -183,13 +177,9 @@ export function useVoiceSession() {
             stopActivePlayback();
             playbackRef.current = null;
             pendingReplyRef.current = null;
-            setStatus({ transcript: null, reply: null, phase: null });
-            if (activeRef.current) {
-              chunkSeqRef.current = 0;
-              hadSpeechRef.current = false;
-              captureEnabledRef.current = true;
-              setState("listening");
-            }
+            transcriptRef.current = null;
+            replyRef.current = null;
+            await stopSessionRef.current();
             break;
           }
           try {
@@ -224,24 +214,14 @@ export function useVoiceSession() {
             transcriptRef.current = null;
             replyRef.current = null;
             pendingReplyRef.current = null;
-            setStatus({ transcript: null, reply: null, phase: null });
-            if (activeRef.current) {
-              chunkSeqRef.current = 0;
-              hadSpeechRef.current = false;
-              captureEnabledRef.current = true;
-              setState("listening");
-            }
+            // One utterance per mic press — end the session like sending a text prompt.
+            await stopSessionRef.current();
           }
           break;
         }
         case "error":
-          // No audio buffered — keep the session open so the user can try again.
-          if (message.code === "empty_audio" && activeRef.current) {
-            chunkSeqRef.current = 0;
-            hadSpeechRef.current = false;
-            captureEnabledRef.current = true;
-            setState("listening");
-            setStatus({ transcript: null, reply: null, phase: null });
+          if (message.code === "empty_audio") {
+            await stopSessionRef.current();
             break;
           }
           setVoiceError(voiceErrorMessage(message.code, message.message));
@@ -342,6 +322,7 @@ export function useVoiceSession() {
     setState("idle");
     setStatus({ transcript: null, reply: null, phase: null });
   }, [stopCapture]);
+  stopSessionRef.current = stopSession;
 
   /** User explicitly finished speaking — commit buffered audio as a turn. */
   const endTurn = useCallback(() => {
