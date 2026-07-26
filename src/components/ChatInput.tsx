@@ -304,9 +304,11 @@ export function ChatInput({
                 onClick={onMicPress}
                 disabled={micDisabled}
                 aria-label={
-                  isListening || isProcessing
-                    ? "Stop listening"
-                    : "Start listening"
+                  isListening
+                    ? "Done talking"
+                    : isProcessing
+                      ? "Cancel"
+                      : "Start listening"
                 }
                 aria-busy={isRequesting}
                 className={cn(

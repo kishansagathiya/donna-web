@@ -4,21 +4,18 @@ import {
   AUDIO_CHANNELS,
   AUDIO_SAMPLE_RATE,
   VAD_ENERGY_THRESHOLD,
-  VAD_MIN_SPEECH_MS,
-  VAD_SILENCE_MS,
   VOICE_WS_URL,
 } from "../config";
 import { getAccessToken } from "../services/auth";
 import { DONNA_THINKING_PHASE } from "../lib/thinkingPhrases";
 import { BrowserAudioCapture } from "../voice/browserCapture";
-import { floatToPcm16, pcm16ToBase64 } from "../voice/pcm";
+import { computeRms, floatToPcm16, pcm16ToBase64 } from "../voice/pcm";
 import {
   createStreamingPlayback,
   resetPlaybackSession,
   stopActivePlayback,
 } from "../voice/playback";
 import type { ServerMessage, TurnPhase } from "../voice/protocol";
-import { EnergyVad } from "../voice/vad";
 import { voiceErrorMessage } from "../voice/voiceErrors";
 import { VoiceClient } from "../voice/voiceClient";
 
@@ -77,14 +74,6 @@ export function useVoiceSession() {
 
   const clientRef = useRef<VoiceClient | null>(null);
   const captureRef = useRef<BrowserAudioCapture | null>(null);
-  const vadRef = useRef(
-    new EnergyVad({
-      silenceMs: VAD_SILENCE_MS,
-      energyThreshold: VAD_ENERGY_THRESHOLD,
-      minSpeechMs: VAD_MIN_SPEECH_MS,
-      sampleRate: AUDIO_SAMPLE_RATE,
-    }),
-  );
   const chunkSeqRef = useRef(0);
   const sessionReadyRef = useRef(false);
   const playbackRef = useRef<ReturnType<typeof createStreamingPlayback> | null>(
@@ -92,6 +81,10 @@ export function useVoiceSession() {
   );
   const pendingReplyRef = useRef<string | null>(null);
   const activeRef = useRef(false);
+  /** When true, mic PCM is streamed to the server for the current utterance. */
+  const captureEnabledRef = useRef(false);
+  /** True once this utterance had energy above the speech threshold. */
+  const hadSpeechRef = useRef(false);
   const readyResolverRef = useRef<(() => void) | null>(null);
   const rejectReadyRef = useRef<((err: Error) => void) | null>(null);
   const isPlayingRef = useRef(false);
@@ -99,6 +92,8 @@ export function useVoiceSession() {
 
   const stopCapture = useCallback(() => {
     activeRef.current = false;
+    captureEnabledRef.current = false;
+    hadSpeechRef.current = false;
     sessionReadyRef.current = false;
     isPlayingRef.current = false;
     readyResolverRef.current = null;
@@ -109,7 +104,6 @@ export function useVoiceSession() {
     transcriptRef.current = null;
     replyRef.current = null;
     messageChainRef.current = Promise.resolve();
-    vadRef.current.resume();
     captureRef.current?.stop();
   }, []);
 
@@ -140,15 +134,17 @@ export function useVoiceSession() {
         case "turn.phase":
           setStatus((prev) => ({ ...prev, phase: message.phase }));
           if (BUSY_PHASES.includes(message.phase)) {
+            captureEnabledRef.current = false;
             setState("processing");
-            vadRef.current.pause();
           } else if (
             message.phase === "idle" &&
             activeRef.current &&
             !isPlayingRef.current
           ) {
+            // Resume listening after a turn; do not reset chunkSeq here —
+            // turn.done already did, and resetting later would drop in-flight audio.
+            captureEnabledRef.current = true;
             setState("listening");
-            vadRef.current.resume();
           }
           break;
         case "turn.transcript":
@@ -188,10 +184,11 @@ export function useVoiceSession() {
             playbackRef.current = null;
             pendingReplyRef.current = null;
             setStatus({ transcript: null, reply: null, phase: null });
-            vadRef.current.reset();
             if (activeRef.current) {
+              chunkSeqRef.current = 0;
+              hadSpeechRef.current = false;
+              captureEnabledRef.current = true;
               setState("listening");
-              vadRef.current.resume();
             }
             break;
           }
@@ -211,7 +208,6 @@ export function useVoiceSession() {
           } finally {
             isPlayingRef.current = false;
             playbackRef.current = null;
-            vadRef.current.reset();
             const transcript = transcriptRef.current;
             const reply = replyRef.current;
             if (transcript || reply) {
@@ -230,13 +226,24 @@ export function useVoiceSession() {
             pendingReplyRef.current = null;
             setStatus({ transcript: null, reply: null, phase: null });
             if (activeRef.current) {
+              chunkSeqRef.current = 0;
+              hadSpeechRef.current = false;
+              captureEnabledRef.current = true;
               setState("listening");
-              vadRef.current.resume();
             }
           }
           break;
         }
         case "error":
+          // No audio buffered — keep the session open so the user can try again.
+          if (message.code === "empty_audio" && activeRef.current) {
+            chunkSeqRef.current = 0;
+            hadSpeechRef.current = false;
+            captureEnabledRef.current = true;
+            setState("listening");
+            setStatus({ transcript: null, reply: null, phase: null });
+            break;
+          }
           setVoiceError(voiceErrorMessage(message.code, message.message));
           break;
         default:
@@ -291,8 +298,16 @@ export function useVoiceSession() {
         bufferLength: AUDIO_SAMPLE_RATE * 0.1,
         onAudioReady: (samples) => {
           if (!activeRef.current || !sessionReadyRef.current) return;
+          if (!captureEnabledRef.current) return;
           if (!clientRef.current?.isConnected) return;
           if (isPlayingRef.current) return;
+
+          if (
+            !hadSpeechRef.current &&
+            computeRms(samples) >= VAD_ENERGY_THRESHOLD
+          ) {
+            hadSpeechRef.current = true;
+          }
 
           const pcm = floatToPcm16(samples);
           const seq = chunkSeqRef.current++;
@@ -304,11 +319,6 @@ export function useVoiceSession() {
             channels: AUDIO_CHANNELS,
             data: pcm16ToBase64(pcm),
           });
-
-          if (vadRef.current.process(samples)) {
-            clientRef.current.send({ type: "turn.end" });
-            vadRef.current.reset();
-          }
         },
       });
       captureRef.current = capture;
@@ -332,6 +342,29 @@ export function useVoiceSession() {
     setState("idle");
     setStatus({ transcript: null, reply: null, phase: null });
   }, [stopCapture]);
+
+  /** User explicitly finished speaking — commit buffered audio as a turn. */
+  const endTurn = useCallback(() => {
+    if (!activeRef.current || !clientRef.current?.isConnected) {
+      void stopSession();
+      return;
+    }
+
+    captureEnabledRef.current = false;
+
+    // Tap with no speech = leave voice mode (don't send an empty/silent turn).
+    if (chunkSeqRef.current === 0 || !hadSpeechRef.current) {
+      void stopSession();
+      return;
+    }
+
+    setState("processing");
+    try {
+      clientRef.current.send({ type: "turn.end" });
+    } catch {
+      void stopSession();
+    }
+  }, [stopSession]);
 
   const startSession = useCallback(async () => {
     setState("requesting");
@@ -373,16 +406,19 @@ export function useVoiceSession() {
       await readyPromise;
 
       activeRef.current = true;
+      chunkSeqRef.current = 0;
+      hadSpeechRef.current = false;
+      captureEnabledRef.current = true;
 
       const capture = ensureCapture();
       const result = await capture.start();
       if (result.status === "error") {
         activeRef.current = false;
+        captureEnabledRef.current = false;
         setVoiceError(result.message ?? "Failed to start recording");
         return;
       }
 
-      vadRef.current.resume();
       setState("listening");
     } catch (err) {
       stopCapture();
@@ -399,13 +435,17 @@ export function useVoiceSession() {
   }, [ensureCapture, ensureClient, setVoiceError, stopCapture]);
 
   const toggleTalk = useCallback(async () => {
-    if (state === "listening" || state === "processing") {
+    if (state === "listening") {
+      endTurn();
+      return;
+    }
+    if (state === "processing") {
       await stopSession();
       return;
     }
     if (state === "requesting") return;
     await startSession();
-  }, [startSession, state, stopSession]);
+  }, [endTurn, startSession, state, stopSession]);
 
   const dismissError = useCallback(() => {
     setState("idle");
@@ -432,7 +472,7 @@ export function useVoiceSession() {
       : state === "requesting"
         ? "Starting…"
         : state === "listening"
-          ? "Listening — tap to stop"
+          ? "Listening — tap when done"
           : state === "processing"
             ? DONNA_THINKING_PHASE
             : null;
