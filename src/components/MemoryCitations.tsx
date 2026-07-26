@@ -71,7 +71,7 @@ export function MemoryCitations({ citations, className }: Props) {
   };
 
   return (
-    <div className={cn("mt-1.5 max-w-[85%]", className)}>
+    <div className={cn("mt-1.5 w-full", className)}>
       <button
         type="button"
         className={cn(

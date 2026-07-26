@@ -228,10 +228,10 @@ export function ChatMessages({
               >
                 <div
                   className={cn(
-                    "max-w-[85%] min-w-0 rounded-2xl px-4 py-3 text-[0.9375rem] leading-relaxed",
+                    "min-w-0 rounded-2xl px-4 py-3 text-[0.9375rem] leading-relaxed",
                     message.role === "user"
-                      ? "break-words rounded-br-md bg-donna-primary text-white"
-                      : "overflow-x-auto break-words rounded-bl-md border border-donna-border bg-donna-surface text-donna-text",
+                      ? "max-w-[85%] break-words rounded-br-md bg-donna-primary text-white"
+                      : "w-full overflow-x-auto break-words rounded-bl-md border border-donna-border bg-donna-surface text-donna-text",
                     message.streaming && "opacity-95",
                     message.error && "border-donna-destructive/40",
                     message.cancelled && "opacity-80",
