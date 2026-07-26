@@ -92,16 +92,12 @@ export function ChatApp() {
   const {
     state: micState,
     toggleTalk,
-    turns: voiceTurns,
-    transcript: liveTranscript,
-    reply: liveReply,
     phaseLabel: voicePhaseLabel,
     sessionLabel,
     errorMsg: voiceError,
     disabled: micDisabled,
     sessionActive,
     dismissError: dismissVoiceError,
-    clearTurns: clearVoiceTurns,
   } = useVoiceSessionContext();
   const { toast, showToast } = useAssetIngest();
   const createNoteMutation = useCreateNoteMutation();
@@ -117,7 +113,6 @@ export function ChatApp() {
 
     if (state?.newChat) {
       clearChat();
-      clearVoiceTurns();
       setActiveConversationId(null);
       navigate("/app", { replace: true, state: null });
     }
@@ -126,7 +121,7 @@ export function ChatApp() {
       showToast(state.ingestToast.message, state.ingestToast.isError);
       navigate(location.pathname, { replace: true, state: null });
     }
-  }, [location, navigate, showToast, clearChat, clearVoiceTurns]);
+  }, [location, navigate, showToast, clearChat]);
 
   // Granola OAuth return lands on /app?integrations=granola&ok=…
   useEffect(() => {
@@ -162,7 +157,6 @@ export function ChatApp() {
 
   function handleNewChat() {
     clearChat();
-    clearVoiceTurns();
     setActiveConversationId(null);
   }
 
@@ -171,19 +165,14 @@ export function ChatApp() {
     nextSessionId: string | undefined,
     nextMessages: typeof messages,
   ) {
-    clearVoiceTurns();
     setActiveConversationId(conversationId);
     loadConversation(nextSessionId, nextMessages);
   }
 
-  const hasMessages =
-    messages.length > 0 ||
-    voiceTurns.length > 0 ||
-    Boolean(liveTranscript) ||
-    Boolean(liveReply);
+  const hasThread = messages.length > 0;
 
   const inputSessionLabel =
-    hasMessages && sessionLabel && !isDonnaThinkingPhase(sessionLabel)
+    hasThread && sessionLabel && !isDonnaThinkingPhase(sessionLabel)
       ? sessionLabel
       : null;
 
@@ -237,11 +226,8 @@ export function ChatApp() {
           onMicPress={() => void toggleTalk()}
           micDisabled={micDisabled}
           sessionLabel={sessionLabel}
-          voiceTurns={voiceTurns}
-          liveTranscript={liveTranscript}
-          liveReply={liveReply}
           voicePhaseLabel={voicePhaseLabel}
-          showMic={!hasMessages}
+          showMic={!hasThread}
           busy={busy}
           onCopyMessage={async (content) => {
             try {
@@ -294,13 +280,13 @@ export function ChatApp() {
           disabled={inputDisabled}
           busy={busy}
           placeholder="Message Donna…"
-          showMic={hasMessages}
+          showMic={hasThread}
           micState={micState}
           onMicPress={() => void toggleTalk()}
           micDisabled={micDisabled}
           sessionLabel={inputSessionLabel}
           quickActions={
-            messages.length === 0 && voiceTurns.length === 0 && !sessionActive
+            !hasThread && !sessionActive
               ? quickActions.map((action) => ({
                   label: action.label,
                   onClick: () => void sendMessage(action.prompt),

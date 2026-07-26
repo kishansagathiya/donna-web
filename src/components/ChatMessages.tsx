@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import type { UiMessage } from "../hooks/useChatSession";
-import type { VoiceTurn } from "../hooks/useVoiceSession";
 import { ChatHero } from "./ChatHero";
 import type { MicState } from "./MicButton";
 import { MemoryCitations } from "./MemoryCitations";
@@ -22,9 +21,6 @@ type Props = {
   onMicPress: () => void;
   micDisabled?: boolean;
   sessionLabel?: string | null;
-  voiceTurns?: VoiceTurn[];
-  liveTranscript?: string | null;
-  liveReply?: string | null;
   voicePhaseLabel?: string | null;
   showMic?: boolean;
   busy?: boolean;
@@ -36,27 +32,6 @@ type Props = {
   onRetry?: () => void;
 };
 
-function voiceTurnsToMessages(turns: VoiceTurn[]): UiMessage[] {
-  const out: UiMessage[] = [];
-  for (const turn of turns) {
-    if (turn.user) {
-      out.push({
-        id: `${turn.id}-user`,
-        role: "user",
-        content: turn.user,
-      });
-    }
-    if (turn.assistant) {
-      out.push({
-        id: `${turn.id}-assistant`,
-        role: "assistant",
-        content: turn.assistant,
-      });
-    }
-  }
-  return out;
-}
-
 export function ChatMessages({
   messages,
   phase,
@@ -64,9 +39,6 @@ export function ChatMessages({
   onMicPress,
   micDisabled,
   sessionLabel,
-  voiceTurns = [],
-  liveTranscript,
-  liveReply,
   voicePhaseLabel,
   showMic = true,
   busy = false,
@@ -83,27 +55,7 @@ export function ChatMessages({
   const prevMessageCountRef = useRef(0);
   const [stickToBottom, setStickToBottom] = useState(true);
 
-  const allMessages = useMemo(() => {
-    const voiceMessages = voiceTurnsToMessages(voiceTurns);
-    const merged = [...messages, ...voiceMessages];
-    if (liveTranscript) {
-      merged.push({
-        id: "live-transcript",
-        role: "user",
-        content: liveTranscript,
-      });
-    }
-    if (liveReply) {
-      merged.push({
-        id: "live-reply",
-        role: "assistant",
-        content: liveReply,
-        streaming: true,
-      });
-    }
-    return merged;
-  }, [liveReply, liveTranscript, messages, voiceTurns]);
-
+  const allMessages = messages;
   const hasMessages = allMessages.length > 0;
   const displayPhase = voicePhaseLabel ?? phase;
   const showThinking =
