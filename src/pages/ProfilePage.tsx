@@ -261,10 +261,6 @@ export function ProfilePage() {
           )}
         </div>
 
-        <ThemeToggle className="mb-8 max-w-lg" />
-
-        <IntegrationsSection />
-
         <div className="mb-8 max-w-lg">
           <label
             htmlFor="persona"
@@ -322,6 +318,10 @@ export function ProfilePage() {
             </div>
           ) : null}
         </div>
+
+        <ThemeToggle className="mb-8 max-w-lg" />
+
+        <IntegrationsSection />
 
         <div className="mb-8 max-w-lg">
           <p className="mb-1 text-sm font-semibold text-donna-text">
