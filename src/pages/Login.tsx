@@ -1,13 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { DonnaLogo } from "../components/DonnaLogo";
 import { SignInWithAppleButton } from "../components/SignInWithAppleButton";
 import { SignInWithGoogleButton } from "../components/SignInWithGoogleButton";
+import { Spinner } from "../components/ui/Spinner";
+import { TextInput } from "../components/ui/TextInput";
 import { PRIVACY_POLICY_URL } from "../config";
 import { cn } from "../lib/cn";
+import { signInWithPassword } from "../services/auth";
 
 export function Login() {
   const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
     const hashParams = new URLSearchParams(window.location.hash.slice(1));
@@ -20,6 +26,21 @@ export function Login() {
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
+
+  async function handlePasswordSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setPasswordLoading(true);
+    try {
+      await signInWithPassword(email, password);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Sign in failed. Please try again.";
+      setError(message);
+    } finally {
+      setPasswordLoading(false);
+    }
+  }
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col justify-between overflow-y-auto px-6 pb-8 pt-12">
@@ -42,6 +63,57 @@ export function Login() {
 
         <SignInWithAppleButton onError={setError} />
         <SignInWithGoogleButton onError={setError} />
+
+        <div className="flex items-center gap-3">
+          <div className="h-px flex-1 bg-donna-border" />
+          <span className="text-xs font-medium uppercase tracking-wide text-donna-muted">
+            or
+          </span>
+          <div className="h-px flex-1 bg-donna-border" />
+        </div>
+
+        <form className="flex flex-col gap-3" onSubmit={(e) => void handlePasswordSubmit(e)}>
+          <label className="sr-only" htmlFor="login-email">
+            Email
+          </label>
+          <TextInput
+            id="login-email"
+            type="email"
+            autoComplete="username"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <label className="sr-only" htmlFor="login-password">
+            Password
+          </label>
+          <TextInput
+            id="login-password"
+            type="password"
+            autoComplete="current-password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button
+            type="submit"
+            disabled={passwordLoading}
+            className={cn(
+              "flex min-h-11 w-full items-center justify-center gap-2 rounded-donna border border-donna-border bg-donna-surface px-4 py-3 text-base font-semibold text-donna-text",
+              "transition-opacity duration-150 hover:opacity-90",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring focus-visible:ring-offset-2",
+              "disabled:cursor-not-allowed disabled:opacity-70",
+            )}
+          >
+            {passwordLoading ? (
+              <Spinner className="h-5 w-5 border-donna-border border-t-donna-text" />
+            ) : (
+              "Sign in with email"
+            )}
+          </button>
+        </form>
 
         {error ? (
           <p className="text-center text-sm text-donna-destructive">{error}</p>

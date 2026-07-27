@@ -33,6 +33,25 @@ export async function getAccessToken(): Promise<string | null> {
   return session?.access_token ?? null;
 }
 
+/** Email/password login (no public signup — accounts are created by admins). */
+export async function signInWithPassword(
+  email: string,
+  password: string,
+): Promise<void> {
+  const trimmedEmail = email.trim();
+  if (!trimmedEmail || !password) {
+    throw new Error("Enter an email and password.");
+  }
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email: trimmedEmail,
+    password,
+  });
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 export async function signInWithApple(): Promise<void> {
   if (!APPLE_CLIENT_ID) {
     throw new Error(
