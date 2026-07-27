@@ -66,11 +66,17 @@ export function ProfilePage() {
         setPersonaCustom(preferences.persona_custom ?? "");
         let tz = (preferences.timezone ?? "").trim();
         if (!tz) {
-          tz = detectDeviceTimezone();
+          const detected = detectDeviceTimezone();
           try {
-            await updateTimezone(tz);
-          } catch {
-            // Still show the detected value; user can retry save via the select.
+            tz = await updateTimezone(detected);
+          } catch (err) {
+            setTimezone(detected);
+            setError(
+              err instanceof Error
+                ? `Could not save timezone (${err.message}). Choose it again below.`
+                : "Could not save timezone. Choose it again below.",
+            );
+            return;
           }
         }
         setTimezone(tz);
@@ -129,7 +135,8 @@ export function ProfilePage() {
     setSavingTimezone(true);
     setError(null);
     try {
-      await updateTimezone(next);
+      const saved = await updateTimezone(next);
+      setTimezone(saved);
     } catch (err) {
       setTimezone(previous);
       setError(err instanceof Error ? err.message : "Could not save timezone");
