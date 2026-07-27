@@ -5,6 +5,7 @@ import {
   getAccountPreferences,
   updateLLMModel,
   updatePersona,
+  updateTimezone,
 } from "../services/accountApi";
 import { signOut } from "../services/auth";
 import { Button } from "../components/ui/Button";
@@ -13,6 +14,10 @@ import { Spinner } from "../components/ui/Spinner";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { IntegrationsSection } from "../components/IntegrationsSection";
 import { useAuth } from "../hooks/useAuth";
+import {
+  detectDeviceTimezone,
+  timezoneSelectOptions,
+} from "../lib/timezones";
 
 function normalizePersona(persona: string): string {
   if (persona === "therapist") return "listener";
@@ -34,7 +39,15 @@ export function ProfilePage() {
   const [persona, setPersona] = useState("companion");
   const [personaCustom, setPersonaCustom] = useState("");
   const [savingPersona, setSavingPersona] = useState(false);
-  const busy = signingOut || deleting || savingModel || savingPersona || exporting;
+  const [timezone, setTimezone] = useState("");
+  const [savingTimezone, setSavingTimezone] = useState(false);
+  const busy =
+    signingOut ||
+    deleting ||
+    savingModel ||
+    savingPersona ||
+    savingTimezone ||
+    exporting;
 
   const email = session?.user.email ?? "";
   const name =
@@ -45,12 +58,22 @@ export function ProfilePage() {
     setLoadingModels(true);
     setError(null);
     void getAccountPreferences()
-      .then((preferences) => {
+      .then(async (preferences) => {
         setModels(preferences.available_models);
         setSelectedModel(preferences.llm_model);
         setPersonas(preferences.available_personas ?? []);
         setPersona(normalizePersona(preferences.persona ?? "companion"));
         setPersonaCustom(preferences.persona_custom ?? "");
+        let tz = (preferences.timezone ?? "").trim();
+        if (!tz) {
+          tz = detectDeviceTimezone();
+          try {
+            await updateTimezone(tz);
+          } catch {
+            // Still show the detected value; user can retry save via the select.
+          }
+        }
+        setTimezone(tz);
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "Could not load models");
@@ -97,6 +120,21 @@ export function ProfilePage() {
       setError(err instanceof Error ? err.message : "Could not save persona");
     } finally {
       setSavingPersona(false);
+    }
+  }
+
+  async function handleTimezoneChange(next: string) {
+    const previous = timezone;
+    setTimezone(next);
+    setSavingTimezone(true);
+    setError(null);
+    try {
+      await updateTimezone(next);
+    } catch (err) {
+      setTimezone(previous);
+      setError(err instanceof Error ? err.message : "Could not save timezone");
+    } finally {
+      setSavingTimezone(false);
     }
   }
 
@@ -184,6 +222,39 @@ export function ProfilePage() {
               {models.map((model) => (
                 <option key={model} value={model}>
                   {model}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        <div className="mb-8 max-w-lg">
+          <label
+            htmlFor="timezone"
+            className="mb-1 block text-sm font-semibold text-donna-text"
+          >
+            Timezone
+          </label>
+          <p className="mb-2 text-xs text-donna-muted">
+            Used when Donna schedules calendar meetings (for example “tomorrow
+            at 4pm”).
+          </p>
+          {loadingModels ? (
+            <div className="flex items-center gap-2 py-3 text-sm text-donna-muted">
+              <Spinner className="h-5 w-5" />
+              Loading…
+            </div>
+          ) : (
+            <select
+              id="timezone"
+              className="w-full rounded-donna border border-donna-border bg-white px-3 py-3 text-sm text-donna-text"
+              value={timezone}
+              onChange={(event) => void handleTimezoneChange(event.target.value)}
+              disabled={busy}
+            >
+              {timezoneSelectOptions(timezone).map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
                 </option>
               ))}
             </select>
