@@ -1,23 +1,50 @@
 import { describe, expect, it } from "vitest";
-import { formatFirstTokenMs } from "./formatFirstTokenMs";
+import {
+  formatChatTiming,
+  formatFirstTokenMs,
+  formatLatencyMs,
+} from "./formatFirstTokenMs";
 
-describe("formatFirstTokenMs", () => {
+describe("formatLatencyMs", () => {
   it("formats sub-second latency in milliseconds", () => {
-    expect(formatFirstTokenMs(420)).toBe("420ms to first token");
-    expect(formatFirstTokenMs(999)).toBe("999ms to first token");
+    expect(formatLatencyMs(420)).toBe("420ms");
+    expect(formatLatencyMs(999)).toBe("999ms");
   });
 
   it("formats seconds with one decimal under 10s", () => {
-    expect(formatFirstTokenMs(1000)).toBe("1.0s to first token");
-    expect(formatFirstTokenMs(1840)).toBe("1.8s to first token");
+    expect(formatLatencyMs(1000)).toBe("1.0s");
+    expect(formatLatencyMs(1840)).toBe("1.8s");
   });
 
   it("formats longer latencies without a decimal", () => {
-    expect(formatFirstTokenMs(10_400)).toBe("10s to first token");
+    expect(formatLatencyMs(10_400)).toBe("10s");
   });
 
   it("returns empty for invalid values", () => {
-    expect(formatFirstTokenMs(-1)).toBe("");
-    expect(formatFirstTokenMs(Number.NaN)).toBe("");
+    expect(formatLatencyMs(-1)).toBe("");
+    expect(formatLatencyMs(Number.NaN)).toBe("");
+  });
+});
+
+describe("formatFirstTokenMs", () => {
+  it("labels first-token latency", () => {
+    expect(formatFirstTokenMs(420)).toBe("420ms to first token");
+    expect(formatFirstTokenMs(1840)).toBe("1.8s to first token");
+  });
+});
+
+describe("formatChatTiming", () => {
+  it("combines first-token and total latency", () => {
+    expect(
+      formatChatTiming({ firstTokenMs: 420, totalMs: 2100 }),
+    ).toBe("420ms to first token · 2.1s total");
+  });
+
+  it("shows only the available timing fields", () => {
+    expect(formatChatTiming({ firstTokenMs: 420 })).toBe(
+      "420ms to first token",
+    );
+    expect(formatChatTiming({ totalMs: 2100 })).toBe("2.1s total");
+    expect(formatChatTiming({})).toBe("");
   });
 });

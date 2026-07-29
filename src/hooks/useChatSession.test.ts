@@ -61,6 +61,10 @@ describe("useChatSession", () => {
       expect.any(Number),
     );
     expect(result.current.messages[1]?.firstTokenMs).toBeGreaterThanOrEqual(0);
+    expect(result.current.messages[1]?.totalMs).toEqual(expect.any(Number));
+    expect(result.current.messages[1]?.totalMs).toBeGreaterThanOrEqual(
+      result.current.messages[1]?.firstTokenMs ?? 0,
+    );
   });
 
   it("passes web search option to the stream", async () => {

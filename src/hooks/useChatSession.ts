@@ -45,6 +45,8 @@ export type UiMessage = {
   webSearch?: boolean;
   /** Client-measured ms from request start to first streamed token. */
   firstTokenMs?: number;
+  /** Client-measured ms from request start to stream completion. */
+  totalMs?: number;
 };
 
 export type SendMessageOptions = {
@@ -187,6 +189,7 @@ export function useChatSession() {
             );
           },
           onDone: (reply, newSessionId, meta) => {
+            const totalMs = Math.round(performance.now() - startedAt);
             setSessionId(newSessionId);
             setMessages((prev) =>
               prev.map((m) => {
@@ -198,6 +201,7 @@ export function useChatSession() {
                     error: false,
                     cancelled: false,
                     citations: meta?.citations ?? m.citations,
+                    totalMs,
                   };
                 }
                 if (m.id === userMessageId && meta?.groundedUserMessage) {
@@ -216,17 +220,19 @@ export function useChatSession() {
         });
       } catch (err) {
         if (isChatAbortError(err)) {
+          const totalMs = Math.round(performance.now() - startedAt);
           setMessages((prev) =>
             prev.map((m) => {
               if (m.id !== assistantId) return m;
               if (!m.content.trim()) {
-                return { ...m, streaming: false, cancelled: true };
+                return { ...m, streaming: false, cancelled: true, totalMs };
               }
               return {
                 ...m,
                 streaming: false,
                 cancelled: true,
                 error: false,
+                totalMs,
               };
             }),
           );
@@ -247,6 +253,7 @@ export function useChatSession() {
                   streaming: false,
                   error: true,
                   cancelled: false,
+                  totalMs: Math.round(performance.now() - startedAt),
                 }
               : m,
           ),
