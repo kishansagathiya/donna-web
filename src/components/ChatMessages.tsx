@@ -9,6 +9,7 @@ import { MessageContent } from "./MessageContent";
 import { AssistantThinkingBlock } from "./ThinkingIndicator";
 import { cn } from "../lib/cn";
 import { isGeneratingPhase } from "../lib/chatPhaseLabel";
+import { formatFirstTokenMs } from "../lib/formatFirstTokenMs";
 import { isDonnaThinkingPhase } from "../lib/thinkingPhrases";
 
 /** Distance from bottom (px) that still counts as "following" the stream. */
@@ -242,6 +243,14 @@ export function ChatMessages({
                     </p>
                   ) : null}
                 </div>
+
+                {message.role === "assistant" &&
+                message.firstTokenMs != null &&
+                message.content ? (
+                  <p className="mt-1 text-xs text-donna-muted">
+                    {formatFirstTokenMs(message.firstTokenMs)}
+                  </p>
+                ) : null}
 
                 {message.role === "assistant" &&
                 !message.streaming &&

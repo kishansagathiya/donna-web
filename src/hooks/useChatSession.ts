@@ -43,6 +43,8 @@ export type UiMessage = {
   feedback?: "up" | "down";
   citations?: MemoryCitation[];
   webSearch?: boolean;
+  /** Client-measured ms from request start to first streamed token. */
+  firstTokenMs?: number;
 };
 
 export type SendMessageOptions = {
@@ -131,6 +133,8 @@ export function useChatSession() {
       setError(null);
       setBusy(true);
       setPhase(DONNA_THINKING_PHASE);
+      const startedAt = performance.now();
+      let recordedFirstToken = false;
 
       try {
         await streamChatMessage(trimmed, history, activeSessionId, {
@@ -155,6 +159,13 @@ export function useChatSession() {
           },
           onChunk: (partial) => {
             setPhase(null);
+            const firstTokenMs =
+              !recordedFirstToken && partial
+                ? Math.round(performance.now() - startedAt)
+                : undefined;
+            if (firstTokenMs != null) {
+              recordedFirstToken = true;
+            }
             setMessages((prev) =>
               prev.map((m) =>
                 m.id === assistantId
@@ -164,6 +175,7 @@ export function useChatSession() {
                       streaming: true,
                       error: false,
                       cancelled: false,
+                      ...(firstTokenMs != null ? { firstTokenMs } : null),
                     }
                   : m,
               ),
