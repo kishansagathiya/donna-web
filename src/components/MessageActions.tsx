@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import {
   Check,
   Copy,
@@ -7,9 +7,16 @@ import {
   StickyNote,
   ThumbsDown,
   ThumbsUp,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { cn } from "../lib/cn";
 import type { UiMessage } from "../hooks/useChatSession";
+import {
+  getSpeakingId,
+  speakText,
+  subscribeSpeaking,
+} from "../lib/speak";
 
 type Props = {
   message: UiMessage;
@@ -36,6 +43,12 @@ export function MessageActions({
   const [saved, setSaved] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(message.content);
+  const speakingId = useSyncExternalStore(
+    subscribeSpeaking,
+    getSpeakingId,
+    () => null,
+  );
+  const isSpeaking = speakingId === message.id;
 
   if (message.streaming) {
     return null;
@@ -148,6 +161,23 @@ export function MessageActions({
           }}
         >
           <Pencil className="h-3.5 w-3.5" strokeWidth={1.75} />
+        </button>
+      ) : null}
+
+      {message.role === "assistant" && message.content.trim() ? (
+        <button
+          type="button"
+          className={cn(actionClass, isSpeaking && "text-donna-primary")}
+          aria-label={isSpeaking ? "Stop reading aloud" : "Read aloud"}
+          aria-pressed={isSpeaking}
+          disabled={busy}
+          onClick={() => speakText(message.id, message.content)}
+        >
+          {isSpeaking ? (
+            <VolumeX className="h-3.5 w-3.5" strokeWidth={1.75} />
+          ) : (
+            <Volume2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+          )}
         </button>
       ) : null}
 
