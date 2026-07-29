@@ -9,6 +9,7 @@ export default defineConfig({
   server: {
     proxy: {
       "/chat": backendTarget,
+      "/tts": backendTarget,
       "/knowledge": backendTarget,
       "/account": backendTarget,
       "/health": backendTarget,

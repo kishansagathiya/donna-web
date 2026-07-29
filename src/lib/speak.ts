@@ -1,6 +1,7 @@
 /**
  * Read-aloud helper for assistant replies via POST /tts (ElevenLabs).
- * Only one clip plays at a time; subscribe to react to stop/start.
+ * Uses AudioContext so playback still works after the TTS network round-trip
+ * (HTMLAudioElement.play() often fails once the click gesture has expired).
  */
 
 import { API_BASE_URL } from "../config";
@@ -9,12 +10,39 @@ import { getAccessToken } from "../services/auth";
 const SPEAKING_CHANGE = "donna-speak-change";
 
 let speakingId: string | null = null;
-let activeAudio: HTMLAudioElement | null = null;
-let objectUrl: string | null = null;
+let audioContext: AudioContext | null = null;
+let activeSource: AudioBufferSourceNode | null = null;
 let abortController: AbortController | null = null;
 
 function notify(): void {
   window.dispatchEvent(new Event(SPEAKING_CHANGE));
+}
+
+/** Must run synchronously in the click handler before any await. */
+export function unlockAudio(): void {
+  if (typeof window === "undefined") return;
+  const Ctx =
+    window.AudioContext ||
+    (window as unknown as { webkitAudioContext?: typeof AudioContext })
+      .webkitAudioContext;
+  if (!Ctx) return;
+  if (!audioContext) {
+    audioContext = new Ctx();
+  }
+  if (audioContext.state === "suspended") {
+    void audioContext.resume();
+  }
+}
+
+async function getAudioContext(): Promise<AudioContext> {
+  unlockAudio();
+  if (!audioContext) {
+    throw new Error("Audio is not supported in this browser");
+  }
+  if (audioContext.state === "suspended") {
+    await audioContext.resume();
+  }
+  return audioContext;
 }
 
 /** Strip markdown / URLs so TTS reads clean prose. */
@@ -54,29 +82,30 @@ export function subscribeSpeaking(listener: () => void): () => void {
   return () => window.removeEventListener(SPEAKING_CHANGE, listener);
 }
 
-function clearAudio(): void {
-  if (activeAudio) {
-    activeAudio.onended = null;
-    activeAudio.onerror = null;
-    activeAudio.pause();
-    activeAudio.src = "";
-    activeAudio = null;
-  }
-  if (objectUrl) {
-    URL.revokeObjectURL(objectUrl);
-    objectUrl = null;
+function stopSource(): void {
+  if (activeSource) {
+    try {
+      activeSource.stop();
+    } catch {
+      // already stopped
+    }
+    activeSource.disconnect();
+    activeSource = null;
   }
 }
 
 export function stopSpeaking(): void {
   abortController?.abort();
   abortController = null;
-  clearAudio();
+  stopSource();
   speakingId = null;
   notify();
 }
 
 export async function speakText(id: string, text: string): Promise<void> {
+  // Keep the click gesture alive for later playback.
+  unlockAudio();
+
   const cleaned = prepareTextForSpeech(text);
   if (!cleaned) return;
 
@@ -124,34 +153,44 @@ export async function speakText(id: string, text: string): Promise<void> {
       return;
     }
 
-    const blob = await res.blob();
+    const arrayBuffer = await res.arrayBuffer();
+    if (controller.signal.aborted || speakingId !== id) {
+      return;
+    }
+    if (arrayBuffer.byteLength === 0) {
+      throw new Error("Empty audio from TTS");
+    }
+
+    const ctx = await getAudioContext();
+    // decodeAudioData may detach the buffer; copy for safety across browsers.
+    const copy = arrayBuffer.slice(0);
+    const buffer = await ctx.decodeAudioData(copy);
+
     if (controller.signal.aborted || speakingId !== id) {
       return;
     }
 
-    const url = URL.createObjectURL(blob);
-    objectUrl = url;
-    const audio = new Audio(url);
-    activeAudio = audio;
-
-    const clearIfCurrent = () => {
-      if (activeAudio !== audio) return;
-      clearAudio();
+    stopSource();
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    activeSource = source;
+    source.onended = () => {
+      if (activeSource === source) {
+        activeSource = null;
+      }
       if (speakingId === id) {
         speakingId = null;
         notify();
       }
     };
-
-    audio.onended = clearIfCurrent;
-    audio.onerror = clearIfCurrent;
-    await audio.play();
+    source.start(0);
   } catch (err) {
     if (controller.signal.aborted) {
       return;
     }
     speakingId = null;
-    clearAudio();
+    stopSource();
     notify();
     throw err;
   } finally {

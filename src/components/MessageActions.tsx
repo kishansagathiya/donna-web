@@ -16,6 +16,7 @@ import {
   getSpeakingId,
   speakText,
   subscribeSpeaking,
+  unlockAudio,
 } from "../lib/speak";
 
 type Props = {
@@ -27,6 +28,7 @@ type Props = {
   onEdit?: (messageId: string, nextText: string) => void;
   onFeedback?: (messageId: string, rating: "up" | "down") => void;
   onSaveAsNote?: (content: string) => void | Promise<void>;
+  onSpeakError?: (message: string) => void;
 };
 
 export function MessageActions({
@@ -38,6 +40,7 @@ export function MessageActions({
   onEdit,
   onFeedback,
   onSaveAsNote,
+  onSpeakError,
 }: Props) {
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -172,7 +175,12 @@ export function MessageActions({
           aria-pressed={isSpeaking}
           disabled={busy}
           onClick={() => {
-            void speakText(message.id, message.content);
+            unlockAudio();
+            void speakText(message.id, message.content).catch((err: unknown) => {
+              onSpeakError?.(
+                err instanceof Error ? err.message : "Could not speak reply",
+              );
+            });
           }}
         >
           {isSpeaking ? (

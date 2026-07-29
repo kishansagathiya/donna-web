@@ -256,6 +256,7 @@ export function ChatApp() {
             }
           }}
           onRetry={() => void retryFailed()}
+          onSpeakError={(message) => showToast(message, true)}
         />
 
         {activeError ? (

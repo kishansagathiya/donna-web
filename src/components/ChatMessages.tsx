@@ -31,6 +31,7 @@ type Props = {
   onFeedback?: (messageId: string, rating: "up" | "down") => void;
   onSaveAsNote?: (content: string) => void | Promise<void>;
   onRetry?: () => void;
+  onSpeakError?: (message: string) => void;
 };
 
 export function ChatMessages({
@@ -49,6 +50,7 @@ export function ChatMessages({
   onFeedback,
   onSaveAsNote,
   onRetry,
+  onSpeakError,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -274,6 +276,7 @@ export function ChatMessages({
                     onEdit={onEditMessage}
                     onFeedback={onFeedback}
                     onSaveAsNote={onSaveAsNote}
+                    onSpeakError={onSpeakError}
                   />
                 ) : null}
 
