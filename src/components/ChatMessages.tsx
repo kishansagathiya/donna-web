@@ -10,6 +10,7 @@ import { AssistantThinkingBlock } from "./ThinkingIndicator";
 import { cn } from "../lib/cn";
 import { isGeneratingPhase } from "../lib/chatPhaseLabel";
 import { formatChatTiming } from "../lib/formatFirstTokenMs";
+import { prefetchSpeak } from "../lib/speak";
 import { isDonnaThinkingPhase } from "../lib/thinkingPhrases";
 
 /** Distance from bottom (px) that still counts as "following" the stream. */
@@ -91,6 +92,22 @@ export function ChatMessages({
     }
     return null;
   }, [messages]);
+
+  // Warm TTS as soon as the latest reply finishes so speak is instant.
+  useEffect(() => {
+    if (!latestAssistantId) return;
+    const latest = messages.find((m) => m.id === latestAssistantId);
+    if (
+      !latest ||
+      latest.role !== "assistant" ||
+      latest.streaming ||
+      latest.error ||
+      !latest.content.trim()
+    ) {
+      return;
+    }
+    prefetchSpeak(latest.id, latest.content);
+  }, [latestAssistantId, messages]);
 
   const lastTextMessage = messages[messages.length - 1];
   const showRetry =
