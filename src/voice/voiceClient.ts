@@ -1,5 +1,6 @@
 import type { ClientMessage, ServerMessage } from "./protocol";
 import { parseServerMessage } from "./protocol";
+import { reportError } from "../services/errorReporting";
 
 function connectionErrorMessage(url: string): string {
   const base = `Cannot reach Donna server at ${url}.`;
@@ -48,6 +49,15 @@ export class VoiceClient {
         ? `${this.url}${this.url.includes("?") ? "&" : "?"}token=${encodeURIComponent(accessToken)}`
         : this.url;
 
+      // One stable message so a failure's error + close events dedup into a
+      // single report. Server-initiated closes (e.g. 4401 auth) are not
+      // reported — the server reports those itself.
+      const reportConnectionFailure = () => {
+        reportError(new Error(`Voice WebSocket connection failed: ${this.url}`), {
+          endpoint: this.url,
+        });
+      };
+
       const ws = new WebSocket(url);
       this.ws = ws;
 
@@ -59,6 +69,7 @@ export class VoiceClient {
       };
 
       ws.onerror = () => {
+        reportConnectionFailure();
         fail(connectionErrorMessage(this.url));
       };
 
@@ -86,6 +97,10 @@ export class VoiceClient {
           } else {
             this.handlers.onError?.(message);
           }
+        }
+        if (event.code === 1006) {
+          // Abnormal closure — the connection died unexpectedly.
+          reportConnectionFailure();
         }
         this.handlers.onClose?.();
         this.ws = null;

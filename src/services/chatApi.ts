@@ -1,5 +1,6 @@
 import { API_BASE_URL } from "../config";
 import { getAccessToken } from "./auth";
+import { reportError } from "./errorReporting";
 import type { DonnaMode } from "../types/mode";
 import type { MemoryCitation } from "../types/citations";
 import type { ChatAttachmentPayload } from "../lib/chatAttachments";
@@ -91,10 +92,16 @@ async function authorizedFetch(
     ...((init.headers as Record<string, string> | undefined) ?? {}),
   };
 
-  return fetch(`${API_BASE_URL}${path}`, {
-    ...init,
-    headers,
-  });
+  try {
+    return await fetch(`${API_BASE_URL}${path}`, {
+      ...init,
+      headers,
+    });
+  } catch (err) {
+    // fetch only rejects when the request never reached the server.
+    reportError(err, { endpoint: path });
+    throw err;
+  }
 }
 
 function parseCitations(raw: unknown): MemoryCitation[] | undefined {
@@ -214,6 +221,8 @@ export async function streamChatMessage(
     if (isChatAbortError(err)) {
       throw new ChatAbortedError();
     }
+    // The request never reached the server (or the connection died).
+    reportError(err, { endpoint: "/chat?stream=1" });
     throw err;
   }
 
@@ -252,6 +261,8 @@ export async function streamChatMessage(
         if (isChatAbortError(err) || callbacks.signal?.aborted) {
           throw new ChatAbortedError();
         }
+        // The connection died mid-stream.
+        reportError(err, { endpoint: "/chat?stream=1" });
         throw err;
       }
       if (done) break;
