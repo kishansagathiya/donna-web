@@ -1,12 +1,17 @@
 /**
- * Read-aloud helper for assistant replies (Web Speech API).
- * Only one utterance plays at a time; subscribe to react to stop/start.
+ * Read-aloud helper for assistant replies via POST /tts (ElevenLabs).
+ * Only one clip plays at a time; subscribe to react to stop/start.
  */
+
+import { API_BASE_URL } from "../config";
+import { getAccessToken } from "../services/auth";
 
 const SPEAKING_CHANGE = "donna-speak-change";
 
 let speakingId: string | null = null;
-let activeUtterance: SpeechSynthesisUtterance | null = null;
+let activeAudio: HTMLAudioElement | null = null;
+let objectUrl: string | null = null;
+let abortController: AbortController | null = null;
 
 function notify(): void {
   window.dispatchEvent(new Event(SPEAKING_CHANGE));
@@ -49,24 +54,29 @@ export function subscribeSpeaking(listener: () => void): () => void {
   return () => window.removeEventListener(SPEAKING_CHANGE, listener);
 }
 
-export function stopSpeaking(): void {
-  if (typeof window === "undefined" || !window.speechSynthesis) {
-    speakingId = null;
-    activeUtterance = null;
-    notify();
-    return;
+function clearAudio(): void {
+  if (activeAudio) {
+    activeAudio.onended = null;
+    activeAudio.onerror = null;
+    activeAudio.pause();
+    activeAudio.src = "";
+    activeAudio = null;
   }
-  window.speechSynthesis.cancel();
+  if (objectUrl) {
+    URL.revokeObjectURL(objectUrl);
+    objectUrl = null;
+  }
+}
+
+export function stopSpeaking(): void {
+  abortController?.abort();
+  abortController = null;
+  clearAudio();
   speakingId = null;
-  activeUtterance = null;
   notify();
 }
 
-export function speakText(id: string, text: string): void {
-  if (typeof window === "undefined" || !window.speechSynthesis) {
-    return;
-  }
-
+export async function speakText(id: string, text: string): Promise<void> {
   const cleaned = prepareTextForSpeech(text);
   if (!cleaned) return;
 
@@ -76,22 +86,77 @@ export function speakText(id: string, text: string): void {
   }
 
   stopSpeaking();
-
-  const utterance = new SpeechSynthesisUtterance(cleaned);
-  utterance.rate = 1.05;
-  activeUtterance = utterance;
   speakingId = id;
   notify();
 
-  const clearIfCurrent = () => {
-    if (activeUtterance !== utterance) return;
+  const controller = new AbortController();
+  abortController = controller;
+
+  try {
+    const token = await getAccessToken();
+    if (!token) {
+      throw new Error("Not signed in");
+    }
+
+    const res = await fetch(`${API_BASE_URL}/tts`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Accept: "audio/mpeg, audio/wav, */*",
+      },
+      body: JSON.stringify({ text: cleaned }),
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      let message = `Could not speak reply (${res.status})`;
+      try {
+        const body = (await res.json()) as { message?: string; error?: string };
+        message = body.message ?? body.error ?? message;
+      } catch {
+        // ignore
+      }
+      throw new Error(message);
+    }
+
+    if (controller.signal.aborted || speakingId !== id) {
+      return;
+    }
+
+    const blob = await res.blob();
+    if (controller.signal.aborted || speakingId !== id) {
+      return;
+    }
+
+    const url = URL.createObjectURL(blob);
+    objectUrl = url;
+    const audio = new Audio(url);
+    activeAudio = audio;
+
+    const clearIfCurrent = () => {
+      if (activeAudio !== audio) return;
+      clearAudio();
+      if (speakingId === id) {
+        speakingId = null;
+        notify();
+      }
+    };
+
+    audio.onended = clearIfCurrent;
+    audio.onerror = clearIfCurrent;
+    await audio.play();
+  } catch (err) {
+    if (controller.signal.aborted) {
+      return;
+    }
     speakingId = null;
-    activeUtterance = null;
+    clearAudio();
     notify();
-  };
-
-  utterance.onend = clearIfCurrent;
-  utterance.onerror = clearIfCurrent;
-
-  window.speechSynthesis.speak(utterance);
+    throw err;
+  } finally {
+    if (abortController === controller) {
+      abortController = null;
+    }
+  }
 }

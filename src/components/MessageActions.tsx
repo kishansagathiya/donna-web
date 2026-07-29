@@ -171,7 +171,9 @@ export function MessageActions({
           aria-label={isSpeaking ? "Stop reading aloud" : "Read aloud"}
           aria-pressed={isSpeaking}
           disabled={busy}
-          onClick={() => speakText(message.id, message.content)}
+          onClick={() => {
+            void speakText(message.id, message.content);
+          }}
         >
           {isSpeaking ? (
             <VolumeX className="h-3.5 w-3.5" strokeWidth={1.75} />
