@@ -194,11 +194,11 @@ export function ChatApp() {
             <IconButton
               onClick={() => setHistorySheetOpen(true)}
               aria-label="Chat history"
-              className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface lg:hidden"
+              className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface lg:!hidden"
             >
               <History className="h-5 w-5" strokeWidth={1.75} />
             </IconButton>
-            {/* Desktop: expand right panel — sits next to where the panel opens */}
+            {/* Desktop: expand right panel — hidden on phone (panel is lg-only) */}
             <IconButton
               onClick={() => setHistoryPanelOpen((open) => !open)}
               aria-label={
@@ -206,7 +206,7 @@ export function ChatApp() {
               }
               aria-pressed={historyPanelOpen}
               className={cn(
-                "!h-9 !w-9 !border-transparent !bg-transparent hover:!bg-donna-surface hidden lg:inline-flex",
+                "!h-9 !w-9 !border-transparent !bg-transparent hover:!bg-donna-surface !hidden lg:!inline-flex",
                 historyPanelOpen ? "!text-donna-primary" : "!text-donna-muted",
               )}
             >
