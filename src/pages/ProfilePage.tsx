@@ -12,6 +12,7 @@ import { Button } from "../components/ui/Button";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { Spinner } from "../components/ui/Spinner";
 import { ThemeToggle } from "../components/ThemeToggle";
+import { ExperimentalSection } from "../components/ExperimentalSection";
 import { IntegrationsSection } from "../components/IntegrationsSection";
 import { useAuth } from "../hooks/useAuth";
 import {
@@ -327,6 +328,8 @@ export function ProfilePage() {
         </div>
 
         <ThemeToggle className="mb-8 max-w-lg" />
+
+        <ExperimentalSection />
 
         <IntegrationsSection />
 
