@@ -1,5 +1,5 @@
 /**
- * Read-aloud helper for assistant replies via POST /tts (ElevenLabs).
+ * Read-aloud helper for assistant replies via POST /tts (Cartesia by default).
  * Uses AudioContext so playback still works after the TTS network round-trip
  * (HTMLAudioElement.play() often fails once the click gesture has expired).
  */
