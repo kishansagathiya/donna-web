@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { cn } from "../lib/cn";
 import type { UiMessage } from "../hooks/useChatSession";
+import { ReplyAudioControls } from "./ReplyAudioControls";
 
 type Props = {
   message: UiMessage;
@@ -20,6 +21,7 @@ type Props = {
   onEdit?: (messageId: string, nextText: string) => void;
   onFeedback?: (messageId: string, rating: "up" | "down") => void;
   onSaveAsNote?: (content: string) => void | Promise<void>;
+  onSpeakError?: (message: string) => void;
 };
 
 export function MessageActions({
@@ -31,6 +33,7 @@ export function MessageActions({
   onEdit,
   onFeedback,
   onSaveAsNote,
+  onSpeakError,
 }: Props) {
   const [copied, setCopied] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -94,7 +97,7 @@ export function MessageActions({
   return (
     <div
       className={cn(
-        "mt-1 flex items-center gap-0.5",
+        "mt-1 flex flex-wrap items-center gap-0.5",
         message.role === "user" ? "justify-end" : "justify-start",
       )}
     >
@@ -149,6 +152,16 @@ export function MessageActions({
         >
           <Pencil className="h-3.5 w-3.5" strokeWidth={1.75} />
         </button>
+      ) : null}
+
+      {message.role === "assistant" && message.content.trim() ? (
+        <ReplyAudioControls
+          messageId={message.id}
+          content={message.content}
+          busy={busy}
+          onError={onSpeakError}
+          actionClass={actionClass}
+        />
       ) : null}
 
       {message.role === "assistant" && isLatestAssistant && onRegenerate ? (

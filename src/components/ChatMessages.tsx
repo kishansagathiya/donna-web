@@ -10,6 +10,7 @@ import { AssistantThinkingBlock } from "./ThinkingIndicator";
 import { cn } from "../lib/cn";
 import { isGeneratingPhase } from "../lib/chatPhaseLabel";
 import { formatChatTiming } from "../lib/formatFirstTokenMs";
+import { prefetchSpeak } from "../lib/speak";
 import { isDonnaThinkingPhase } from "../lib/thinkingPhrases";
 
 /** Distance from bottom (px) that still counts as "following" the stream. */
@@ -31,6 +32,7 @@ type Props = {
   onFeedback?: (messageId: string, rating: "up" | "down") => void;
   onSaveAsNote?: (content: string) => void | Promise<void>;
   onRetry?: () => void;
+  onSpeakError?: (message: string) => void;
 };
 
 export function ChatMessages({
@@ -49,6 +51,7 @@ export function ChatMessages({
   onFeedback,
   onSaveAsNote,
   onRetry,
+  onSpeakError,
 }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -89,6 +92,22 @@ export function ChatMessages({
     }
     return null;
   }, [messages]);
+
+  // Warm TTS as soon as the latest reply finishes so speak is instant.
+  useEffect(() => {
+    if (!latestAssistantId) return;
+    const latest = messages.find((m) => m.id === latestAssistantId);
+    if (
+      !latest ||
+      latest.role !== "assistant" ||
+      latest.streaming ||
+      latest.error ||
+      !latest.content.trim()
+    ) {
+      return;
+    }
+    prefetchSpeak(latest.id, latest.content);
+  }, [latestAssistantId, messages]);
 
   const lastTextMessage = messages[messages.length - 1];
   const showRetry =
@@ -274,6 +293,7 @@ export function ChatMessages({
                     onEdit={onEditMessage}
                     onFeedback={onFeedback}
                     onSaveAsNote={onSaveAsNote}
+                    onSpeakError={onSpeakError}
                   />
                 ) : null}
 
