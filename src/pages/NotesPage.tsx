@@ -24,7 +24,6 @@ import {
 import { cn } from "../lib/cn";
 import {
   enrichmentLabel,
-  noteCardGrey,
   noteTagList,
   sourceLabel,
 } from "../lib/noteDisplay";
@@ -60,7 +59,7 @@ function NoteComposeBar({
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 128)}px`;
+    el.style.height = `${Math.min(el.scrollHeight, 220)}px`;
   }
 
   useEffect(() => {
@@ -99,9 +98,9 @@ function NoteComposeBar({
           onKeyDown={handleKeyDown}
           placeholder="Jot down a note…"
           disabled={saving || ingestBusy}
-          rows={1}
+          rows={4}
           className={cn(
-            "min-h-[44px] flex-1 resize-none rounded-donna border border-donna-border bg-white px-3 py-2.5",
+            "min-h-[96px] flex-1 resize-none rounded-donna border border-donna-border bg-white px-3 py-2.5",
             "text-base leading-relaxed text-donna-text placeholder:text-donna-muted",
             "focus:border-donna-gold-ring focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30",
             "disabled:cursor-not-allowed disabled:opacity-60",
@@ -533,7 +532,6 @@ export function NotesPage() {
               <li key={note.id} className="mb-3 break-inside-avoid">
                 <Card
                   onClick={() => navigate(`/app/notes/${note.id}`)}
-                  style={{ backgroundColor: noteCardGrey(note.id) }}
                   className="h-auto w-full"
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -584,7 +582,7 @@ export function NotesPage() {
                   <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-donna-muted">
                     <span>{formatNoteDate(note.note_date)}</span>
                     {source ? (
-                      <span className="rounded-full bg-white/70 px-2 py-0.5 capitalize">
+                      <span className="rounded-full bg-donna-surface px-2 py-0.5 capitalize">
                         {source}
                       </span>
                     ) : null}
@@ -596,7 +594,7 @@ export function NotesPage() {
                             "bg-donna-destructive/10 text-donna-destructive",
                           enrichment.tone === "warn" &&
                             "bg-donna-gold/15 text-donna-gold",
-                          enrichment.tone === "muted" && "bg-white/70",
+                          enrichment.tone === "muted" && "bg-donna-surface",
                         )}
                       >
                         {enrichment.label}
@@ -624,7 +622,7 @@ export function NotesPage() {
                       {tagsForNote.slice(0, 6).map((tag) => (
                         <span
                           key={tag}
-                          className="rounded-full bg-white/70 px-2 py-0.5 text-[0.6875rem] text-donna-muted"
+                          className="rounded-full bg-donna-surface px-2 py-0.5 text-[0.6875rem] text-donna-muted"
                         >
                           #{tag}
                         </span>
