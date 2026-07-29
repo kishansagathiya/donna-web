@@ -24,6 +24,7 @@ import {
 import { cn } from "../lib/cn";
 import {
   enrichmentLabel,
+  noteCardGrey,
   noteTagList,
   sourceLabel,
 } from "../lib/noteDisplay";
@@ -522,15 +523,19 @@ export function NotesPage() {
           />
         ) : null}
 
-        <ul className="flex flex-col gap-3 px-5 py-3 pb-6">
+        <ul className="columns-1 gap-3 px-5 py-3 pb-6 sm:columns-2 lg:columns-3">
           {notes.map((note) => {
             const failure = failedByNoteId.get(note.id);
             const source = sourceLabel(note.source_type);
             const enrichment = enrichmentLabel(note.enrichment_status);
             const tagsForNote = noteTagList(note);
             return (
-              <li key={note.id}>
-                <Card onClick={() => navigate(`/app/notes/${note.id}`)}>
+              <li key={note.id} className="mb-3 break-inside-avoid">
+                <Card
+                  onClick={() => navigate(`/app/notes/${note.id}`)}
+                  style={{ backgroundColor: noteCardGrey(note.id) }}
+                  className="h-auto w-full"
+                >
                   <div className="flex items-start justify-between gap-2">
                     <span className="text-base font-semibold text-donna-text">
                       {note.title}
@@ -572,14 +577,14 @@ export function NotesPage() {
                     </span>
                   </div>
                   {note.preview ? (
-                    <p className="mt-1.5 line-clamp-3 text-sm leading-snug text-donna-muted">
+                    <p className="mt-1.5 whitespace-pre-wrap text-sm leading-snug text-donna-muted">
                       {note.preview}
                     </p>
                   ) : null}
                   <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-donna-muted">
                     <span>{formatNoteDate(note.note_date)}</span>
                     {source ? (
-                      <span className="rounded-full bg-donna-surface px-2 py-0.5 capitalize">
+                      <span className="rounded-full bg-white/70 px-2 py-0.5 capitalize">
                         {source}
                       </span>
                     ) : null}
@@ -591,7 +596,7 @@ export function NotesPage() {
                             "bg-donna-destructive/10 text-donna-destructive",
                           enrichment.tone === "warn" &&
                             "bg-donna-gold/15 text-donna-gold",
-                          enrichment.tone === "muted" && "bg-donna-surface",
+                          enrichment.tone === "muted" && "bg-white/70",
                         )}
                       >
                         {enrichment.label}
@@ -619,7 +624,7 @@ export function NotesPage() {
                       {tagsForNote.slice(0, 6).map((tag) => (
                         <span
                           key={tag}
-                          className="rounded-full bg-donna-surface px-2 py-0.5 text-[0.6875rem] text-donna-muted"
+                          className="rounded-full bg-white/70 px-2 py-0.5 text-[0.6875rem] text-donna-muted"
                         >
                           #{tag}
                         </span>
