@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FileUp, Flame, Link2, Pin, Search, Send, StickyNote, Star } from "lucide-react";
+import { Bookmark, Flame, Link2, Pin, Search, Send, StickyNote, Star } from "lucide-react";
 import {
   formatNoteDate,
   newNoteId,
   type NoteSummary,
 } from "../services/notesApi";
-import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Spinner } from "../components/ui/Spinner";
 import { AlertBanner } from "../components/ui/AlertBanner";
@@ -59,7 +58,7 @@ function NoteComposeBar({
     const el = textareaRef.current;
     if (!el) return;
     el.style.height = "auto";
-    el.style.height = `${Math.min(el.scrollHeight, 220)}px`;
+    el.style.height = `${Math.min(Math.max(el.scrollHeight, 120), 240)}px`;
   }
 
   useEffect(() => {
@@ -90,7 +89,10 @@ function NoteComposeBar({
 
   return (
     <div className="shrink-0 border-b border-donna-border px-5 py-3 md:px-8">
-      <form onSubmit={handleSubmit} className="flex items-end gap-2">
+      <form
+        onSubmit={handleSubmit}
+        className="overflow-hidden rounded-donna border border-donna-border bg-white"
+      >
         <textarea
           ref={textareaRef}
           value={draft}
@@ -100,111 +102,113 @@ function NoteComposeBar({
           disabled={saving || ingestBusy}
           rows={4}
           className={cn(
-            "min-h-[96px] flex-1 resize-none rounded-donna border border-donna-border bg-white px-3 py-2.5",
+            "min-h-[120px] w-full resize-none border-0 bg-transparent px-4 py-3",
             "text-base leading-relaxed text-donna-text placeholder:text-donna-muted",
-            "focus:border-donna-gold-ring focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30",
+            "focus:outline-none focus:ring-0",
             "disabled:cursor-not-allowed disabled:opacity-60",
           )}
         />
-        <button
-          type="submit"
-          disabled={!hasText || saving || ingestBusy}
-          aria-label="Save note"
-          className={cn(
-            "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors",
-            hasText && !saving && !ingestBusy
-              ? "bg-donna-primary text-white hover:bg-donna-primary-hover"
-              : "bg-donna-surface text-donna-muted",
-            "disabled:cursor-not-allowed disabled:opacity-60",
-          )}
-        >
-          {saving ? (
-            <Spinner className="h-4 w-4" />
-          ) : (
-            <Send className="h-4 w-4" />
-          )}
-        </button>
-      </form>
 
-      {linkOpen ? (
-        <div className="mt-3 flex gap-2">
-          <input
-            value={linkValue}
-            onChange={(e) => onLinkValueChange(e.target.value)}
-            placeholder="https://…"
-            disabled={ingestBusy}
-            autoFocus
-            className={cn(
-              "min-w-0 flex-1 rounded-donna border border-donna-border bg-white px-3 py-2.5",
-              "text-sm text-donna-text placeholder:text-donna-muted",
-              "focus:border-donna-gold-ring focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30",
-              "disabled:cursor-not-allowed disabled:opacity-60",
-            )}
-            aria-label="URL to save"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                onSubmitLink();
-              }
-              if (e.key === "Escape") {
-                onCancelLink();
-              }
-            }}
-          />
-          <button
-            type="button"
-            onClick={onSubmitLink}
-            disabled={ingestBusy || !linkValue.trim()}
-            className={cn(
-              "rounded-donna bg-donna-primary px-3 py-2 text-sm font-medium text-white",
-              "hover:bg-donna-primary-hover disabled:cursor-not-allowed disabled:opacity-60",
-            )}
-          >
-            Save
-          </button>
-          <button
-            type="button"
-            onClick={onCancelLink}
-            disabled={ingestBusy}
-            className="rounded-donna px-2 text-sm text-donna-muted hover:text-donna-text"
-          >
-            Cancel
-          </button>
-        </div>
-      ) : (
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={onAddLink}
-            disabled={ingestBusy}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border border-donna-border bg-donna-surface px-3 py-1.5",
-              "text-xs font-medium text-donna-muted transition-colors",
-              "hover:border-donna-primary/30 hover:text-donna-text",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
-              "disabled:cursor-not-allowed disabled:opacity-50",
-            )}
-          >
-            <Link2 className="h-3.5 w-3.5" strokeWidth={1.75} />
-            Add link
-          </button>
-          <button
-            type="button"
-            onClick={onSaveToMemory}
-            disabled={ingestBusy}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full border border-donna-border bg-donna-surface px-3 py-1.5",
-              "text-xs font-medium text-donna-muted transition-colors",
-              "hover:border-donna-primary/30 hover:text-donna-text",
-              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
-              "disabled:cursor-not-allowed disabled:opacity-50",
-            )}
-          >
-            <FileUp className="h-3.5 w-3.5" strokeWidth={1.75} />
-            Save to memory
-          </button>
-        </div>
-      )}
+        {linkOpen ? (
+          <div className="flex gap-2 border-t border-donna-border px-3 py-2.5">
+            <input
+              value={linkValue}
+              onChange={(e) => onLinkValueChange(e.target.value)}
+              placeholder="https://…"
+              disabled={ingestBusy}
+              autoFocus
+              className={cn(
+                "min-w-0 flex-1 rounded-donna border border-donna-border bg-white px-3 py-2",
+                "text-sm text-donna-text placeholder:text-donna-muted",
+                "focus:border-donna-gold-ring focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30",
+                "disabled:cursor-not-allowed disabled:opacity-60",
+              )}
+              aria-label="URL to save"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  onSubmitLink();
+                }
+                if (e.key === "Escape") {
+                  onCancelLink();
+                }
+              }}
+            />
+            <button
+              type="button"
+              onClick={onSubmitLink}
+              disabled={ingestBusy || !linkValue.trim()}
+              className={cn(
+                "rounded-donna bg-donna-primary px-3 py-2 text-sm font-medium text-white",
+                "hover:bg-donna-primary-hover disabled:cursor-not-allowed disabled:opacity-60",
+              )}
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={onCancelLink}
+              disabled={ingestBusy}
+              className="rounded-donna px-2 text-sm text-donna-muted hover:text-donna-text"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-3 border-t border-donna-border px-3 py-2">
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={onAddLink}
+                disabled={ingestBusy}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border border-donna-border bg-white px-3 py-1.5",
+                  "text-xs font-medium text-donna-text transition-colors",
+                  "hover:bg-donna-surface",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
+                  "disabled:cursor-not-allowed disabled:opacity-50",
+                )}
+              >
+                <Link2 className="h-3.5 w-3.5" strokeWidth={1.75} />
+                Add link
+              </button>
+              <button
+                type="button"
+                onClick={onSaveToMemory}
+                disabled={ingestBusy}
+                className={cn(
+                  "inline-flex items-center gap-1.5 rounded-full border border-donna-border bg-white px-3 py-1.5",
+                  "text-xs font-medium text-donna-text transition-colors",
+                  "hover:bg-donna-surface",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
+                  "disabled:cursor-not-allowed disabled:opacity-50",
+                )}
+              >
+                <Bookmark className="h-3.5 w-3.5" strokeWidth={1.75} />
+                Save to memory
+              </button>
+            </div>
+            <button
+              type="submit"
+              disabled={!hasText || saving || ingestBusy}
+              aria-label="Save note"
+              className={cn(
+                "flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors",
+                hasText && !saving && !ingestBusy
+                  ? "text-donna-primary hover:bg-donna-surface"
+                  : "text-donna-muted",
+                "disabled:cursor-not-allowed disabled:opacity-40",
+              )}
+            >
+              {saving ? (
+                <Spinner className="h-4 w-4" />
+              ) : (
+                <Send className="h-4 w-4" strokeWidth={1.75} />
+              )}
+            </button>
+          </div>
+        )}
+      </form>
     </div>
   );
 }
@@ -522,114 +526,127 @@ export function NotesPage() {
           />
         ) : null}
 
-        <ul className="columns-1 gap-3 px-5 py-3 pb-6 sm:columns-2 lg:columns-3">
+        <ul className="grid grid-cols-1 gap-3 px-5 py-3 pb-6 sm:grid-cols-2 lg:grid-cols-3">
           {notes.map((note) => {
             const failure = failedByNoteId.get(note.id);
             const source = sourceLabel(note.source_type);
             const enrichment = enrichmentLabel(note.enrichment_status);
             const tagsForNote = noteTagList(note);
+            const statusPill = enrichment ?? (source
+              ? { label: source, tone: "muted" as const }
+              : null);
+            const body = note.preview?.trim() || note.title;
             return (
-              <li key={note.id} className="mb-3 break-inside-avoid">
-                <Card
+              <li key={note.id} className="min-w-0">
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => navigate(`/app/notes/${note.id}`)}
-                  className="h-auto w-full"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      navigate(`/app/notes/${note.id}`);
+                    }
+                  }}
+                  className={cn(
+                    "flex h-full min-h-[160px] w-full cursor-pointer flex-col rounded-donna border border-donna-border",
+                    "bg-donna-surface p-4 text-left transition-colors",
+                    "hover:border-donna-gold-ring",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-gold-ring focus-visible:ring-offset-2",
+                  )}
                 >
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-base font-semibold text-donna-text">
-                      {note.title}
-                    </span>
-                    <span className="flex shrink-0 gap-1">
-                      <button
-                        type="button"
-                        aria-label={note.is_urgent ? "Mark not urgent" : "Mark urgent"}
-                        className={cn(
-                          "rounded-full p-1 transition-colors",
-                          note.is_urgent
-                            ? "text-donna-destructive"
-                            : "text-donna-muted hover:text-donna-destructive",
-                        )}
-                        onClick={(e) => void toggleFlag(note, "is_urgent", e)}
-                      >
-                        <Flame className="h-4 w-4" />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label={
-                          note.is_important ? "Mark not important" : "Mark important"
-                        }
-                        className={cn(
-                          "rounded-full p-1 transition-colors",
-                          note.is_important
-                            ? "fill-donna-primary text-donna-primary"
-                            : "text-donna-muted hover:text-donna-primary",
-                        )}
-                        onClick={(e) => void toggleFlag(note, "is_important", e)}
-                      >
-                        <Star
+                  <div className="flex min-h-0 flex-1 flex-col gap-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="line-clamp-5 whitespace-pre-wrap text-[0.9375rem] leading-relaxed text-donna-text">
+                        {body}
+                      </p>
+                      <span className="flex shrink-0 gap-0.5">
+                        <button
+                          type="button"
+                          aria-label={note.is_urgent ? "Mark not urgent" : "Mark urgent"}
                           className={cn(
-                            "h-4 w-4",
-                            note.is_important && "fill-current",
+                            "rounded-full p-1 transition-colors",
+                            note.is_urgent
+                              ? "text-donna-destructive"
+                              : "text-donna-muted/50 hover:text-donna-destructive",
                           )}
-                        />
-                      </button>
-                    </span>
-                  </div>
-                  {note.preview ? (
-                    <p className="mt-1.5 whitespace-pre-wrap text-sm leading-snug text-donna-muted">
-                      {note.preview}
-                    </p>
-                  ) : null}
-                  <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-donna-muted">
-                    <span>{formatNoteDate(note.note_date)}</span>
-                    {source ? (
-                      <span className="rounded-full bg-donna-surface px-2 py-0.5 capitalize">
-                        {source}
-                      </span>
-                    ) : null}
-                    {enrichment ? (
-                      <span
-                        className={cn(
-                          "rounded-full px-2 py-0.5",
-                          enrichment.tone === "error" &&
-                            "bg-donna-destructive/10 text-donna-destructive",
-                          enrichment.tone === "warn" &&
-                            "bg-donna-gold/15 text-donna-gold",
-                          enrichment.tone === "muted" && "bg-donna-surface",
-                        )}
-                      >
-                        {enrichment.label}
-                      </span>
-                    ) : null}
-                    {failure ? (
-                      <button
-                        type="button"
-                        className="text-donna-destructive hover:underline"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void retryFailed(failure).catch((err: unknown) => {
-                            setActionError(
-                              err instanceof Error ? err.message : "Retry failed",
-                            );
-                          });
-                        }}
-                      >
-                        Sync failed · Retry
-                      </button>
-                    ) : null}
-                  </div>
-                  {tagsForNote.length > 0 ? (
-                    <div className="mt-1.5 flex flex-wrap gap-1">
-                      {tagsForNote.slice(0, 6).map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded-full bg-donna-surface px-2 py-0.5 text-[0.6875rem] text-donna-muted"
+                          onClick={(e) => void toggleFlag(note, "is_urgent", e)}
                         >
-                          #{tag}
-                        </span>
-                      ))}
+                          <Flame className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={
+                            note.is_important ? "Mark not important" : "Mark important"
+                          }
+                          className={cn(
+                            "rounded-full p-1 transition-colors",
+                            note.is_important
+                              ? "fill-donna-primary text-donna-primary"
+                              : "text-donna-muted/50 hover:text-donna-primary",
+                          )}
+                          onClick={(e) => void toggleFlag(note, "is_important", e)}
+                        >
+                          <Star
+                            className={cn(
+                              "h-3.5 w-3.5",
+                              note.is_important && "fill-current",
+                            )}
+                          />
+                        </button>
+                      </span>
                     </div>
-                  ) : null}
-                </Card>
+                    {tagsForNote.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {tagsForNote.slice(0, 4).map((tag) => (
+                          <span
+                            key={tag}
+                            className="rounded-full border border-donna-border bg-white/60 px-2 py-0.5 text-[0.6875rem] text-donna-muted"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="mt-3 flex items-center justify-between gap-2 border-t border-donna-border pt-2.5">
+                    <span className="truncate text-xs text-donna-muted">
+                      {formatNoteDate(note.note_date)}
+                    </span>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      {failure ? (
+                        <button
+                          type="button"
+                          className="text-xs text-donna-destructive hover:underline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            void retryFailed(failure).catch((err: unknown) => {
+                              setActionError(
+                                err instanceof Error ? err.message : "Retry failed",
+                              );
+                            });
+                          }}
+                        >
+                          Sync failed
+                        </button>
+                      ) : null}
+                      {statusPill ? (
+                        <span
+                          className={cn(
+                            "rounded-md border border-donna-border bg-white px-2 py-0.5 text-[0.6875rem] capitalize text-donna-muted",
+                            statusPill.tone === "error" &&
+                              "border-donna-destructive/30 text-donna-destructive",
+                            statusPill.tone === "warn" &&
+                              "border-donna-gold/40 text-donna-gold",
+                          )}
+                        >
+                          {statusPill.label}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
               </li>
             );
           })}
