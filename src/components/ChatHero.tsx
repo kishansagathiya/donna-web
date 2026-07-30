@@ -56,7 +56,7 @@ export function ChatHero({
             Ask Donna anything
           </h1>
           <p className="mt-3 max-w-md text-base leading-relaxed text-donna-muted">
-            Your second brain — she remembers notes, past chats, and what you
+            Your Personal Assistant — she remembers notes, past chats, and what you
             said out loud.
           </p>
         </>
