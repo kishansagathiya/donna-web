@@ -63,7 +63,7 @@ export function TagTaxonomyPanel({
   };
 
   return (
-    <div className="shrink-0 border-b border-donna-border px-5 py-2 md:px-8">
+    <div className="border-b border-donna-border px-5 py-2 md:px-8">
       <button
         type="button"
         className="text-xs font-medium text-donna-muted hover:text-donna-text"

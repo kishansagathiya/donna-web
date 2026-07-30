@@ -88,7 +88,7 @@ function NoteComposeBar({
   }
 
   return (
-    <div className="shrink-0 border-b border-donna-border px-5 py-3 md:px-8">
+    <div className="border-b border-donna-border px-5 py-3 md:px-8">
       <form
         onSubmit={handleSubmit}
         className="overflow-hidden rounded-donna border border-donna-border bg-white"
@@ -370,7 +370,7 @@ export function NotesPage() {
       ) : null}
 
       <header className="shrink-0 border-b border-donna-border px-6 py-4 md:px-8">
-        <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3">
           <h1 className="text-xl font-semibold text-donna-text">Notes</h1>
           <button
             type="button"
@@ -387,37 +387,7 @@ export function NotesPage() {
             Pinned tags
           </button>
         </div>
-        <label className="relative block">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-donna-muted" />
-          <input
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            placeholder="Search notes…"
-            className={cn(
-              "w-full rounded-donna border border-donna-border bg-white py-2.5 pl-9 pr-3",
-              "text-sm text-donna-text placeholder:text-donna-muted",
-              "focus:border-donna-gold-ring focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30",
-            )}
-            aria-label="Search notes"
-          />
-        </label>
       </header>
-
-      <NoteComposeBar
-        onSave={handleCreateNote}
-        saving={createMutation.isPending}
-        ingestBusy={ingestBusy}
-        linkOpen={linkOpen}
-        linkValue={linkValue}
-        onLinkValueChange={setLinkValue}
-        onAddLink={() => setLinkOpen(true)}
-        onSaveToMemory={() => memoryInputRef.current?.click()}
-        onSubmitLink={() => void handleSubmitLink()}
-        onCancelLink={() => {
-          setLinkOpen(false);
-          setLinkValue("");
-        }}
-      />
 
       <input
         ref={memoryInputRef}
@@ -431,51 +401,84 @@ export function NotesPage() {
         }}
       />
 
-      <TagTaxonomyPanel
-        onChanged={() => {
-          void feedQuery.refetch();
-          void tagsQuery.refetch();
-        }}
-      />
-
-      {visibleTags.length > 0 || pinnedOnly ? (
-        <div className="flex shrink-0 flex-wrap gap-1.5 border-b border-donna-border px-5 py-3 md:px-8">
-          <button
-            type="button"
-            onClick={() => setActiveTag(null)}
-            className={cn(
-              "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
-              activeTag === null
-                ? "bg-donna-primary text-white"
-                : "bg-donna-surface text-donna-muted hover:text-donna-text",
-            )}
-          >
-            All
-          </button>
-          {visibleTags.map((t) => (
-            <button
-              key={t.tag}
-              type="button"
-              onClick={() => setActiveTag(t.tag)}
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        <div className="border-b border-donna-border px-5 pb-3 pt-4 md:px-8">
+          <label className="relative block">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-donna-muted" />
+            <input
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              placeholder="Search notes…"
               className={cn(
-                "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
-                activeTag === t.tag
+                "w-full rounded-donna border border-donna-border bg-white py-2.5 pl-9 pr-3",
+                "text-sm text-donna-text placeholder:text-donna-muted",
+                "focus:border-donna-gold-ring focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30",
+              )}
+              aria-label="Search notes"
+            />
+          </label>
+        </div>
+
+        <TagTaxonomyPanel
+          onChanged={() => {
+            void feedQuery.refetch();
+            void tagsQuery.refetch();
+          }}
+        />
+
+        <NoteComposeBar
+          onSave={handleCreateNote}
+          saving={createMutation.isPending}
+          ingestBusy={ingestBusy}
+          linkOpen={linkOpen}
+          linkValue={linkValue}
+          onLinkValueChange={setLinkValue}
+          onAddLink={() => setLinkOpen(true)}
+          onSaveToMemory={() => memoryInputRef.current?.click()}
+          onSubmitLink={() => void handleSubmitLink()}
+          onCancelLink={() => {
+            setLinkOpen(false);
+            setLinkValue("");
+          }}
+        />
+
+        {visibleTags.length > 0 || pinnedOnly ? (
+          <div className="flex flex-wrap gap-1.5 border-b border-donna-border px-5 py-3 md:px-8">
+            <button
+              type="button"
+              onClick={() => setActiveTag(null)}
+              className={cn(
+                "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
+                activeTag === null
                   ? "bg-donna-primary text-white"
                   : "bg-donna-surface text-donna-muted hover:text-donna-text",
               )}
             >
-              {t.pinned ? <Pin className="h-3 w-3" strokeWidth={2} /> : null}
-              #{t.tag}
-              <span className="opacity-60">{t.count}</span>
+              All
             </button>
-          ))}
-          {pinnedOnly && visibleTags.length === 0 ? (
-            <span className="text-xs text-donna-muted">No pinned tags yet.</span>
-          ) : null}
-        </div>
-      ) : null}
+            {visibleTags.map((t) => (
+              <button
+                key={t.tag}
+                type="button"
+                onClick={() => setActiveTag(t.tag)}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
+                  activeTag === t.tag
+                    ? "bg-donna-primary text-white"
+                    : "bg-donna-surface text-donna-muted hover:text-donna-text",
+                )}
+              >
+                {t.pinned ? <Pin className="h-3 w-3" strokeWidth={2} /> : null}
+                #{t.tag}
+                <span className="opacity-60">{t.count}</span>
+              </button>
+            ))}
+            {pinnedOnly && visibleTags.length === 0 ? (
+              <span className="text-xs text-donna-muted">No pinned tags yet.</span>
+            ) : null}
+          </div>
+        ) : null}
 
-      <div className="flex flex-1 flex-col overflow-y-auto">
         {error ? (
           <AlertBanner className="mx-5 mt-3">{error}</AlertBanner>
         ) : null}
@@ -513,7 +516,7 @@ export function NotesPage() {
         ) : null}
 
         {showInitialSpinner ? (
-          <div className="flex flex-1 items-center justify-center py-12">
+          <div className="flex items-center justify-center py-12">
             <Spinner />
           </div>
         ) : null}
