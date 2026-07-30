@@ -29,12 +29,14 @@ export function Landing() {
         />
         <p className="landing-eyebrow">Now on the App Store</p>
         <h1>
-          AI Second Brain, but the <em>BEST</em>
+          AI Personal Assistant for Founders, but the <em>BEST</em>
         </h1>
         <p className="landing-tagline">
-          Donna is your voice-powered AI second brain — built for people who
-          think out loud. Tap the mic on iPhone, speak naturally, and she
-          replies out loud. Notes and memory stay with you on the web too.
+          Donna is your AI personal assistant
+          - It learns and remembersyou through memory,
+          - It executes tasks on your behalf,
+          - Web and iOS,
+          - Faster and Better LLM Chat,
         </p>
         <div className="landing-actions">
           <a
