@@ -50,6 +50,9 @@ function resolveVoiceWsUrl(): string {
 
 export const VOICE_WS_URL = resolveVoiceWsUrl();
 
+/** Gemini Live duplex Voice harness (separate from push-to-talk /voice). */
+export const LIVE_VOICE_WS_URL = VOICE_WS_URL.replace(/\/voice\/?$/, "/voice/live");
+
 export const AUDIO_SAMPLE_RATE = 16_000;
 export const AUDIO_CHANNELS = 1;
 export const VAD_SILENCE_MS = 350;

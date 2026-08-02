@@ -5,6 +5,7 @@ import {
   Database,
   Inbox,
   MessageSquare,
+  Mic,
   Plus,
   StickyNote,
   User,
@@ -14,6 +15,7 @@ import { cn } from "../lib/cn";
 
 const navItems = [
   { to: "/app", label: "Chat", icon: MessageSquare, end: true },
+  { to: "/app/voice", label: "Voice", icon: Mic, end: true },
   { to: "/app/notes", label: "Notes", icon: StickyNote, end: false },
   { to: "/app/actions", label: "Actions", icon: Inbox, end: false },
   { to: "/app/today", label: "Today", icon: CalendarCheck, end: false },
