@@ -2,7 +2,8 @@ function isAppRoute(pathname: string) {
   return (
     pathname === "/login" ||
     pathname === "/consent" ||
-    pathname.startsWith("/app")
+    pathname.startsWith("/app") ||
+    pathname.startsWith("/share/")
   );
 }
 

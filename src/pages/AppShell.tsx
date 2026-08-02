@@ -114,3 +114,12 @@ export function LoginShell() {
     </AuthShellFrame>
   );
 }
+
+/** Public routes that should use the same app chrome/fonts as /app (e.g. shared chats). */
+export function SharedShell() {
+  return (
+    <AppShellFrame>
+      <Outlet />
+    </AppShellFrame>
+  );
+}

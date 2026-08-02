@@ -25,7 +25,12 @@ import { SearchNotesPage } from "./pages/SearchContextPage";
 import { AddMemoryPage } from "./pages/AddMemoryPage";
 import { ExtractedMemoryPage } from "./pages/ExtractedMemoryPage";
 import { ProfilePage } from "./pages/ProfilePage";
-import { AppShell, ConsentShell, LoginShell } from "./pages/AppShell";
+import {
+  AppShell,
+  ConsentShell,
+  LoginShell,
+  SharedShell,
+} from "./pages/AppShell";
 import { AppLayout } from "./pages/AppLayout";
 import { SharedConversationPage } from "./pages/SharedConversationPage";
 
@@ -72,7 +77,9 @@ export default function App() {
             <Route path="support" element={<Support />} />
           </Route>
 
-          <Route path="share/:token" element={<SharedConversationPage />} />
+          <Route element={<SharedShell />}>
+            <Route path="share/:token" element={<SharedConversationPage />} />
+          </Route>
 
           <Route element={<LoginShell />}>
             <Route path="login" element={<Login />} />

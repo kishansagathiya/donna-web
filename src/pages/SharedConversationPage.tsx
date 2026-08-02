@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { DonnaLogo } from "../components/DonnaLogo";
+import { MessageContent } from "../components/MessageContent";
+import { Spinner } from "../components/ui/Spinner";
+import { useAuth } from "../hooks/useAuth";
+import { cn } from "../lib/cn";
 import {
   displayUserTranscript,
   getSharedConversation,
   type PublicSharedConversation,
 } from "../services/conversationsApi";
-import { MessageContent } from "../components/MessageContent";
-import { DonnaLogo } from "../components/DonnaLogo";
-import { Spinner } from "../components/ui/Spinner";
-import { cn } from "../lib/cn";
 
 type LoadState =
   | { status: "loading" }
@@ -17,6 +18,7 @@ type LoadState =
 
 export function SharedConversationPage() {
   const { token } = useParams<{ token: string }>();
+  const { isAuthenticated } = useAuth();
   const [state, setState] = useState<LoadState>({ status: "loading" });
 
   useEffect(() => {
@@ -70,88 +72,125 @@ export function SharedConversationPage() {
     return out;
   }, [state]);
 
+  const title =
+    state.status === "ready" ? state.data.title : "Shared conversation";
+  const openHref = isAuthenticated ? "/app" : "/login";
+
   return (
-    <div className="flex min-h-screen flex-col bg-donna-surface">
-      <header className="border-b border-donna-border bg-white">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-5 py-3">
+    <div className="flex h-full min-h-0 w-full flex-col bg-white">
+      <header className="flex shrink-0 items-center justify-between gap-3 px-5 py-3">
+        <div className="flex min-w-0 items-center gap-3">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-donna-text no-underline"
+            className="flex shrink-0 items-center gap-2 text-donna-text no-underline"
+            aria-label="Donna home"
           >
-            <DonnaLogo className="h-7 w-7" alt="" width={28} height={28} />
-            <span className="text-base font-semibold">Donna</span>
+            <DonnaLogo
+              className="h-8 w-8 rounded-xl object-contain"
+              alt=""
+              width={32}
+              height={32}
+            />
+            <span className="hidden text-sm font-semibold text-donna-primary sm:inline">
+              Donna
+            </span>
           </Link>
-          <p className="text-xs text-donna-muted">Shared conversation</p>
+          <div className="min-w-0">
+            <h1 className="truncate text-lg font-semibold text-donna-text">
+              {title}
+            </h1>
+            <p className="text-xs text-donna-muted">Shared · read-only</p>
+          </div>
         </div>
+        <Link
+          to={openHref}
+          className={cn(
+            "shrink-0 rounded-xl bg-donna-primary px-3.5 py-2 text-sm font-semibold text-white",
+            "transition-colors hover:bg-donna-primary-hover",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring focus-visible:ring-offset-2",
+          )}
+        >
+          {isAuthenticated ? "Open chat" : "Open Donna"}
+        </Link>
       </header>
 
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-5 py-6">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
         {state.status === "loading" ? (
-          <div className="flex flex-1 items-center justify-center py-16">
+          <div className="flex flex-1 items-center justify-center">
             <Spinner />
           </div>
         ) : null}
 
         {state.status === "error" ? (
-          <div className="flex flex-1 flex-col items-center justify-center gap-3 py-16 text-center">
-            <h1 className="text-xl font-semibold text-donna-text">
+          <div className="flex flex-1 flex-col items-center justify-center gap-3 px-5 text-center">
+            <h2 className="text-lg font-semibold text-donna-text">
               Link unavailable
-            </h1>
+            </h2>
             <p className="max-w-md text-sm text-donna-muted">{state.message}</p>
             <Link
-              to="/"
-              className="mt-2 text-sm font-medium text-donna-primary underline-offset-2 hover:underline"
+              to={openHref}
+              className="mt-1 text-sm font-medium text-donna-primary underline-offset-2 hover:underline"
             >
-              Go to Donna
+              {isAuthenticated ? "Back to chat" : "Go to Donna"}
             </Link>
           </div>
         ) : null}
 
         {state.status === "ready" ? (
-          <>
-            <div className="mb-6">
-              <h1 className="text-2xl font-semibold tracking-tight text-donna-text">
-                {state.data.title}
-              </h1>
-              <p className="mt-1 text-sm text-donna-muted">
-                Read-only shared chat
+          <div
+            className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-5 py-4 md:px-8"
+            role="log"
+            aria-label="Shared conversation"
+          >
+            {messages.length === 0 ? (
+              <p className="py-8 text-center text-sm text-donna-muted">
+                This conversation has no messages yet.
               </p>
-            </div>
-
-            <div className="flex flex-col gap-3 pb-10">
-              {messages.length === 0 ? (
-                <p className="text-sm text-donna-muted">
-                  This conversation has no messages yet.
-                </p>
-              ) : (
-                messages.map((message, index) => (
+            ) : (
+              messages.map((message, index) => (
+                <div
+                  key={`${message.role}-${index}`}
+                  className={cn(
+                    "flex flex-col",
+                    message.role === "user" ? "items-end" : "items-start",
+                  )}
+                >
                   <div
-                    key={`${message.role}-${index}`}
                     className={cn(
-                      "flex",
-                      message.role === "user" ? "justify-end" : "justify-start",
+                      "min-w-0 rounded-2xl px-4 py-3 text-[0.9375rem] leading-relaxed",
+                      message.role === "user"
+                        ? "max-w-[85%] break-words rounded-br-md bg-donna-primary text-white"
+                        : "w-full overflow-x-auto break-words rounded-bl-md border border-donna-border bg-donna-surface text-donna-text",
                     )}
                   >
-                    <div
-                      className={cn(
-                        "min-w-0 rounded-2xl px-4 py-3 text-[0.9375rem] leading-relaxed",
-                        message.role === "user"
-                          ? "max-w-[85%] break-words rounded-br-md bg-donna-primary text-white"
-                          : "w-full overflow-x-auto break-words rounded-bl-md border border-donna-border bg-white text-donna-text",
-                      )}
-                    >
-                      <MessageContent
-                        content={message.content}
-                        variant={message.role}
-                      />
-                    </div>
+                    <MessageContent
+                      content={message.content}
+                      variant={message.role}
+                    />
                   </div>
-                ))
-              )}
-            </div>
-          </>
+                </div>
+              ))
+            )}
+          </div>
         ) : null}
-      </main>
+      </div>
+
+      {state.status === "ready" ? (
+        <footer className="shrink-0 border-t border-donna-border bg-white px-5 py-3 md:px-8">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-donna-muted">
+              You&apos;re viewing a shared chat. Replies aren&apos;t available
+              here.
+            </p>
+            <Link
+              to={openHref}
+              className="text-sm font-medium text-donna-primary underline-offset-2 hover:underline"
+            >
+              {isAuthenticated ? "Continue in Donna" : "Start chatting in Donna"}
+            </Link>
+          </div>
+        </footer>
+      ) : null}
     </div>
   );
 }
