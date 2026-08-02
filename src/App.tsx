@@ -27,6 +27,7 @@ import { ExtractedMemoryPage } from "./pages/ExtractedMemoryPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { AppShell, ConsentShell, LoginShell } from "./pages/AppShell";
 import { AppLayout } from "./pages/AppLayout";
+import { SharedConversationPage } from "./pages/SharedConversationPage";
 
 function RedirectContextToNote() {
   const { id } = useParams<{ id: string }>();
@@ -70,6 +71,8 @@ export default function App() {
             <Route path="privacy" element={<Privacy />} />
             <Route path="support" element={<Support />} />
           </Route>
+
+          <Route path="share/:token" element={<SharedConversationPage />} />
 
           <Route element={<LoginShell />}>
             <Route path="login" element={<Login />} />

@@ -12,6 +12,8 @@ export default defineConfig({
       "/tts": backendTarget,
       "/knowledge": backendTarget,
       "/account": backendTarget,
+      "/conversations": backendTarget,
+      "/share": backendTarget,
       "/health": backendTarget,
       "/voice": {
         target: backendTarget.replace(/^http/, "ws"),

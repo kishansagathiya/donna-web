@@ -139,6 +139,68 @@ export async function deleteConversation(id: string): Promise<void> {
   await parseJSON<{ ok: boolean }>(res);
 }
 
+export type ConversationShare = {
+  url: string;
+  token: string;
+  created_at: string;
+  expires_at?: string;
+};
+
+export type PublicSharedTurn = {
+  turn_index: number;
+  user_transcript: string;
+  assistant_transcript: string;
+  created_at: string;
+  attachments?: ConversationAttachment[];
+};
+
+export type PublicSharedConversation = {
+  title: string;
+  channel: "text" | "voice";
+  created_at: string;
+  turns: PublicSharedTurn[];
+};
+
+export async function createConversationShare(
+  id: string,
+): Promise<ConversationShare> {
+  const res = await authorizedFetch(
+    `/conversations/${encodeURIComponent(id)}/share`,
+    { method: "POST" },
+  );
+  return parseJSON(res);
+}
+
+export async function getConversationShare(
+  id: string,
+): Promise<ConversationShare | null> {
+  const res = await authorizedFetch(
+    `/conversations/${encodeURIComponent(id)}/share`,
+  );
+  if (res.status === 404) {
+    return null;
+  }
+  return parseJSON(res);
+}
+
+export async function revokeConversationShare(id: string): Promise<void> {
+  const res = await authorizedFetch(
+    `/conversations/${encodeURIComponent(id)}/share`,
+    { method: "DELETE" },
+  );
+  await parseJSON<{ ok: boolean }>(res);
+}
+
+/** Public endpoint — no auth. */
+export async function getSharedConversation(
+  token: string,
+): Promise<PublicSharedConversation> {
+  const res = await fetch(
+    `${API_BASE_URL}/share/${encodeURIComponent(token)}`,
+  );
+  return parseJSON(res);
+}
+
 export async function truncateConversationTurns(
   clientSessionId: string,
   fromIndex: number,

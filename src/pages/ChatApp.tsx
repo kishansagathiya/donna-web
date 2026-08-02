@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
-import { History, PanelRightOpen, Settings } from "lucide-react";
+import { History, PanelRightOpen, Settings, Share2 } from "lucide-react";
 import { ChatHistorySheet } from "../components/ChatHistorySheet";
 import { ChatHistorySidebar } from "../components/ChatHistorySidebar";
 import { ChatInput } from "../components/ChatInput";
 import { ChatMessages } from "../components/ChatMessages";
 import { IngestToast } from "../components/IngestToast";
+import { ShareConversationSheet } from "../components/ShareConversationSheet";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { IconButton } from "../components/ui/IconButton";
 import { useAssetIngest } from "../hooks/useAssetIngest";
@@ -63,6 +64,7 @@ export function ChatApp() {
   const location = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const [historySheetOpen, setHistorySheetOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [activeConversationId, setActiveConversationId] = useState<
     string | null
   >(null);
@@ -182,6 +184,15 @@ export function ChatApp() {
         <header className="flex shrink-0 items-center justify-between gap-2 px-5 py-3">
           <h1 className="text-lg font-semibold text-donna-text">Chat</h1>
           <div className="flex items-center gap-2">
+            {activeConversationId && hasThread ? (
+              <IconButton
+                onClick={() => setShareOpen(true)}
+                aria-label="Share conversation"
+                className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
+              >
+                <Share2 className="h-5 w-5" strokeWidth={1.75} />
+              </IconButton>
+            ) : null}
             <UserAvatar onClick={() => navigate("/app/profile")} />
             <IconButton
               onClick={() => navigate("/app/profile")}
@@ -304,6 +315,12 @@ export function ChatApp() {
           onResume={(conversationId, sessionId, nextMessages) => {
             handleResume(conversationId, sessionId, nextMessages);
           }}
+        />
+
+        <ShareConversationSheet
+          open={shareOpen}
+          conversationId={activeConversationId}
+          onClose={() => setShareOpen(false)}
         />
       </div>
 

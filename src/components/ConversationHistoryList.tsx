@@ -8,6 +8,7 @@ import {
   Pin,
   PinOff,
   Search,
+  Share2,
   Tag,
   Trash2,
 } from "lucide-react";
@@ -24,6 +25,7 @@ import { Spinner } from "./ui/Spinner";
 import { AlertBanner } from "./ui/AlertBanner";
 import { TextInput } from "./ui/TextInput";
 import { cn } from "../lib/cn";
+import { ShareConversationSheet } from "./ShareConversationSheet";
 
 export type ConversationHistoryListProps = {
   /** When false, skip fetching (e.g. closed sheet). Defaults to true. */
@@ -56,6 +58,9 @@ export function ConversationHistoryList({
   const [filterMode, setFilterMode] = useState<FilterMode>("active");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [menuId, setMenuId] = useState<string | null>(null);
+  const [shareTarget, setShareTarget] = useState<ConversationSummary | null>(
+    null,
+  );
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedQuery(query.trim()), 250);
@@ -373,6 +378,14 @@ export function ConversationHistoryList({
                           onClick={() => void handleSetTags(conversation)}
                         />
                         <MenuItem
+                          icon={Share2}
+                          label="Share…"
+                          onClick={() => {
+                            setMenuId(null);
+                            setShareTarget(conversation);
+                          }}
+                        />
+                        <MenuItem
                           icon={Trash2}
                           label="Delete"
                           destructive
@@ -398,6 +411,13 @@ export function ConversationHistoryList({
           })}
         </ul>
       )}
+
+      <ShareConversationSheet
+        open={Boolean(shareTarget)}
+        conversationId={shareTarget?.id ?? null}
+        conversationTitle={shareTarget?.title}
+        onClose={() => setShareTarget(null)}
+      />
     </div>
   );
 }
