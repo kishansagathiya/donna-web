@@ -38,6 +38,10 @@ export function Layout() {
             ·
           </span>
           <Link to="/support">Support</Link>
+          <span className="layout-footer-sep" aria-hidden="true">
+            ·
+          </span>
+          <Link to="/pitch">Pitch</Link>
         </nav>
       </footer>
     </div>

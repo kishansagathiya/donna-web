@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "node scripts/serve.mjs",
+    "sync:pitch": "cp ../pitch.md src/content/pitch.md",
     "test": "vitest run"
   },
   "dependencies": {

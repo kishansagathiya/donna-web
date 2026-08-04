@@ -13,6 +13,7 @@ import { ThemeProvider } from "./hooks/useTheme";
 import { Layout } from "./components/Layout";
 import { Landing } from "./pages/Landing";
 import { Privacy } from "./pages/Privacy";
+import { Pitch } from "./pages/Pitch";
 import { Support } from "./pages/Support";
 import { Login } from "./pages/Login";
 import { Consent } from "./pages/Consent";
@@ -57,6 +58,7 @@ function PageTitle() {
       "/app/search": "Memory — Donna",
       "/app/profile": "Profile — Donna",
       "/privacy": "Privacy — Donna",
+      "/pitch": "Pitch — Donna",
       "/support": "Support — Donna",
     };
     document.title = titles[pathname] ?? "Donna";
@@ -76,6 +78,7 @@ export default function App() {
           <Route element={<Layout />}>
             <Route index element={<Landing />} />
             <Route path="privacy" element={<Privacy />} />
+            <Route path="pitch" element={<Pitch />} />
             <Route path="support" element={<Support />} />
           </Route>
 

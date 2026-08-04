@@ -6,9 +6,18 @@
   padding: 2rem;
 }
 
+.doc-page--wide {
+  align-items: flex-start;
+}
+
 .doc {
   width: 100%;
   max-width: 40rem;
+}
+
+.doc--pitch {
+  max-width: 46rem;
+  padding-bottom: 3rem;
 }
 
 .doc h1 {
@@ -64,6 +73,58 @@
 
 .doc a:hover {
   opacity: 0.85;
+}
+
+.doc h3 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.doc hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 2rem 0;
+}
+
+.doc strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.doc ol {
+  margin-bottom: 1rem;
+  padding-left: 1.25rem;
+}
+
+.doc table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0 1.5rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.doc th,
+.doc td {
+  border: 1px solid var(--border);
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  color: var(--text-muted);
+}
+
+.doc th {
+  color: var(--text-primary);
+  font-weight: 600;
+  background: var(--bg-card);
+}
+
+.doc--pitch > h1:first-child {
+  margin-top: 0;
 }
 
 .support-card {
