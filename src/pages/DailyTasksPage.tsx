@@ -88,7 +88,10 @@ function TaskCard({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             {task.is_urgent ? (
-              <Flame className="h-4 w-4 text-donna-destructive" aria-label="Urgent" />
+              <Flame
+                className="h-4 w-4 fill-current text-donna-destructive"
+                aria-label="Urgent"
+              />
             ) : null}
             {task.is_important ? (
               <Star

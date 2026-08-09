@@ -119,7 +119,7 @@ export function SearchNotesPage() {
                   <span className="flex shrink-0 gap-1">
                     {item.is_urgent ? (
                       <Flame
-                        className="h-4 w-4 text-donna-destructive"
+                        className="h-4 w-4 fill-current text-donna-destructive"
                         aria-label="Urgent"
                       />
                     ) : null}

@@ -575,7 +575,12 @@ export function NotesPage() {
                           )}
                           onClick={(e) => void toggleFlag(note, "is_urgent", e)}
                         >
-                          <Flame className="h-3.5 w-3.5" />
+                          <Flame
+                            className={cn(
+                              "h-3.5 w-3.5",
+                              note.is_urgent && "fill-current",
+                            )}
+                          />
                         </button>
                         <button
                           type="button"

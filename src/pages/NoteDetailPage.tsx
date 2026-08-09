@@ -206,7 +206,9 @@ export function NoteDetailPage() {
             )}
             onClick={() => void toggleFlag("is_urgent")}
           >
-            <Flame className="h-3.5 w-3.5" />
+            <Flame
+              className={cn("h-3.5 w-3.5", item.is_urgent && "fill-current")}
+            />
             {item.is_urgent ? "Urgent" : "Not urgent"}
           </button>
           <button
@@ -220,7 +222,9 @@ export function NoteDetailPage() {
             )}
             onClick={() => void toggleFlag("is_important")}
           >
-            <Star className="h-3.5 w-3.5" />
+            <Star
+              className={cn("h-3.5 w-3.5", item.is_important && "fill-current")}
+            />
             {item.is_important ? "Important" : "Not important"}
           </button>
           <label className="flex min-w-0 basis-full flex-col gap-1 text-[0.8125rem] text-donna-muted sm:basis-auto">
