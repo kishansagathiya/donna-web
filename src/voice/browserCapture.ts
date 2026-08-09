@@ -31,8 +31,10 @@ export class BrowserAudioCapture {
       this.stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           channelCount: this.options.channels,
-          echoCancellation: true,
-          noiseSuppression: true,
+          // Ideal so browsers can still succeed if a constraint is unsupported.
+          echoCancellation: { ideal: true },
+          noiseSuppression: { ideal: true },
+          autoGainControl: { ideal: true },
         },
       });
     } catch {

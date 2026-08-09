@@ -3,14 +3,17 @@ import { cn } from "../lib/cn";
 import { Mic, Square } from "lucide-react";
 
 export function VoicePage() {
-  const { state, errorMsg, lines, toggle } = useLiveVoiceSession();
+  const { state, errorMsg, lines, assistantSpeaking, toggle } =
+    useLiveVoiceSession();
   const live = state === "live";
   const connecting = state === "connecting";
 
   const statusLabel = connecting
     ? "Connecting…"
     : live
-      ? "Listening — talk naturally"
+      ? assistantSpeaking
+        ? "Donna is speaking…"
+        : "Listening — talk naturally"
       : "Start a realtime conversation with Donna";
 
   return (

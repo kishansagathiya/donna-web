@@ -1,7 +1,9 @@
+import { ensureAecPlaybackInput, disposeAecPlaybackRoute } from "./aecLoopback";
 import { base64ToBytes } from "./pcm";
 
 let audioContext: AudioContext | null = null;
 let activeSession: StreamingPlayback | null = null;
+let playbackOutput: AudioNode | null = null;
 
 const MIN_PCM_SCHEDULE_BYTES = 4_800;
 const PCM_FADE_SAMPLES = 128;
@@ -15,6 +17,14 @@ async function getAudioContext(): Promise<AudioContext> {
     await audioContext.resume();
   }
   return audioContext;
+}
+
+async function getPlaybackOutput(ctx: AudioContext): Promise<AudioNode> {
+  if (playbackOutput) {
+    return playbackOutput;
+  }
+  playbackOutput = await ensureAecPlaybackInput(ctx);
+  return playbackOutput;
 }
 
 export type EncodedChunk = {
@@ -157,7 +167,11 @@ class StreamingPlayback {
     return 2 * this.pcmChannels;
   }
 
-  private schedulePcmBuffer(ctx: AudioContext, pcm: Uint8Array): void {
+  private schedulePcmBuffer(
+    ctx: AudioContext,
+    output: AudioNode,
+    pcm: Uint8Array,
+  ): void {
     const frameBytes = this.pcmFrameBytes();
     const alignedLength = pcm.length - (pcm.length % frameBytes);
     if (alignedLength === 0) {
@@ -196,7 +210,7 @@ class StreamingPlayback {
 
     const source = ctx.createBufferSource();
     source.buffer = buffer;
-    source.connect(ctx.destination);
+    source.connect(output);
     source.start(startTime);
 
     this.scheduledEndTime = startTime + duration;
@@ -221,6 +235,7 @@ class StreamingPlayback {
     this.pumping = true;
     try {
       const ctx = await getAudioContext();
+      const output = await getPlaybackOutput(ctx);
       const frameBytes = this.pcmFrameBytes();
 
       while (this.pendingPcm.length >= frameBytes) {
@@ -240,7 +255,7 @@ class StreamingPlayback {
 
         const pcm = this.pendingPcm.slice(0, scheduleBytes);
         this.pendingPcm = this.pendingPcm.slice(scheduleBytes);
-        this.schedulePcmBuffer(ctx, pcm);
+        this.schedulePcmBuffer(ctx, output, pcm);
       }
 
       this.maybeResolveDone();
@@ -277,6 +292,7 @@ class StreamingPlayback {
         }
 
         const ctx = await getAudioContext();
+        const output = await getPlaybackOutput(ctx);
         const bytes = this.concatEncoded();
         const arrayBuffer = bytes.buffer.slice(
           bytes.byteOffset,
@@ -301,7 +317,7 @@ class StreamingPlayback {
 
           const source = ctx.createBufferSource();
           source.buffer = audioBuffer;
-          source.connect(ctx.destination);
+          source.connect(output);
           source.start(startTime, offset, duration);
 
           this.scheduledDuration = totalDuration;
@@ -357,4 +373,12 @@ export function stopActivePlayback(): void {
 
 export async function resetPlaybackSession(): Promise<void> {
   stopActivePlayback();
+  playbackOutput = null;
+  disposeAecPlaybackRoute();
+}
+
+/** Warm the WebRTC AEC playback path after a user gesture (Voice start). */
+export async function warmPlaybackAec(): Promise<void> {
+  const ctx = await getAudioContext();
+  await getPlaybackOutput(ctx);
 }
