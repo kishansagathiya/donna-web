@@ -5,6 +5,10 @@
  * Important: missing /assets/* must 404 (not SPA HTML). Returning HTML for
  * hashed JS/CSS lets CDNs cache a broken response and black-screen the app
  * after deploys when an old index.html still points at a removed file.
+ *
+ * /cafe is a separately synced static microsite (Next export) — serve its
+ * files (and directory indexes) and never fall back to the SPA for missing
+ * cafe assets.
  */
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
@@ -20,6 +24,7 @@ const MIME = {
   ".mjs": "text/javascript; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".json": "application/json; charset=utf-8",
+  ".webmanifest": "application/manifest+json",
   ".svg": "image/svg+xml",
   ".png": "image/png",
   ".jpg": "image/jpeg",
@@ -43,7 +48,7 @@ function safeJoin(root, requestPath) {
 }
 
 function cacheControl(relPath) {
-  if (relPath.startsWith("/assets/")) {
+  if (relPath.startsWith("/assets/") || relPath.includes("/_next/static/")) {
     return "public, max-age=31536000, immutable";
   }
   if (relPath.endsWith(".html") || relPath === "/" || relPath === "/index.html") {
@@ -74,11 +79,25 @@ async function sendSpa(res) {
   res.end(body);
 }
 
+function sendNotFound(res) {
+  res.writeHead(404, {
+    "Content-Type": "text/plain; charset=utf-8",
+    "Cache-Control": "no-store",
+    "X-Content-Type-Options": "nosniff",
+  });
+  res.end("Not found");
+}
+
 const server = createServer(async (req, res) => {
   try {
     const urlPath = req.url || "/";
     let rel = decodeURIComponent(urlPath.split("?")[0] || "/");
     if (rel === "/") rel = "/index.html";
+
+    // Directory index: /cafe or /cafe/ → /cafe/index.html
+    if (rel.endsWith("/")) {
+      rel = `${rel}index.html`;
+    }
 
     const filePath = safeJoin(distRoot, rel);
     if (!filePath) {
@@ -93,17 +112,44 @@ const server = createServer(async (req, res) => {
         await sendFile(res, filePath, rel);
         return;
       }
+      if (info.isDirectory()) {
+        const indexRel = rel.endsWith("/") ? `${rel}index.html` : `${rel}/index.html`;
+        const indexPath = safeJoin(distRoot, indexRel);
+        if (indexPath) {
+          try {
+            const indexInfo = await stat(indexPath);
+            if (indexInfo.isFile()) {
+              await sendFile(res, indexPath, indexRel);
+              return;
+            }
+          } catch {
+            // fall through
+          }
+        }
+      }
     } catch {
       // fall through
     }
 
-    if (rel.startsWith("/assets/")) {
-      res.writeHead(404, {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "no-store",
-        "X-Content-Type-Options": "nosniff",
-      });
-      res.end("Not found");
+    // /cafe without trailing slash when cafe/ is a directory
+    if (!rel.endsWith(".html") && !rel.includes(".")) {
+      const indexRel = `${rel}/index.html`;
+      const indexPath = safeJoin(distRoot, indexRel);
+      if (indexPath) {
+        try {
+          const indexInfo = await stat(indexPath);
+          if (indexInfo.isFile()) {
+            await sendFile(res, indexPath, indexRel);
+            return;
+          }
+        } catch {
+          // fall through
+        }
+      }
+    }
+
+    if (rel.startsWith("/assets/") || rel.startsWith("/cafe/")) {
+      sendNotFound(res);
       return;
     }
 
