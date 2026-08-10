@@ -10,6 +10,7 @@ import { EmptyState } from "../components/ui/EmptyState";
 import { Spinner } from "../components/ui/Spinner";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { IngestToast } from "../components/IngestToast";
+import { MicButton, type MicState } from "../components/MicButton";
 import { TagTaxonomyPanel } from "../components/TagTaxonomyPanel";
 import { useAssetIngest } from "../hooks/useAssetIngest";
 import {
@@ -20,6 +21,7 @@ import {
   useRetryFailedNoteMutation,
   useUpdateNoteMutation,
 } from "../hooks/useNotes";
+import { useVoiceSession } from "../hooks/useVoiceSession";
 import { cn } from "../lib/cn";
 import {
   enrichmentLabel,
@@ -38,6 +40,10 @@ function NoteComposeBar({
   onLinkValueChange,
   onSubmitLink,
   onCancelLink,
+  micState,
+  onMicPress,
+  micDisabled,
+  sessionLabel,
 }: {
   onSave: (text: string) => Promise<void>;
   saving: boolean;
@@ -49,10 +55,19 @@ function NoteComposeBar({
   onLinkValueChange: (value: string) => void;
   onSubmitLink: () => void;
   onCancelLink: () => void;
+  micState: MicState;
+  onMicPress: () => void;
+  micDisabled?: boolean;
+  sessionLabel?: string | null;
 }) {
   const [draft, setDraft] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const hasText = draft.trim().length > 0;
+  const voiceBusy =
+    micState === "listening" ||
+    micState === "processing" ||
+    micState === "requesting";
+  const showMic = !hasText && !linkOpen;
 
   function resize() {
     const el = textareaRef.current;
@@ -98,8 +113,10 @@ function NoteComposeBar({
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Jot down a note…"
-          disabled={saving || ingestBusy}
+          placeholder={
+            voiceBusy ? "Listening…" : "Jot down a note… or tap the mic"
+          }
+          disabled={saving || ingestBusy || voiceBusy}
           rows={4}
           className={cn(
             "min-h-[120px] w-full resize-none border-0 bg-transparent px-4 py-3",
@@ -108,6 +125,12 @@ function NoteComposeBar({
             "disabled:cursor-not-allowed disabled:opacity-60",
           )}
         />
+
+        {sessionLabel ? (
+          <p className="border-t border-donna-border px-4 py-2 text-sm text-donna-muted">
+            {sessionLabel}
+          </p>
+        ) : null}
 
         {linkOpen ? (
           <div className="flex gap-2 border-t border-donna-border px-3 py-2.5">
@@ -160,7 +183,7 @@ function NoteComposeBar({
               <button
                 type="button"
                 onClick={onAddLink}
-                disabled={ingestBusy}
+                disabled={ingestBusy || voiceBusy}
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-full border border-donna-border bg-white px-3 py-1.5",
                   "text-xs font-medium text-donna-text transition-colors",
@@ -175,7 +198,7 @@ function NoteComposeBar({
               <button
                 type="button"
                 onClick={onSaveToMemory}
-                disabled={ingestBusy}
+                disabled={ingestBusy || voiceBusy}
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-full border border-donna-border bg-white px-3 py-1.5",
                   "text-xs font-medium text-donna-text transition-colors",
@@ -188,24 +211,33 @@ function NoteComposeBar({
                 Save to memory
               </button>
             </div>
-            <button
-              type="submit"
-              disabled={!hasText || saving || ingestBusy}
-              aria-label="Save note"
-              className={cn(
-                "flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors",
-                hasText && !saving && !ingestBusy
-                  ? "text-donna-primary hover:bg-donna-surface"
-                  : "text-donna-muted",
-                "disabled:cursor-not-allowed disabled:opacity-40",
-              )}
-            >
-              {saving ? (
-                <Spinner className="h-4 w-4" />
-              ) : (
-                <Send className="h-4 w-4" strokeWidth={1.75} />
-              )}
-            </button>
+            {showMic ? (
+              <MicButton
+                variant="inline"
+                state={micState}
+                onPress={onMicPress}
+                disabled={micDisabled || ingestBusy || saving}
+              />
+            ) : (
+              <button
+                type="submit"
+                disabled={!hasText || saving || ingestBusy || voiceBusy}
+                aria-label="Save note"
+                className={cn(
+                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors",
+                  hasText && !saving && !ingestBusy && !voiceBusy
+                    ? "text-donna-primary hover:bg-donna-surface"
+                    : "text-donna-muted",
+                  "disabled:cursor-not-allowed disabled:opacity-40",
+                )}
+              >
+                {saving ? (
+                  <Spinner className="h-4 w-4" />
+                ) : (
+                  <Send className="h-4 w-4" strokeWidth={1.75} />
+                )}
+              </button>
+            )}
           </div>
         )}
       </form>
@@ -240,6 +272,30 @@ export function NotesPage() {
   const updateMutation = useUpdateNoteMutation();
   const failedMutations = useFailedNoteMutations();
   const retryFailed = useRetryFailedNoteMutation();
+
+  const {
+    state: micState,
+    toggleTalk,
+    sessionLabel,
+    errorMsg: voiceError,
+    disabled: micDisabled,
+  } = useVoiceSession({
+    mode: "notes",
+    onNoteCreated: () => {
+      setActionError(null);
+      if (activeTag) {
+        setActiveTag(null);
+      }
+      void feedQuery.refetch();
+      void tagsQuery.refetch();
+    },
+  });
+
+  useEffect(() => {
+    if (voiceError) {
+      setActionError(voiceError);
+    }
+  }, [voiceError]);
 
   const notes = useMemo(
     () => feedQuery.data?.pages.flatMap((page) => page.items) ?? [],
@@ -440,6 +496,15 @@ export function NotesPage() {
             setLinkOpen(false);
             setLinkValue("");
           }}
+          micState={micState}
+          onMicPress={() => {
+            setActionError(null);
+            void toggleTalk();
+          }}
+          micDisabled={micDisabled}
+          sessionLabel={
+            micState === "error" ? null : sessionLabel
+          }
         />
 
         {visibleTags.length > 0 || pinnedOnly ? (

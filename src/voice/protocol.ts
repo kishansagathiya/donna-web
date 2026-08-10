@@ -13,6 +13,8 @@ export type ClientMessage =
       userId?: string;
       sessionId?: string;
       mode?: "notes" | "talk";
+      /** Optional client UUID for idempotent notes-mode creates. */
+      clientNoteId?: string;
     }
   | {
       type: "audio.chunk";
@@ -42,6 +44,8 @@ export type ServerMessage =
       type: "turn.done";
       timings: Record<string, number>;
       skipped?: boolean;
+      /** Present when notes-mode successfully created/returned a note. */
+      noteId?: string;
     }
   | { type: "error"; code: string; message: string };
 
