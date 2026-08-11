@@ -279,7 +279,7 @@ export function AgentsPage() {
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-5 py-5 md:px-8">
-          {error ? <AlertBanner tone="error">{error}</AlertBanner> : null}
+          {error ? <AlertBanner>{error}</AlertBanner> : null}
 
           <section className="rounded-donna border border-donna-border bg-white p-4">
             <label className="block text-sm font-medium text-donna-text">Start a goal</label>
