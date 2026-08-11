@@ -14,6 +14,7 @@ import { Spinner } from "../components/ui/Spinner";
 import { ThemeToggle } from "../components/ThemeToggle";
 import { ExperimentalSection } from "../components/ExperimentalSection";
 import { IntegrationsSection } from "../components/IntegrationsSection";
+import { ImportChatGPTSection } from "../components/ImportChatGPTSection";
 import { useAuth } from "../hooks/useAuth";
 import {
   detectDeviceTimezone,
@@ -332,6 +333,8 @@ export function ProfilePage() {
         <ExperimentalSection />
 
         <IntegrationsSection />
+
+        <ImportChatGPTSection />
 
         <div className="mb-8 max-w-lg">
           <p className="mb-1 text-sm font-semibold text-donna-text">
