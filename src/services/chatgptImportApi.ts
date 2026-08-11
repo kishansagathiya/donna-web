@@ -27,9 +27,12 @@ export type CreateChatGPTImportResult = {
   id: string;
   status: ChatGPTImportStatus;
   upload_url: string;
-  token: string;
+  upload_method?: string;
+  upload_headers?: Record<string, string>;
+  token?: string;
   path: string;
   bucket: string;
+  provider?: string;
   max_bytes: number;
   expires_in_s: number;
 };
@@ -94,24 +97,35 @@ export async function startChatGPTImport(
   return body.import;
 }
 
-/** Upload ZIP directly to Supabase signed upload URL (not via Donna API). */
+/** Upload ZIP directly to a presigned URL (Railway S3 / object storage). */
 export async function uploadChatGPTExportZip(
   uploadUrl: string,
-  token: string,
   file: File,
-  onProgress?: (ratio: number) => void,
+  opts?: {
+    token?: string;
+    headers?: Record<string, string>;
+    onProgress?: (ratio: number) => void;
+  },
 ): Promise<void> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/zip",
+    ...(opts?.headers ?? {}),
+  };
+  // S3/Railway presigned URLs encode auth in the query string — do not send
+  // Authorization unless a legacy token-based upload is returned.
+  if (opts?.token) {
+    headers.Authorization = `Bearer ${opts.token}`;
+  }
+
   await new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("PUT", uploadUrl);
-    xhr.setRequestHeader("Content-Type", "application/zip");
-    xhr.setRequestHeader("x-upsert", "true");
-    if (token) {
-      xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    for (const [key, value] of Object.entries(headers)) {
+      xhr.setRequestHeader(key, value);
     }
     xhr.upload.onprogress = (event) => {
-      if (event.lengthComputable && onProgress) {
-        onProgress(event.loaded / event.total);
+      if (event.lengthComputable && opts?.onProgress) {
+        opts.onProgress(event.loaded / event.total);
       }
     };
     xhr.onload = () => {
@@ -144,12 +158,11 @@ export async function importChatGPTExportZip(
 
   const created = await createChatGPTImport();
   onProgress?.("uploading", 0);
-  await uploadChatGPTExportZip(
-    created.upload_url,
-    created.token,
-    file,
-    (ratio) => onProgress?.("uploading", ratio),
-  );
+  await uploadChatGPTExportZip(created.upload_url, file, {
+    token: created.token,
+    headers: created.upload_headers,
+    onProgress: (ratio) => onProgress?.("uploading", ratio),
+  });
   onProgress?.("starting");
   return startChatGPTImport(created.id, file.size);
 }
