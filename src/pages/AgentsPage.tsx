@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Bot, RefreshCw, Send, Square, X } from "lucide-react";
+import { Bot, ChevronDown, ChevronRight, RefreshCw, Send, Square } from "lucide-react";
 import {
   cancelAgentRun,
   createAgentRun,
@@ -9,11 +9,11 @@ import {
   type AgentRun,
   type AgentStep,
 } from "../services/agentsApi";
-import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Spinner } from "../components/ui/Spinner";
 import { Button } from "../components/ui/Button";
 import { AlertBanner } from "../components/ui/AlertBanner";
+import { MessageContent } from "../components/MessageContent";
 import { cn } from "../lib/cn";
 
 function statusTone(status: string) {
@@ -33,26 +33,127 @@ function statusTone(status: string) {
   }
 }
 
-function stepLabel(step: AgentStep): string {
+function resultSummary(result: Record<string, unknown> | null | undefined): string {
+  if (!result) return "";
+  if (typeof result.summary === "string" && result.summary.trim()) {
+    return result.summary;
+  }
+  try {
+    return JSON.stringify(result, null, 2);
+  } catch {
+    return String(result);
+  }
+}
+
+function stepTitle(step: AgentStep): string {
   const p = step.payload || {};
   switch (step.kind) {
     case "status":
       return String(p.text ?? "status");
     case "thought":
-      return String(p.text ?? "thinking");
+      return "Thought";
     case "tool_call":
-      return `→ ${p.name ?? "tool"}`;
+      return `Tool → ${String(p.name ?? "tool")}`;
     case "tool_result":
-      return `← ${p.name ?? "tool"}: ${String(p.content ?? "").slice(0, 120)}`;
+      return `Result ← ${String(p.name ?? "tool")}`;
     case "user_message":
-      return `user: ${String(p.message ?? "")}`;
+      return "Redirect";
     case "approval_request":
-      return `approval: ${JSON.stringify(p).slice(0, 120)}`;
+      return "Approval requested";
     case "error":
-      return `error: ${String(p.error ?? "")}`;
+      return "Error";
+    case "compress":
+      return "Context compressed";
+    case "memory_retrieve":
+      return "Memory";
     default:
       return step.kind;
   }
+}
+
+function stepBody(step: AgentStep): string {
+  const p = step.payload || {};
+  switch (step.kind) {
+    case "status":
+      return String(p.text ?? "");
+    case "thought":
+      return String(p.text ?? "");
+    case "tool_call": {
+      const args = p.args;
+      if (args == null) return "";
+      if (typeof args === "string") return args;
+      try {
+        return JSON.stringify(args, null, 2);
+      } catch {
+        return String(args);
+      }
+    }
+    case "tool_result":
+      return String(p.content ?? "");
+    case "user_message":
+      return String(p.message ?? "");
+    case "approval_request":
+      try {
+        return JSON.stringify(p, null, 2);
+      } catch {
+        return String(p);
+      }
+    case "error":
+      return String(p.error ?? "");
+    default:
+      try {
+        return JSON.stringify(p, null, 2);
+      } catch {
+        return "";
+      }
+  }
+}
+
+function StepRow({ step, defaultOpen }: { step: AgentStep; defaultOpen?: boolean }) {
+  const body = stepBody(step).trim();
+  const hasBody = body.length > 0 && body !== stepTitle(step);
+  const [open, setOpen] = useState(Boolean(defaultOpen || step.kind === "thought" || step.kind === "error"));
+
+  return (
+    <li className="border-b border-donna-border last:border-b-0">
+      <button
+        type="button"
+        className="flex w-full items-start gap-2 px-3 py-2.5 text-left hover:bg-donna-sidebar/60"
+        onClick={() => hasBody && setOpen((v) => !v)}
+        disabled={!hasBody}
+      >
+        <span className="mt-0.5 shrink-0 text-donna-muted">
+          {hasBody ? (
+            open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />
+          ) : (
+            <span className="inline-block w-3.5" />
+          )}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="font-mono text-[11px] text-donna-muted">#{step.seq}</span>{" "}
+          <span className="text-xs font-semibold text-donna-text">{stepTitle(step)}</span>
+          {!open && hasBody ? (
+            <span className="mt-0.5 block truncate text-xs text-donna-muted">{body.replace(/\s+/g, " ")}</span>
+          ) : null}
+        </span>
+      </button>
+      {open && hasBody ? (
+        <div className="border-t border-donna-border/60 bg-donna-sidebar/40 px-3 py-2.5 pl-9">
+          {step.kind === "thought" || step.kind === "tool_result" ? (
+            <MessageContent
+              content={body}
+              variant="assistant"
+              className="text-xs leading-relaxed text-donna-text [&_pre]:max-w-full [&_pre]:overflow-x-auto"
+            />
+          ) : (
+            <pre className="max-w-full overflow-x-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed text-donna-text">
+              {body}
+            </pre>
+          )}
+        </div>
+      ) : null}
+    </li>
+  );
 }
 
 export function AgentsPage() {
@@ -154,161 +255,195 @@ export function AgentsPage() {
   }
 
   const active = runs.find((r) => r.id === selected) ?? null;
+  const summary = active ? resultSummary(active.result) : "";
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-8">
-      <div className="flex items-start justify-between gap-4">
+    <div className="flex h-full min-h-0 w-full flex-col bg-white">
+      <header className="flex shrink-0 flex-col gap-3 border-b border-donna-border px-6 py-5 md:flex-row md:items-center md:justify-between md:px-8">
         <div>
-          <h1 className="text-2xl font-bold text-donna-text">Cloud agents</h1>
-          <p className="mt-1 text-sm text-donna-muted">
-            Hermes-grade harness on Donna cloud — phone can lock while it works.
+          <h1 className="text-xl font-semibold text-donna-text">Cloud agents</h1>
+          <p className="mt-0.5 text-sm text-donna-muted">
+            Background goals on Donna cloud — phone can lock while it works.
           </p>
         </div>
-        <Button variant="ghost" className="px-3 py-2 text-sm" onClick={() => void refresh()} disabled={busy}>
+        <Button
+          variant="ghost"
+          className="!w-auto gap-2 px-3 py-2 text-sm"
+          onClick={() => void refresh()}
+          disabled={busy}
+        >
           <RefreshCw className="h-4 w-4" />
           Refresh
         </Button>
-      </div>
+      </header>
 
-      {error ? <AlertBanner tone="error">{error}</AlertBanner> : null}
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+        <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-5 py-5 md:px-8">
+          {error ? <AlertBanner tone="error">{error}</AlertBanner> : null}
 
-      <Card>
-        <label className="block text-sm font-medium text-donna-text">Start a goal</label>
-        <div className="mt-2 flex gap-2">
-          <input
-            className="flex-1 rounded-xl border border-donna-border bg-donna-surface px-3 py-2 text-sm text-donna-text outline-none focus:ring-2 focus:ring-donna-primary-ring"
-            placeholder="Find the Lisbon rooftop dinner photo in my notes…"
-            value={goal}
-            onChange={(e) => setGoal(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") void onStart();
-            }}
-          />
-          <Button onClick={() => void onStart()} disabled={busy || !goal.trim()}>
-            <Send className="h-4 w-4" />
-            Run
-          </Button>
-        </div>
-      </Card>
-
-      {loading ? (
-        <div className="flex justify-center py-12">
-          <Spinner />
-        </div>
-      ) : runs.length === 0 ? (
-        <EmptyState
-          icon={Bot}
-          title="No agent runs yet"
-          description="Start a background goal above. Donna will search memory and the web while you do other things."
-        />
-      ) : (
-        <div className="grid gap-4 md:grid-cols-[1fr_1.2fr]">
-          <div className="flex flex-col gap-2">
-            {runs.map((run) => (
-              <button
-                key={run.id}
-                type="button"
-                onClick={() => setSelected(run.id)}
-                className={cn(
-                  "rounded-xl border px-3 py-3 text-left transition-colors",
-                  selected === run.id
-                    ? "border-donna-primary bg-donna-primary/5"
-                    : "border-donna-border bg-donna-surface hover:bg-donna-sidebar",
-                )}
+          <section className="rounded-donna border border-donna-border bg-white p-4">
+            <label className="block text-sm font-medium text-donna-text">Start a goal</label>
+            <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+              <input
+                className="min-w-0 flex-1 rounded-xl border border-donna-border bg-donna-surface px-3 py-2.5 text-sm text-donna-text outline-none focus:ring-2 focus:ring-donna-primary-ring"
+                placeholder="Find the Lisbon rooftop dinner photo in my notes…"
+                value={goal}
+                onChange={(e) => setGoal(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void onStart();
+                }}
+              />
+              <Button
+                className="!w-auto gap-2 px-4 py-2.5 text-sm"
+                onClick={() => void onStart()}
+                disabled={busy || !goal.trim()}
               >
-                <div className="flex items-center justify-between gap-2">
-                  <span
+                <Send className="h-4 w-4" />
+                Run
+              </Button>
+            </div>
+          </section>
+
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <Spinner />
+            </div>
+          ) : runs.length === 0 ? (
+            <EmptyState
+              icon={Bot}
+              title="No agent runs yet"
+              description="Start a background goal above. Donna will search memory and the web while you do other things."
+            />
+          ) : (
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
+              <div className="flex max-h-[min(70vh,36rem)] flex-col gap-2 overflow-y-auto pr-1">
+                {runs.map((run) => (
+                  <button
+                    key={run.id}
+                    type="button"
+                    onClick={() => setSelected(run.id)}
                     className={cn(
-                      "rounded-full border px-2 py-0.5 text-[11px] font-medium",
-                      statusTone(run.status),
+                      "rounded-xl border px-3 py-3 text-left transition-colors",
+                      selected === run.id
+                        ? "border-donna-primary bg-donna-primary/5"
+                        : "border-donna-border bg-donna-surface hover:bg-donna-sidebar",
                     )}
                   >
-                    {run.status}
-                  </span>
-                  <span className="text-[11px] text-donna-muted">{run.step_count} steps</span>
-                </div>
-                <p className="mt-2 line-clamp-2 text-sm text-donna-text">{run.goal}</p>
-              </button>
-            ))}
-          </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span
+                        className={cn(
+                          "rounded-full border px-2 py-0.5 text-[11px] font-medium",
+                          statusTone(run.status),
+                        )}
+                      >
+                        {run.status}
+                      </span>
+                      <span className="text-[11px] text-donna-muted">{run.step_count} steps</span>
+                    </div>
+                    <p className="mt-2 line-clamp-2 text-sm text-donna-text">{run.goal}</p>
+                  </button>
+                ))}
+              </div>
 
-          <Card>
-            {!active ? (
-              <p className="text-sm text-donna-muted">Select a run</p>
-            ) : (
-              <div className="flex flex-col gap-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="text-sm font-semibold text-donna-text">{active.goal}</p>
-                    <p className="mt-1 text-xs text-donna-muted">
-                      {active.status}
-                      {active.error ? ` · ${active.error}` : ""}
-                    </p>
-                  </div>
-                  {(active.status === "running" ||
-                    active.status === "queued" ||
-                    active.status === "waiting_for_user") && (
-                    <Button
-                      variant="ghost"
-                      className="px-3 py-2 text-sm"
-                      disabled={busy}
-                      onClick={() => void onCancel(active.id)}
-                    >
-                      <Square className="h-4 w-4" />
-                      Cancel
-                    </Button>
-                  )}
-                </div>
+              <section className="min-w-0 rounded-donna border border-donna-border bg-white p-4">
+                {!active ? (
+                  <p className="text-sm text-donna-muted">Select a run</p>
+                ) : (
+                  <div className="flex min-w-0 flex-col gap-4">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="whitespace-pre-wrap break-words text-sm font-semibold text-donna-text">
+                          {active.goal}
+                        </p>
+                        <p className="mt-1 text-xs text-donna-muted">
+                          {active.status}
+                          {active.error ? ` · ${active.error}` : ""}
+                        </p>
+                      </div>
+                      {(active.status === "running" ||
+                        active.status === "queued" ||
+                        active.status === "waiting_for_user") && (
+                        <Button
+                          variant="ghost"
+                          className="!w-auto shrink-0 gap-1 px-3 py-2 text-sm"
+                          disabled={busy}
+                          onClick={() => void onCancel(active.id)}
+                        >
+                          <Square className="h-4 w-4" />
+                          Cancel
+                        </Button>
+                      )}
+                    </div>
 
-                {active.result && active.status === "succeeded" ? (
-                  <div className="rounded-lg border border-donna-border bg-donna-sidebar px-3 py-2 text-sm text-donna-text">
-                    {String((active.result as { summary?: string }).summary ?? JSON.stringify(active.result))}
-                  </div>
-                ) : null}
+                    {summary ? (
+                      <div className="min-w-0">
+                        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-donna-muted">
+                          Output
+                        </p>
+                        <div className="max-h-[min(50vh,28rem)] overflow-y-auto overflow-x-hidden rounded-lg border border-donna-border bg-donna-sidebar/50 px-3 py-3">
+                          <MessageContent
+                            content={summary}
+                            variant="assistant"
+                            className="text-sm leading-relaxed text-donna-text [&_pre]:max-w-full [&_pre]:overflow-x-auto"
+                          />
+                        </div>
+                      </div>
+                    ) : null}
 
-                <div className="max-h-80 overflow-y-auto rounded-lg border border-donna-border">
-                  {steps.length === 0 ? (
-                    <p className="p-3 text-xs text-donna-muted">Waiting for steps…</p>
-                  ) : (
-                    <ul className="divide-y divide-donna-border">
-                      {steps.map((s) => (
-                        <li key={s.id} className="px-3 py-2 text-xs text-donna-text">
-                          <span className="font-mono text-donna-muted">#{s.seq}</span>{" "}
-                          <span className="font-medium">{s.kind}</span> — {stepLabel(s)}
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
+                    <div className="min-w-0">
+                      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-donna-muted">
+                        Steps ({steps.length})
+                      </p>
+                      <div className="max-h-[min(55vh,32rem)] overflow-y-auto overflow-x-hidden rounded-lg border border-donna-border">
+                        {steps.length === 0 ? (
+                          <p className="p-3 text-xs text-donna-muted">Waiting for steps…</p>
+                        ) : (
+                          <ul>
+                            {steps.map((s) => (
+                              <StepRow
+                                key={s.id}
+                                step={s}
+                                defaultOpen={
+                                  s.kind === "thought" ||
+                                  (s.kind === "tool_result" && s.seq === steps[steps.length - 1]?.seq)
+                                }
+                              />
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
 
-                {(active.status === "running" ||
-                  active.status === "queued" ||
-                  active.status === "waiting_for_user") && (
-                  <div className="flex gap-2">
-                    <input
-                      className="flex-1 rounded-xl border border-donna-border bg-donna-surface px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-donna-primary-ring"
-                      placeholder="Redirect: prefer United, aisle…"
-                      value={redirect}
-                      onChange={(e) => setRedirect(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") void onRedirect(active.id);
-                      }}
-                    />
-                    <Button
-                      variant="secondary"
-                      disabled={busy || !redirect.trim()}
-                      onClick={() => void onRedirect(active.id)}
-                    >
-                      <X className="h-4 w-4 rotate-45" />
-                      Steer
-                    </Button>
+                    {(active.status === "running" ||
+                      active.status === "queued" ||
+                      active.status === "waiting_for_user") && (
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        <input
+                          className="min-w-0 flex-1 rounded-xl border border-donna-border bg-donna-surface px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-donna-primary-ring"
+                          placeholder="Steer: prefer United, aisle…"
+                          value={redirect}
+                          onChange={(e) => setRedirect(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") void onRedirect(active.id);
+                          }}
+                        />
+                        <Button
+                          variant="secondary"
+                          className="!w-auto px-4 py-2.5 text-sm"
+                          disabled={busy || !redirect.trim()}
+                          onClick={() => void onRedirect(active.id)}
+                        >
+                          Steer
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            )}
-          </Card>
+              </section>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
