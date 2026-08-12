@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Bot, ChevronDown, ChevronRight, RefreshCw, Send, Square } from "lucide-react";
 import {
   cancelAgentRun,
@@ -15,6 +15,8 @@ import { Button } from "../components/ui/Button";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { MessageContent } from "../components/MessageContent";
 import { cn } from "../lib/cn";
+
+type AskOption = { id: string; label: string };
 
 function statusTone(status: string) {
   switch (status) {
@@ -62,6 +64,27 @@ function pendingQuestion(result: Record<string, unknown> | null | undefined): st
   return null;
 }
 
+function parseOptions(result: Record<string, unknown> | null | undefined): AskOption[] {
+  if (!result) return [];
+  const raw = result.options ?? (result.args as { options?: unknown } | undefined)?.options;
+  if (!Array.isArray(raw)) return [];
+  const out: AskOption[] = [];
+  raw.forEach((item, i) => {
+    if (typeof item === "string" && item.trim()) {
+      out.push({ id: `opt_${i + 1}`, label: item.trim() });
+      return;
+    }
+    if (item && typeof item === "object") {
+      const obj = item as Record<string, unknown>;
+      const label = String(obj.label ?? obj.text ?? "").trim();
+      if (!label) return;
+      const id = String(obj.id ?? `opt_${i + 1}`).trim() || `opt_${i + 1}`;
+      out.push({ id, label });
+    }
+  });
+  return out;
+}
+
 function canReply(status: string): boolean {
   return (
     status === "waiting_for_user" ||
@@ -84,9 +107,9 @@ function stepTitle(step: AgentStep): string {
     case "tool_result":
       return `Result ← ${String(p.name ?? "tool")}`;
     case "user_message":
-      return "Redirect";
+      return "Reply";
     case "approval_request":
-      return "Approval requested";
+      return p.kind === "ask_user" || p.tool === "ask_user" ? "Question for you" : "Approval requested";
     case "error":
       return "Error";
     case "compress":
@@ -120,6 +143,9 @@ function stepBody(step: AgentStep): string {
     case "user_message":
       return String(p.message ?? "");
     case "approval_request":
+      if (typeof p.question === "string" && p.question.trim()) {
+        return p.question;
+      }
       try {
         return JSON.stringify(p, null, 2);
       } catch {
@@ -166,20 +192,138 @@ function StepRow({ step, defaultOpen }: { step: AgentStep; defaultOpen?: boolean
       </button>
       {open && hasBody ? (
         <div className="border-t border-donna-border/60 bg-donna-sidebar/40 px-3 py-2.5 pl-9">
-          {step.kind === "thought" || step.kind === "tool_result" ? (
+          {step.kind === "thought" || step.kind === "tool_result" || step.kind === "approval_request" ? (
             <MessageContent
               content={body}
               variant="assistant"
-              className="text-xs leading-relaxed text-donna-text [&_pre]:max-w-full [&_pre]:overflow-x-auto"
+              className="text-sm leading-relaxed text-donna-text [&_pre]:max-w-full [&_pre]:overflow-x-auto"
             />
           ) : (
-            <pre className="max-w-full overflow-x-auto whitespace-pre-wrap break-words font-mono text-[11px] leading-relaxed text-donna-text">
+            <pre className="max-w-full overflow-x-auto whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-donna-text">
               {body}
             </pre>
           )}
         </div>
       ) : null}
     </li>
+  );
+}
+
+function ReplyComposer({
+  waiting,
+  options,
+  allowMultiple,
+  busy,
+  value,
+  onChange,
+  onSend,
+}: {
+  waiting: boolean;
+  options: AskOption[];
+  allowMultiple: boolean;
+  busy: boolean;
+  value: string;
+  onChange: (v: string) => void;
+  onSend: (message: string) => void;
+}) {
+  const [selected, setSelected] = useState<string[]>([]);
+
+  const optionKey = options.map((o) => o.id).join("|");
+  useEffect(() => {
+    setSelected([]);
+  }, [optionKey]);
+
+  function toggle(id: string) {
+    setSelected((prev) => {
+      if (allowMultiple) {
+        return prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      }
+      return prev[0] === id ? [] : [id];
+    });
+  }
+
+  function composeFromSelection(): string {
+    const labels = options.filter((o) => selected.includes(o.id)).map((o) => o.label);
+    if (labels.length === 0) return value.trim();
+    const choice = labels.join(", ");
+    const extra = value.trim();
+    return extra ? `${choice}\n\n${extra}` : choice;
+  }
+
+  const canSend = Boolean(composeFromSelection());
+
+  return (
+    <div className="rounded-lg border border-donna-border bg-donna-surface/60 p-4">
+      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-donna-muted">
+        {waiting ? "Your reply" : "Continue / reply"}
+      </p>
+
+      {options.length > 0 ? (
+        <div className="mb-3">
+          <p className="mb-2 text-xs text-donna-muted">
+            {allowMultiple ? "Select one or more options" : "Select an option"}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {options.map((opt) => {
+              const on = selected.includes(opt.id);
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => toggle(opt.id)}
+                  className={cn(
+                    "rounded-xl border px-3 py-2 text-left text-sm transition-colors",
+                    on
+                      ? "border-donna-primary bg-donna-primary text-white"
+                      : "border-donna-border bg-white text-donna-text hover:border-donna-primary/50",
+                  )}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
+      <textarea
+        className="min-h-[7.5rem] w-full resize-y rounded-xl border border-donna-border bg-white px-3 py-3 text-sm leading-relaxed text-donna-text outline-none focus:ring-2 focus:ring-donna-primary-ring"
+        placeholder={
+          options.length > 0
+            ? allowMultiple
+              ? "Optional note to add with your selection…"
+              : "Or type a different answer…"
+            : waiting
+              ? "Write your answer…"
+              : "Add a follow-up or correction…"
+        }
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && canSend && !busy) {
+            e.preventDefault();
+            onSend(composeFromSelection());
+          }
+        }}
+        autoFocus={waiting && options.length === 0}
+      />
+      <div className="mt-2 flex items-center justify-between gap-3">
+        <p className="text-[11px] text-donna-muted">
+          {options.length > 0
+            ? "⌘/Ctrl+Enter to send"
+            : "Markdown ok · ⌘/Ctrl+Enter to send"}
+        </p>
+        <Button
+          className="!w-auto gap-2 px-4 py-2.5 text-sm"
+          disabled={busy || !canSend}
+          onClick={() => onSend(composeFromSelection())}
+        >
+          <Send className="h-4 w-4" />
+          {options.length > 0 && selected.length > 0 && !value.trim() ? "Confirm" : "Reply"}
+        </Button>
+      </div>
+    </div>
   );
 }
 
@@ -236,6 +380,10 @@ export function AgentsPage() {
     return () => window.clearInterval(t);
   }, [selected, refresh, refreshSteps]);
 
+  useEffect(() => {
+    setRedirect("");
+  }, [selected]);
+
   async function onStart() {
     const g = goal.trim();
     if (!g || busy) return;
@@ -265,8 +413,8 @@ export function AgentsPage() {
     }
   }
 
-  async function onRedirect(id: string) {
-    const msg = redirect.trim();
+  async function onReply(id: string, message: string) {
+    const msg = message.trim();
     if (!msg) return;
     setBusy(true);
     try {
@@ -275,7 +423,7 @@ export function AgentsPage() {
       await refresh();
       await refreshSteps(id);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Redirect failed");
+      setError(e instanceof Error ? e.message : "Reply failed");
     } finally {
       setBusy(false);
     }
@@ -285,6 +433,15 @@ export function AgentsPage() {
   const summary = active ? resultSummary(active.result) : "";
   const question =
     active?.status === "waiting_for_user" ? pendingQuestion(active.result) ?? summary : null;
+  const options = useMemo(
+    () => (active?.status === "waiting_for_user" ? parseOptions(active.result) : []),
+    [active?.status, active?.result],
+  );
+  const allowMultiple = Boolean(
+    active?.status === "waiting_for_user" &&
+      (active.result?.allow_multiple === true ||
+        (active.result?.args as { allow_multiple?: boolean } | undefined)?.allow_multiple === true),
+  );
   const showReply = active ? canReply(active.status) && active.status !== "cancelled" : false;
 
   return (
@@ -366,7 +523,7 @@ export function AgentsPage() {
                           statusTone(run.status),
                         )}
                       >
-                        {run.status}
+                        {run.status === "waiting_for_user" ? "needs reply" : run.status}
                       </span>
                       <span className="text-[11px] text-donna-muted">{run.step_count} steps</span>
                     </div>
@@ -406,16 +563,16 @@ export function AgentsPage() {
                     </div>
 
                     {active.status === "waiting_for_user" ? (
-                      <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-3">
+                      <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-4">
                         <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">
                           Donna needs your reply
                         </p>
                         {question ? (
-                          <div className="mt-2 max-h-48 overflow-y-auto text-sm leading-relaxed text-amber-950">
-                            <MessageContent content={question} variant="assistant" className="text-sm" />
+                          <div className="mt-3 min-h-[8rem] max-h-[min(55vh,28rem)] overflow-y-auto text-sm leading-relaxed text-amber-950">
+                            <MessageContent content={question} variant="assistant" className="text-[0.95rem]" />
                           </div>
                         ) : (
-                          <p className="mt-1 text-sm text-amber-900">
+                          <p className="mt-2 text-sm text-amber-900">
                             Answer below to continue this agent.
                           </p>
                         )}
@@ -427,21 +584,33 @@ export function AgentsPage() {
                         <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-donna-muted">
                           Output
                         </p>
-                        <div className="max-h-[min(50vh,28rem)] overflow-y-auto overflow-x-hidden rounded-lg border border-donna-border bg-donna-sidebar/50 px-3 py-3">
+                        <div className="min-h-[16rem] max-h-[min(70vh,40rem)] overflow-y-auto overflow-x-hidden rounded-lg border border-donna-border bg-donna-sidebar/50 px-4 py-4">
                           <MessageContent
                             content={summary}
                             variant="assistant"
-                            className="text-sm leading-relaxed text-donna-text [&_pre]:max-w-full [&_pre]:overflow-x-auto"
+                            className="text-[0.95rem] leading-relaxed text-donna-text [&_pre]:max-w-full [&_pre]:overflow-x-auto"
                           />
                         </div>
                       </div>
+                    ) : null}
+
+                    {showReply ? (
+                      <ReplyComposer
+                        waiting={active.status === "waiting_for_user"}
+                        options={options}
+                        allowMultiple={allowMultiple}
+                        busy={busy}
+                        value={redirect}
+                        onChange={setRedirect}
+                        onSend={(message) => void onReply(active.id, message)}
+                      />
                     ) : null}
 
                     <div className="min-w-0">
                       <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-donna-muted">
                         Steps ({steps.length})
                       </p>
-                      <div className="max-h-[min(55vh,32rem)] overflow-y-auto overflow-x-hidden rounded-lg border border-donna-border">
+                      <div className="max-h-[min(45vh,24rem)] overflow-y-auto overflow-x-hidden rounded-lg border border-donna-border">
                         {steps.length === 0 ? (
                           <p className="p-3 text-xs text-donna-muted">Waiting for steps…</p>
                         ) : (
@@ -452,6 +621,7 @@ export function AgentsPage() {
                                 step={s}
                                 defaultOpen={
                                   s.kind === "thought" ||
+                                  s.kind === "approval_request" ||
                                   (s.kind === "tool_result" && s.seq === steps[steps.length - 1]?.seq)
                                 }
                               />
@@ -460,38 +630,6 @@ export function AgentsPage() {
                         )}
                       </div>
                     </div>
-
-                    {showReply ? (
-                      <div className="rounded-lg border border-donna-border bg-donna-surface/60 p-3">
-                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-donna-muted">
-                          {active.status === "waiting_for_user" ? "Your reply" : "Continue / reply"}
-                        </p>
-                        <div className="flex flex-col gap-2 sm:flex-row">
-                          <input
-                            className="min-w-0 flex-1 rounded-xl border border-donna-border bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-donna-primary-ring"
-                            placeholder={
-                              active.status === "waiting_for_user"
-                                ? "Type your answer…"
-                                : "Add a follow-up or correction…"
-                            }
-                            value={redirect}
-                            onChange={(e) => setRedirect(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") void onRedirect(active.id);
-                            }}
-                            autoFocus={active.status === "waiting_for_user"}
-                          />
-                          <Button
-                            className="!w-auto gap-2 px-4 py-2.5 text-sm"
-                            disabled={busy || !redirect.trim()}
-                            onClick={() => void onRedirect(active.id)}
-                          >
-                            <Send className="h-4 w-4" />
-                            Reply
-                          </Button>
-                        </div>
-                      </div>
-                    ) : null}
                   </div>
                 )}
               </section>
