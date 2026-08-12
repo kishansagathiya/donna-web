@@ -119,17 +119,6 @@ function isFinishedStatus(status: string): boolean {
   );
 }
 
-function isLiveStatus(status: string): boolean {
-  return status === "queued" || status === "running";
-}
-
-function liveActivityLabel(step: AgentStep | undefined, status: string): string {
-  if (!step) {
-    return status === "queued" ? "Queued — starting soon…" : "Working…";
-  }
-  return stepTitle(step);
-}
-
 function stepTitle(step: AgentStep): string {
   const p = step.payload || {};
   switch (step.kind) {
@@ -201,10 +190,6 @@ function StepRow({ step, defaultOpen }: { step: AgentStep; defaultOpen?: boolean
   const body = stepBody(step).trim();
   const hasBody = body.length > 0 && body !== stepTitle(step);
   const [open, setOpen] = useState(Boolean(defaultOpen || step.kind === "thought" || step.kind === "error"));
-
-  useEffect(() => {
-    if (defaultOpen) setOpen(true);
-  }, [defaultOpen, step.seq]);
 
   return (
     <li className="border-b border-donna-border last:border-b-0">
@@ -497,21 +482,10 @@ export function AgentsPage() {
   const inputDisabled = busy || micDisabled || sessionActive;
   const allowEmptySend = waitingWithOptions && selectedOptions.length > 0;
 
-  const latestStep = stepsNewestFirst[0];
-  const finished = active ? isFinishedStatus(active.status) : false;
-  const live = active ? isLiveStatus(active.status) : false;
-  const dockLabel = !active
-    ? "New goal"
-    : active.status === "waiting_for_user"
-      ? "Your reply"
-      : finished
-        ? "Follow up"
-        : "Message agent";
-
   return (
     <div className="flex h-full min-h-0 w-full">
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-        <header className="flex shrink-0 items-center justify-between gap-2 border-b border-donna-border/70 px-5 py-3">
+        <header className="flex shrink-0 items-center justify-between gap-2 px-5 py-3">
           <h1 className="text-lg font-semibold text-donna-text">Agents</h1>
           <div className="flex items-center gap-2">
             <IconButton
@@ -553,10 +527,10 @@ export function AgentsPage() {
               description="Background goals on Donna cloud — your phone can lock while it works."
             />
           ) : (
-            <div className="mx-auto flex w-full max-w-3xl flex-col gap-5 px-5 py-5 md:px-8">
+            <div className="flex w-full flex-col gap-5 px-5 py-5 md:px-8 lg:px-10">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <p className="whitespace-pre-wrap break-words text-base font-semibold text-donna-text">
+                  <p className="whitespace-pre-wrap break-words text-sm font-semibold text-donna-text">
                     {active.goal}
                   </p>
                   <div className="mt-2 flex flex-wrap items-center gap-2">
@@ -599,30 +573,13 @@ export function AgentsPage() {
                 )}
               </div>
 
-              {/* Finished: output first */}
-              {summary && finished ? (
-                <div className="min-w-0">
-                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-donna-muted">
-                    Output
-                  </p>
-                  <div className="min-h-[12rem] max-h-[min(65vh,36rem)] overflow-y-auto overflow-x-hidden rounded-2xl border border-donna-border bg-white px-4 py-4 shadow-sm">
-                    <MessageContent
-                      content={summary}
-                      variant="assistant"
-                      className="text-[0.95rem] leading-relaxed text-donna-text [&_pre]:max-w-full [&_pre]:overflow-x-auto"
-                    />
-                  </div>
-                </div>
-              ) : null}
-
-              {/* Waiting: question first */}
               {active.status === "waiting_for_user" ? (
-                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 shadow-sm">
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-4">
                   <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">
                     Donna needs your reply
                   </p>
                   {question ? (
-                    <div className="mt-3 min-h-[6rem] max-h-[min(50vh,24rem)] overflow-y-auto text-sm leading-relaxed text-amber-950">
+                    <div className="mt-3 min-h-[8rem] max-h-[min(55vh,28rem)] overflow-y-auto text-sm leading-relaxed text-amber-950">
                       <MessageContent content={question} variant="assistant" className="text-[0.95rem]" />
                     </div>
                   ) : (
@@ -647,46 +604,21 @@ export function AgentsPage() {
                 </div>
               ) : null}
 
-              {/* Live: show activity as it happens */}
-              {live ? (
-                <div className="rounded-2xl border border-sky-200 bg-sky-50/80 px-4 py-3 shadow-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="relative flex h-2.5 w-2.5">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-60" />
-                      <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-sky-500" />
-                    </span>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-sky-800">
-                      Live
-                    </p>
-                  </div>
-                  <p className="mt-2 text-sm font-medium text-sky-950" aria-live="polite">
-                    {liveActivityLabel(latestStep, active.status)}
-                  </p>
-                  {latestStep ? (
-                    <p className="mt-1 line-clamp-2 text-xs text-sky-900/80">
-                      {stepBody(latestStep).replace(/\s+/g, " ").trim() || "…"}
-                    </p>
-                  ) : null}
-                </div>
-              ) : null}
-
-              {/* Non-finished partial summary (e.g. mid-run result payload) */}
-              {summary && !finished && active.status !== "waiting_for_user" ? (
+              {summary && active.status !== "waiting_for_user" ? (
                 <div className="min-w-0">
                   <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-donna-muted">
-                    So far
+                    Output
                   </p>
-                  <div className="max-h-[min(40vh,20rem)] overflow-y-auto overflow-x-hidden rounded-2xl border border-donna-border bg-donna-sidebar/40 px-4 py-3">
+                  <div className="min-h-[16rem] max-h-[min(70vh,40rem)] overflow-y-auto overflow-x-hidden rounded-lg border border-donna-border bg-donna-sidebar/50 px-4 py-4">
                     <MessageContent
                       content={summary}
                       variant="assistant"
-                      className="text-sm leading-relaxed text-donna-text"
+                      className="text-[0.95rem] leading-relaxed text-donna-text [&_pre]:max-w-full [&_pre]:overflow-x-auto"
                     />
                   </div>
                 </div>
               ) : null}
 
-              {/* Steps: open while live, collapsed when finished */}
               <div className="min-w-0">
                 <button
                   type="button"
@@ -700,18 +632,16 @@ export function AgentsPage() {
                     <ChevronRight className="h-3.5 w-3.5 shrink-0" />
                   )}
                   Steps ({steps.length})
-                  {!stepsOpen && finished ? (
+                  {!stepsOpen && isFinishedStatus(active.status) ? (
                     <span className="ml-1 font-normal normal-case tracking-normal text-donna-muted">
                       · show timeline
                     </span>
                   ) : null}
                 </button>
                 {stepsOpen ? (
-                  <div className="max-h-[min(45vh,24rem)] overflow-y-auto overflow-x-hidden rounded-2xl border border-donna-border bg-white">
+                  <div className="max-h-[min(45vh,24rem)] overflow-y-auto overflow-x-hidden rounded-lg border border-donna-border">
                     {stepsNewestFirst.length === 0 ? (
-                      <p className="p-3 text-xs text-donna-muted">
-                        {live ? "Waiting for the first step…" : "No steps yet."}
-                      </p>
+                      <p className="p-3 text-xs text-donna-muted">Waiting for steps…</p>
                     ) : (
                       <ul>
                         {stepsNewestFirst.map((s) => (
@@ -719,11 +649,9 @@ export function AgentsPage() {
                             key={s.id}
                             step={s}
                             defaultOpen={
-                              live
-                                ? s.seq === latestStepSeq
-                                : s.kind === "thought" ||
-                                  s.kind === "approval_request" ||
-                                  (s.kind === "tool_result" && s.seq === latestStepSeq)
+                              s.kind === "thought" ||
+                              s.kind === "approval_request" ||
+                              (s.kind === "tool_result" && s.seq === latestStepSeq)
                             }
                           />
                         ))}
@@ -741,7 +669,7 @@ export function AgentsPage() {
         ) : null}
 
         {waitingWithOptions ? (
-          <div className="shrink-0 border-t border-donna-border bg-donna-sidebar/60 px-4 pb-2 pt-3 md:px-6">
+          <div className="shrink-0 border-t border-donna-border px-4 pb-2 pt-3 md:px-6">
             <p className="mb-2 text-xs text-donna-muted">
               {allowMultiple ? "Select one or more options" : "Select an option"}
             </p>
@@ -785,8 +713,6 @@ export function AgentsPage() {
             onSend={(text, attachments) => void handleSend(text, attachments)}
             disabled={inputDisabled}
             busy={busy}
-            variant="dock"
-            dockLabel={dockLabel}
             placeholder={
               !active
                 ? "Describe a cloud agent goal…"
@@ -796,11 +722,9 @@ export function AgentsPage() {
                     : "Or type a different answer…"
                   : active.status === "waiting_for_user"
                     ? "Write your answer…"
-                    : finished
-                      ? "Ask a follow-up or redirect the agent…"
-                      : "Steer the agent while it works…"
+                    : "Add a follow-up or correction…"
             }
-            showMic={Boolean(active) || !active}
+            showMic={Boolean(active)}
             micState={micState}
             onMicPress={() => void toggleTalk()}
             micDisabled={micDisabled}
