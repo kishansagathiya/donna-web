@@ -54,6 +54,10 @@ type Props = {
   onMicPress?: () => void;
   micDisabled?: boolean;
   sessionLabel?: string | null;
+  /** When false, hide the web-search toggle. Default true. */
+  showWebSearch?: boolean;
+  /** Allow send with empty text/attachments (e.g. option chips selected above). */
+  allowEmptySend?: boolean;
 };
 
 const quickActionIcons: Record<string, typeof FileText> = {
@@ -75,6 +79,8 @@ export function ChatInput({
   onMicPress,
   micDisabled,
   sessionLabel,
+  showWebSearch = true,
+  allowEmptySend = false,
 }: Props) {
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
@@ -83,7 +89,7 @@ export function ChatInput({
   const attachInputRef = useRef<HTMLInputElement>(null);
   const hasText = text.trim().length > 0;
   const hasAttachments = attachments.length > 0;
-  const canSend = hasText || hasAttachments;
+  const canSend = hasText || hasAttachments || allowEmptySend;
   const showStop = busy && Boolean(onStop);
   const showInlineMic =
     showMic && !hasText && !hasAttachments && onMicPress && !showStop;
@@ -247,27 +253,29 @@ export function ChatInput({
               aria-label={placeholder}
             />
 
-            <div className="mb-0.5">
-              <button
-                type="button"
-                onClick={() => setWebSearch((enabled) => !enabled)}
-                disabled={disabled}
-                aria-label="Use web search"
-                aria-pressed={webSearch}
-                title={webSearch ? "Web search on" : "Web search off"}
-                className={cn(
-                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-                  "transition-colors",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
-                  "disabled:cursor-not-allowed disabled:opacity-50",
-                  webSearch
-                    ? "bg-donna-primary-light text-donna-primary hover:bg-donna-primary-light/80"
-                    : "text-donna-muted hover:bg-donna-surface hover:text-donna-text",
-                )}
-              >
-                <Globe2 className="h-5 w-5" strokeWidth={1.75} />
-              </button>
-            </div>
+            {showWebSearch ? (
+              <div className="mb-0.5">
+                <button
+                  type="button"
+                  onClick={() => setWebSearch((enabled) => !enabled)}
+                  disabled={disabled}
+                  aria-label="Use web search"
+                  aria-pressed={webSearch}
+                  title={webSearch ? "Web search on" : "Web search off"}
+                  className={cn(
+                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+                    "transition-colors",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
+                    "disabled:cursor-not-allowed disabled:opacity-50",
+                    webSearch
+                      ? "bg-donna-primary-light text-donna-primary hover:bg-donna-primary-light/80"
+                      : "text-donna-muted hover:bg-donna-surface hover:text-donna-text",
+                  )}
+                >
+                  <Globe2 className="h-5 w-5" strokeWidth={1.75} />
+                </button>
+              </div>
+            ) : null}
 
             <div className="mb-0.5">
               <button

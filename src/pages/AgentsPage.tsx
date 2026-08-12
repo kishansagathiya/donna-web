@@ -1,5 +1,23 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Bot, Check, ChevronDown, ChevronRight, RefreshCw, Send, Square } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Check,
+  ChevronDown,
+  ChevronRight,
+  History,
+  PanelRightOpen,
+  Square,
+} from "lucide-react";
+import { AgentRunsSheet } from "../components/AgentRunsSheet";
+import { AgentRunsSidebar } from "../components/AgentRunsSidebar";
+import { ChatHero } from "../components/ChatHero";
+import { ChatInput } from "../components/ChatInput";
+import { MessageContent } from "../components/MessageContent";
+import { AlertBanner } from "../components/ui/AlertBanner";
+import { Button } from "../components/ui/Button";
+import { IconButton } from "../components/ui/IconButton";
+import { useVoiceSession } from "../hooks/useVoiceSession";
+import type { PendingAttachment } from "../lib/chatAttachments";
+import { cn } from "../lib/cn";
 import {
   cancelAgentRun,
   createAgentRun,
@@ -10,12 +28,8 @@ import {
   type AgentRun,
   type AgentStep,
 } from "../services/agentsApi";
-import { EmptyState } from "../components/ui/EmptyState";
-import { Spinner } from "../components/ui/Spinner";
-import { Button } from "../components/ui/Button";
-import { AlertBanner } from "../components/ui/AlertBanner";
-import { MessageContent } from "../components/MessageContent";
-import { cn } from "../lib/cn";
+
+const HISTORY_PANEL_KEY = "donna.agentHistory.panelOpen";
 
 type AskOption = { id: string; label: string };
 
@@ -219,151 +233,48 @@ function StepRow({ step, defaultOpen }: { step: AgentStep; defaultOpen?: boolean
   );
 }
 
-function ReplyComposer({
-  waiting,
-  options,
-  allowMultiple,
-  busy,
-  value,
-  onChange,
-  onSend,
-}: {
-  waiting: boolean;
-  options: AskOption[];
-  allowMultiple: boolean;
-  busy: boolean;
-  value: string;
-  onChange: (v: string) => void;
-  onSend: (message: string) => void;
-}) {
-  const [selected, setSelected] = useState<string[]>([]);
-
-  const optionKey = options.map((o) => o.id).join("|");
-  useEffect(() => {
-    setSelected([]);
-  }, [optionKey]);
-
-  function toggle(id: string) {
-    setSelected((prev) => {
-      if (allowMultiple) {
-        return prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
-      }
-      return prev[0] === id ? [] : [id];
-    });
-  }
-
-  function composeFromSelection(): string {
-    const labels = options.filter((o) => selected.includes(o.id)).map((o) => o.label);
-    if (labels.length === 0) return value.trim();
-    const choice = labels.join(", ");
-    const extra = value.trim();
-    return extra ? `${choice}\n\n${extra}` : choice;
-  }
-
-  const canSend = Boolean(composeFromSelection());
-
-  return (
-    <div className="rounded-lg border border-donna-border bg-donna-surface/60 p-4">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-donna-muted">
-        {waiting ? "Your reply" : "Continue / reply"}
-      </p>
-
-      {options.length > 0 ? (
-        <div className="mb-3">
-          <p className="mb-2 text-xs text-donna-muted">
-            {allowMultiple ? "Select one or more options" : "Select an option"}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {options.map((opt) => {
-              const on = selected.includes(opt.id);
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  disabled={busy}
-                  onClick={() => toggle(opt.id)}
-                  className={cn(
-                    "rounded-xl border px-3 py-2 text-left text-sm transition-colors",
-                    on
-                      ? "border-donna-primary bg-donna-primary text-white"
-                      : "border-donna-border bg-white text-donna-text hover:border-donna-primary/50",
-                  )}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
-
-      <textarea
-        className="min-h-[7.5rem] w-full resize-y rounded-xl border border-donna-border bg-white px-3 py-3 text-sm leading-relaxed text-donna-text outline-none focus:ring-2 focus:ring-donna-primary-ring"
-        placeholder={
-          options.length > 0
-            ? allowMultiple
-              ? "Optional note to add with your selection…"
-              : "Or type a different answer…"
-            : waiting
-              ? "Write your answer…"
-              : "Add a follow-up or correction…"
-        }
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && canSend && !busy) {
-            e.preventDefault();
-            onSend(composeFromSelection());
-          }
-        }}
-        autoFocus={waiting && options.length === 0}
-      />
-      <div className="mt-2 flex items-center justify-between gap-3">
-        <p className="text-[11px] text-donna-muted">
-          {options.length > 0
-            ? "⌘/Ctrl+Enter to send"
-            : "Markdown ok · ⌘/Ctrl+Enter to send"}
-        </p>
-        <Button
-          className="!w-auto gap-2 px-4 py-2.5 text-sm"
-          disabled={busy || !canSend}
-          onClick={() => onSend(composeFromSelection())}
-        >
-          <Send className="h-4 w-4" />
-          {options.length > 0 && selected.length > 0 && !value.trim() ? "Confirm" : "Reply"}
-        </Button>
-      </div>
-    </div>
-  );
+function attachmentPayloads(attachments: PendingAttachment[]) {
+  return attachments.map((a) => a.payload);
 }
 
 export function AgentsPage() {
   const [runs, setRuns] = useState<AgentRun[]>([]);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [steps, setSteps] = useState<AgentStep[]>([]);
-  const [goal, setGoal] = useState("");
-  const [redirect, setRedirect] = useState("");
-  const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [historySheetOpen, setHistorySheetOpen] = useState(false);
+  const [historyPanelOpen, setHistoryPanelOpen] = useState(() => {
+    try {
+      return localStorage.getItem(HISTORY_PANEL_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
   const [stepsOpen, setStepsOpen] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
 
-  const refresh = useCallback(async () => {
-    setError(null);
+  const selectedIdRef = useRef(selectedId);
+  selectedIdRef.current = selectedId;
+  const busyRef = useRef(busy);
+  busyRef.current = busy;
+
+  const bumpRefresh = useCallback(() => {
+    setRefreshKey((k) => k + 1);
+  }, []);
+
+  const refreshRuns = useCallback(async () => {
     try {
       const list = await listAgentRuns();
       setRuns(list);
-      if (selected && !list.some((r) => r.id === selected) && list[0]) {
-        setSelected(list[0].id);
-      } else if (!selected && list[0]) {
-        setSelected(list[0].id);
+      if (selectedIdRef.current && !list.some((r) => r.id === selectedIdRef.current)) {
+        setSelectedId(null);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load agents");
-    } finally {
-      setLoading(false);
     }
-  }, [selected]);
+  }, []);
 
   const refreshSteps = useCallback(async (id: string) => {
     try {
@@ -375,86 +286,31 @@ export function AgentsPage() {
   }, []);
 
   useEffect(() => {
-    void refresh();
-  }, [refresh]);
+    void refreshRuns();
+  }, [refreshRuns, refreshKey]);
 
   useEffect(() => {
-    if (!selected) {
+    if (!selectedId) {
       setSteps([]);
       return;
     }
-    void refreshSteps(selected);
+    void refreshSteps(selectedId);
     const t = window.setInterval(() => {
-      void refresh();
-      void refreshSteps(selected);
+      void refreshRuns();
+      void refreshSteps(selectedId);
     }, 2500);
     return () => window.clearInterval(t);
-  }, [selected, refresh, refreshSteps]);
+  }, [selectedId, refreshRuns, refreshSteps]);
 
   useEffect(() => {
-    setRedirect("");
-  }, [selected]);
-
-  async function onStart() {
-    const g = goal.trim();
-    if (!g || busy) return;
-    setBusy(true);
-    setError(null);
     try {
-      const run = await createAgentRun(g);
-      setGoal("");
-      setSelected(run.id);
-      await refresh();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to start agent");
-    } finally {
-      setBusy(false);
+      localStorage.setItem(HISTORY_PANEL_KEY, historyPanelOpen ? "1" : "0");
+    } catch {
+      // ignore
     }
-  }
+  }, [historyPanelOpen]);
 
-  async function onCancel(id: string) {
-    setBusy(true);
-    try {
-      await cancelAgentRun(id);
-      await refresh();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Cancel failed");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function onFinish(id: string) {
-    setBusy(true);
-    try {
-      await finishAgentRun(id);
-      setRedirect("");
-      await refresh();
-      await refreshSteps(id);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not mark finished");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function onReply(id: string, message: string) {
-    const msg = message.trim();
-    if (!msg) return;
-    setBusy(true);
-    try {
-      await redirectAgentRun(id, msg);
-      setRedirect("");
-      await refresh();
-      await refreshSteps(id);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Reply failed");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const active = runs.find((r) => r.id === selected) ?? null;
+  const active = runs.find((r) => r.id === selectedId) ?? null;
   const summary = active ? resultSummary(active.result) : "";
   const question =
     active?.status === "waiting_for_user" ? pendingQuestion(active.result) ?? summary : null;
@@ -467,12 +323,20 @@ export function AgentsPage() {
       (active.result?.allow_multiple === true ||
         (active.result?.args as { allow_multiple?: boolean } | undefined)?.allow_multiple === true),
   );
-  const showReply = active ? canReply(active.status) && active.status !== "cancelled" : false;
+  const waitingWithOptions = Boolean(
+    active?.status === "waiting_for_user" && options.length > 0,
+  );
+  const showInput = !active || (canReply(active.status) && active.status !== "cancelled");
   const stepsNewestFirst = useMemo(
     () => [...steps].sort((a, b) => b.seq - a.seq),
     [steps],
   );
   const latestStepSeq = stepsNewestFirst[0]?.seq;
+
+  const optionKey = options.map((o) => o.id).join("|");
+  useEffect(() => {
+    setSelectedOptions([]);
+  }, [optionKey, selectedId]);
 
   useEffect(() => {
     if (!active) {
@@ -482,241 +346,413 @@ export function AgentsPage() {
     setStepsOpen(!isFinishedStatus(active.status));
   }, [active?.id, active?.status]);
 
+  async function createRun(goal: string, attachments: PendingAttachment[] = []) {
+    const g = goal.trim();
+    if ((!g && attachments.length === 0) || busyRef.current) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const run = await createAgentRun(
+        g || "See attached",
+        attachments.length > 0 ? attachmentPayloads(attachments) : undefined,
+      );
+      setSelectedId(run.id);
+      bumpRefresh();
+      await refreshRuns();
+      await refreshSteps(run.id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to start agent");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function replyToRun(
+    id: string,
+    message: string,
+    attachments: PendingAttachment[] = [],
+  ) {
+    const msg = message.trim();
+    if ((!msg && attachments.length === 0) || busyRef.current) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await redirectAgentRun(
+        id,
+        msg || "See attached",
+        attachments.length > 0 ? attachmentPayloads(attachments) : undefined,
+      );
+      setSelectedOptions([]);
+      bumpRefresh();
+      await refreshRuns();
+      await refreshSteps(id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Reply failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function composeWithOptions(text: string): string {
+    const labels = options.filter((o) => selectedOptions.includes(o.id)).map((o) => o.label);
+    if (labels.length === 0) return text.trim();
+    const choice = labels.join(", ");
+    const extra = text.trim();
+    return extra ? `${choice}\n\n${extra}` : choice;
+  }
+
+  async function handleSend(text: string, attachments: PendingAttachment[]) {
+    const composed = composeWithOptions(text);
+    if (selectedId) {
+      await replyToRun(selectedId, composed, attachments);
+    } else {
+      await createRun(composed, attachments);
+    }
+  }
+
+  const {
+    state: micState,
+    toggleTalk,
+    sessionLabel,
+    errorMsg: voiceError,
+    disabled: micDisabled,
+    sessionActive,
+    dismissError: dismissVoiceError,
+  } = useVoiceSession({
+    onTranscript: (text) => {
+      const trimmed = text.trim();
+      if (!trimmed) return;
+      if (selectedIdRef.current) {
+        void replyToRun(selectedIdRef.current, trimmed);
+      } else {
+        void createRun(trimmed);
+      }
+    },
+  });
+
+  const activeError = voiceError ?? error;
+  function dismissActiveError() {
+    if (voiceError) dismissVoiceError();
+    else setError(null);
+  }
+
+  async function onCancel(id: string) {
+    setBusy(true);
+    try {
+      await cancelAgentRun(id);
+      bumpRefresh();
+      await refreshRuns();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Cancel failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onFinish(id: string) {
+    setBusy(true);
+    try {
+      await finishAgentRun(id);
+      bumpRefresh();
+      await refreshRuns();
+      await refreshSteps(id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not mark finished");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function handleNewRun() {
+    setSelectedId(null);
+    setSteps([]);
+    setSelectedOptions([]);
+    setError(null);
+  }
+
+  function toggleOption(id: string) {
+    setSelectedOptions((prev) => {
+      if (allowMultiple) {
+        return prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
+      }
+      return prev[0] === id ? [] : [id];
+    });
+  }
+
+  const inputDisabled = busy || micDisabled || sessionActive;
+  const allowEmptySend = waitingWithOptions && selectedOptions.length > 0;
+
   return (
-    <div className="flex h-full min-h-0 w-full flex-col bg-white">
-      <header className="flex shrink-0 flex-col gap-3 border-b border-donna-border px-6 py-5 md:flex-row md:items-center md:justify-between md:px-8">
-        <div>
-          <h1 className="text-xl font-semibold text-donna-text">Cloud agents</h1>
-          <p className="mt-0.5 text-sm text-donna-muted">
-            Background goals on Donna cloud — phone can lock while it works.
-          </p>
-        </div>
-        <Button
-          variant="ghost"
-          className="!w-auto gap-2 px-3 py-2 text-sm"
-          onClick={() => void refresh()}
-          disabled={busy}
-        >
-          <RefreshCw className="h-4 w-4" />
-          Refresh
-        </Button>
-      </header>
+    <div className="flex h-full min-h-0 w-full">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <header className="flex shrink-0 items-center justify-between gap-2 px-5 py-3">
+          <h1 className="text-lg font-semibold text-donna-text">Agents</h1>
+          <div className="flex items-center gap-2">
+            <IconButton
+              onClick={() => setHistorySheetOpen(true)}
+              aria-label="Agent history"
+              className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface lg:!hidden"
+            >
+              <History className="h-5 w-5" strokeWidth={1.75} />
+            </IconButton>
+            <IconButton
+              onClick={() => setHistoryPanelOpen((open) => !open)}
+              aria-label={
+                historyPanelOpen ? "Close agent history" : "Open agent history"
+              }
+              aria-pressed={historyPanelOpen}
+              className={cn(
+                "!h-9 !w-9 !border-transparent !bg-transparent hover:!bg-donna-surface !hidden lg:!inline-flex",
+                historyPanelOpen ? "!text-donna-primary" : "!text-donna-muted",
+              )}
+            >
+              {historyPanelOpen ? (
+                <History className="h-5 w-5" strokeWidth={1.75} />
+              ) : (
+                <PanelRightOpen className="h-5 w-5" strokeWidth={1.75} />
+              )}
+            </IconButton>
+          </div>
+        </header>
 
-      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-        <div className="flex w-full flex-col gap-5 px-5 py-5 md:px-8 lg:px-10">
-          {error ? <AlertBanner>{error}</AlertBanner> : null}
-
-          <section className="rounded-donna border border-donna-border bg-white p-4">
-            <label className="block text-sm font-medium text-donna-text">Start a goal</label>
-            <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-              <input
-                className="min-w-0 flex-1 rounded-xl border border-donna-border bg-donna-surface px-3 py-2.5 text-sm text-donna-text outline-none focus:ring-2 focus:ring-donna-primary-ring"
-                placeholder="Find the Lisbon rooftop dinner photo in my notes…"
-                value={goal}
-                onChange={(e) => setGoal(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") void onStart();
-                }}
-              />
-              <Button
-                className="!w-auto gap-2 px-4 py-2.5 text-sm"
-                onClick={() => void onStart()}
-                disabled={busy || !goal.trim()}
-              >
-                <Send className="h-4 w-4" />
-                Run
-              </Button>
-            </div>
-          </section>
-
-          {loading ? (
-            <div className="flex justify-center py-12">
-              <Spinner />
-            </div>
-          ) : runs.length === 0 ? (
-            <EmptyState
-              icon={Bot}
-              title="No agent runs yet"
-              description="Start a background goal above. Donna will search memory and the web while you do other things."
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          {!active ? (
+            <ChatHero
+              micState={micState}
+              onMicPress={() => void toggleTalk()}
+              micDisabled={micDisabled || busy}
+              showMic
+              sessionLabel={sessionLabel}
+              title="Start a cloud agent goal…"
+              description="Background goals on Donna cloud — your phone can lock while it works."
             />
           ) : (
-            <div className="grid gap-4 lg:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]">
-              <div className="flex max-h-[min(80vh,48rem)] flex-col gap-2 overflow-y-auto pr-1">
-                {runs.map((run) => (
-                  <button
-                    key={run.id}
-                    type="button"
-                    onClick={() => setSelected(run.id)}
-                    className={cn(
-                      "rounded-xl border px-3 py-3 text-left transition-colors",
-                      selected === run.id
-                        ? "border-donna-primary bg-donna-primary/5"
-                        : "border-donna-border bg-donna-surface hover:bg-donna-sidebar",
-                    )}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span
-                        className={cn(
-                          "rounded-full border px-2 py-0.5 text-[11px] font-medium",
-                          statusTone(run.status),
-                        )}
-                      >
-                        {run.status === "waiting_for_user" ? "needs reply" : run.status}
-                      </span>
-                      <span className="text-[11px] text-donna-muted">{run.step_count} steps</span>
-                    </div>
-                    <p className="mt-2 line-clamp-2 text-sm text-donna-text">{run.goal}</p>
-                  </button>
-                ))}
-              </div>
-
-              <section className="min-w-0 rounded-donna border border-donna-border bg-white p-4">
-                {!active ? (
-                  <p className="text-sm text-donna-muted">Select a run</p>
-                ) : (
-                  <div className="flex min-w-0 flex-col gap-4">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="whitespace-pre-wrap break-words text-sm font-semibold text-donna-text">
-                          {active.goal}
-                        </p>
-                        <p className="mt-1 text-xs text-donna-muted">
-                          {active.status}
-                          {active.error ? ` · ${active.error}` : ""}
-                        </p>
-                      </div>
-                      {(active.status === "running" ||
-                        active.status === "queued" ||
-                        active.status === "waiting_for_user") && (
-                        <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
-                          <Button
-                            variant="secondary"
-                            className="!w-auto gap-1 px-3 py-2 text-sm"
-                            disabled={busy}
-                            onClick={() => void onFinish(active.id)}
-                          >
-                            <Check className="h-4 w-4" />
-                            Mark finished
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            className="!w-auto gap-1 px-3 py-2 text-sm"
-                            disabled={busy}
-                            onClick={() => void onCancel(active.id)}
-                          >
-                            <Square className="h-4 w-4" />
-                            Cancel
-                          </Button>
-                        </div>
+            <div className="flex w-full flex-col gap-5 px-5 py-5 md:px-8 lg:px-10">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="whitespace-pre-wrap break-words text-sm font-semibold text-donna-text">
+                    {active.goal}
+                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <span
+                      className={cn(
+                        "rounded-full border px-2 py-0.5 text-[11px] font-medium",
+                        statusTone(active.status),
                       )}
-                    </div>
-
-                    {active.status === "waiting_for_user" ? (
-                      <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-4">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">
-                          Donna needs your reply
-                        </p>
-                        {question ? (
-                          <div className="mt-3 min-h-[8rem] max-h-[min(55vh,28rem)] overflow-y-auto text-sm leading-relaxed text-amber-950">
-                            <MessageContent content={question} variant="assistant" className="text-[0.95rem]" />
-                          </div>
-                        ) : (
-                          <p className="mt-2 text-sm text-amber-900">
-                            Answer below to continue this agent.
-                          </p>
-                        )}
-                        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-amber-200/80 pt-3">
-                          <p className="mr-auto text-xs text-amber-900/80">
-                            Or close this agent without answering.
-                          </p>
-                          <Button
-                            variant="secondary"
-                            className="!w-auto gap-1.5 border-amber-300 bg-white px-3 py-2 text-sm text-amber-950 hover:border-amber-400"
-                            disabled={busy}
-                            onClick={() => void onFinish(active.id)}
-                          >
-                            <Check className="h-4 w-4" />
-                            Mark finished
-                          </Button>
-                        </div>
-                      </div>
+                    >
+                      {active.status === "waiting_for_user" ? "needs reply" : active.status}
+                    </span>
+                    {active.error ? (
+                      <span className="text-xs text-rose-700">{active.error}</span>
                     ) : null}
-
-                    {summary && active.status !== "waiting_for_user" ? (
-                      <div className="min-w-0">
-                        <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-donna-muted">
-                          Output
-                        </p>
-                        <div className="min-h-[16rem] max-h-[min(70vh,40rem)] overflow-y-auto overflow-x-hidden rounded-lg border border-donna-border bg-donna-sidebar/50 px-4 py-4">
-                          <MessageContent
-                            content={summary}
-                            variant="assistant"
-                            className="text-[0.95rem] leading-relaxed text-donna-text [&_pre]:max-w-full [&_pre]:overflow-x-auto"
-                          />
-                        </div>
-                      </div>
-                    ) : null}
-
-                    {showReply ? (
-                      <ReplyComposer
-                        waiting={active.status === "waiting_for_user"}
-                        options={options}
-                        allowMultiple={allowMultiple}
-                        busy={busy}
-                        value={redirect}
-                        onChange={setRedirect}
-                        onSend={(message) => void onReply(active.id, message)}
-                      />
-                    ) : null}
-
-                    <div className="min-w-0">
-                      <button
-                        type="button"
-                        className="mb-1.5 flex w-full items-center gap-1.5 text-left text-xs font-semibold uppercase tracking-wide text-donna-muted hover:text-donna-text"
-                        onClick={() => setStepsOpen((v) => !v)}
-                        aria-expanded={stepsOpen}
-                      >
-                        {stepsOpen ? (
-                          <ChevronDown className="h-3.5 w-3.5 shrink-0" />
-                        ) : (
-                          <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-                        )}
-                        Steps ({steps.length})
-                        {!stepsOpen && isFinishedStatus(active.status) ? (
-                          <span className="ml-1 font-normal normal-case tracking-normal text-donna-muted">
-                            · show timeline
-                          </span>
-                        ) : null}
-                      </button>
-                      {stepsOpen ? (
-                        <div className="max-h-[min(45vh,24rem)] overflow-y-auto overflow-x-hidden rounded-lg border border-donna-border">
-                          {stepsNewestFirst.length === 0 ? (
-                            <p className="p-3 text-xs text-donna-muted">Waiting for steps…</p>
-                          ) : (
-                            <ul>
-                              {stepsNewestFirst.map((s) => (
-                                <StepRow
-                                  key={s.id}
-                                  step={s}
-                                  defaultOpen={
-                                    s.kind === "thought" ||
-                                    s.kind === "approval_request" ||
-                                    (s.kind === "tool_result" && s.seq === latestStepSeq)
-                                  }
-                                />
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      ) : null}
-                    </div>
+                  </div>
+                </div>
+                {(active.status === "running" ||
+                  active.status === "queued" ||
+                  active.status === "waiting_for_user") && (
+                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
+                    <Button
+                      variant="secondary"
+                      className="!w-auto gap-1 px-3 py-2 text-sm"
+                      disabled={busy}
+                      onClick={() => void onFinish(active.id)}
+                    >
+                      <Check className="h-4 w-4" />
+                      Mark finished
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="!w-auto gap-1 px-3 py-2 text-sm"
+                      disabled={busy}
+                      onClick={() => void onCancel(active.id)}
+                    >
+                      <Square className="h-4 w-4" />
+                      Cancel
+                    </Button>
                   </div>
                 )}
-              </section>
+              </div>
+
+              {active.status === "waiting_for_user" ? (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-4">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">
+                    Donna needs your reply
+                  </p>
+                  {question ? (
+                    <div className="mt-3 min-h-[8rem] max-h-[min(55vh,28rem)] overflow-y-auto text-sm leading-relaxed text-amber-950">
+                      <MessageContent content={question} variant="assistant" className="text-[0.95rem]" />
+                    </div>
+                  ) : (
+                    <p className="mt-2 text-sm text-amber-900">
+                      Answer below to continue this agent.
+                    </p>
+                  )}
+                  <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-amber-200/80 pt-3">
+                    <p className="mr-auto text-xs text-amber-900/80">
+                      Or close this agent without answering.
+                    </p>
+                    <Button
+                      variant="secondary"
+                      className="!w-auto gap-1.5 border-amber-300 bg-white px-3 py-2 text-sm text-amber-950 hover:border-amber-400"
+                      disabled={busy}
+                      onClick={() => void onFinish(active.id)}
+                    >
+                      <Check className="h-4 w-4" />
+                      Mark finished
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
+
+              {summary && active.status !== "waiting_for_user" ? (
+                <div className="min-w-0">
+                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-donna-muted">
+                    Output
+                  </p>
+                  <div className="min-h-[16rem] max-h-[min(70vh,40rem)] overflow-y-auto overflow-x-hidden rounded-lg border border-donna-border bg-donna-sidebar/50 px-4 py-4">
+                    <MessageContent
+                      content={summary}
+                      variant="assistant"
+                      className="text-[0.95rem] leading-relaxed text-donna-text [&_pre]:max-w-full [&_pre]:overflow-x-auto"
+                    />
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="min-w-0">
+                <button
+                  type="button"
+                  className="mb-1.5 flex w-full items-center gap-1.5 text-left text-xs font-semibold uppercase tracking-wide text-donna-muted hover:text-donna-text"
+                  onClick={() => setStepsOpen((v) => !v)}
+                  aria-expanded={stepsOpen}
+                >
+                  {stepsOpen ? (
+                    <ChevronDown className="h-3.5 w-3.5 shrink-0" />
+                  ) : (
+                    <ChevronRight className="h-3.5 w-3.5 shrink-0" />
+                  )}
+                  Steps ({steps.length})
+                  {!stepsOpen && isFinishedStatus(active.status) ? (
+                    <span className="ml-1 font-normal normal-case tracking-normal text-donna-muted">
+                      · show timeline
+                    </span>
+                  ) : null}
+                </button>
+                {stepsOpen ? (
+                  <div className="max-h-[min(45vh,24rem)] overflow-y-auto overflow-x-hidden rounded-lg border border-donna-border">
+                    {stepsNewestFirst.length === 0 ? (
+                      <p className="p-3 text-xs text-donna-muted">Waiting for steps…</p>
+                    ) : (
+                      <ul>
+                        {stepsNewestFirst.map((s) => (
+                          <StepRow
+                            key={s.id}
+                            step={s}
+                            defaultOpen={
+                              s.kind === "thought" ||
+                              s.kind === "approval_request" ||
+                              (s.kind === "tool_result" && s.seq === latestStepSeq)
+                            }
+                          />
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ) : null}
+              </div>
             </div>
           )}
         </div>
+
+        {activeError ? (
+          <AlertBanner onDismiss={dismissActiveError}>{activeError}</AlertBanner>
+        ) : null}
+
+        {waitingWithOptions ? (
+          <div className="shrink-0 border-t border-donna-border px-4 pb-2 pt-3 md:px-6">
+            <p className="mb-2 text-xs text-donna-muted">
+              {allowMultiple ? "Select one or more options" : "Select an option"}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {options.map((opt) => {
+                const on = selectedOptions.includes(opt.id);
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    disabled={busy}
+                    onClick={() => toggleOption(opt.id)}
+                    className={cn(
+                      "rounded-xl border px-3 py-2 text-left text-sm transition-colors",
+                      on
+                        ? "border-donna-primary bg-donna-primary text-white"
+                        : "border-donna-border bg-white text-donna-text hover:border-donna-primary/50",
+                    )}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
+            {selectedOptions.length > 0 ? (
+              <div className="mt-3 flex justify-end">
+                <Button
+                  className="!w-auto px-4 py-2 text-sm"
+                  disabled={busy}
+                  onClick={() => void handleSend(composeWithOptions(""), [])}
+                >
+                  Confirm
+                </Button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {showInput ? (
+          <ChatInput
+            onSend={(text, attachments) => void handleSend(text, attachments)}
+            disabled={inputDisabled}
+            busy={busy}
+            placeholder={
+              !active
+                ? "Describe a cloud agent goal…"
+                : waitingWithOptions
+                  ? allowMultiple
+                    ? "Optional note to add with your selection…"
+                    : "Or type a different answer…"
+                  : active.status === "waiting_for_user"
+                    ? "Write your answer…"
+                    : "Add a follow-up or correction…"
+            }
+            showMic={Boolean(active)}
+            micState={micState}
+            onMicPress={() => void toggleTalk()}
+            micDisabled={micDisabled}
+            sessionLabel={sessionLabel}
+            showWebSearch={false}
+            allowEmptySend={allowEmptySend}
+          />
+        ) : null}
+
+        <AgentRunsSheet
+          open={historySheetOpen}
+          onClose={() => setHistorySheetOpen(false)}
+          selectedId={selectedId}
+          onSelect={(run) => setSelectedId(run.id)}
+          refreshKey={refreshKey}
+          runs={runs}
+        />
       </div>
+
+      <AgentRunsSidebar
+        open={historyPanelOpen}
+        onClose={() => setHistoryPanelOpen(false)}
+        selectedId={selectedId}
+        onNewRun={handleNewRun}
+        onSelect={(run) => setSelectedId(run.id)}
+        refreshKey={refreshKey}
+        runs={runs}
+      />
     </div>
   );
 }

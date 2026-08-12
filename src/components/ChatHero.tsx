@@ -10,6 +10,8 @@ type Props = {
   compact?: boolean;
   showMic?: boolean;
   sessionLabel?: string | null;
+  title?: string;
+  description?: string;
 };
 
 export function ChatHero({
@@ -19,6 +21,8 @@ export function ChatHero({
   compact = false,
   showMic = true,
   sessionLabel,
+  title = "Ask Donna anything",
+  description = "Your Personal Assistant — she remembers notes, past chats, and what you said out loud.",
 }: Props) {
   if (compact && !showMic && !sessionLabel) {
     return null;
@@ -53,12 +57,13 @@ export function ChatHero({
       {compact || sessionLabel || !showMic ? null : (
         <>
           <h1 className="mt-8 text-3xl font-bold tracking-tight text-donna-text sm:text-4xl">
-            Ask Donna anything
+            {title}
           </h1>
-          <p className="mt-3 max-w-md text-base leading-relaxed text-donna-muted">
-            Your Personal Assistant — she remembers notes, past chats, and what you
-            said out loud.
-          </p>
+          {description ? (
+            <p className="mt-3 max-w-md text-base leading-relaxed text-donna-muted">
+              {description}
+            </p>
+          ) : null}
         </>
       )}
     </div>

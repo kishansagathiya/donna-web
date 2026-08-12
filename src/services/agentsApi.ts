@@ -1,5 +1,6 @@
 import { API_BASE_URL } from "../config";
 import { getAccessToken } from "./auth";
+import type { ChatAttachmentPayload } from "../lib/chatAttachments";
 
 export type AgentRun = {
   id: string;
@@ -30,6 +31,8 @@ export type AgentStep = {
   created_at: string;
 };
 
+export type AgentAttachment = ChatAttachmentPayload;
+
 async function authorizedFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const token = await getAccessToken();
   if (!token) {
@@ -59,10 +62,16 @@ export async function listAgentRuns(status?: string): Promise<AgentRun[]> {
   return (await res.json()) as AgentRun[];
 }
 
-export async function createAgentRun(goal: string): Promise<AgentRun> {
+export async function createAgentRun(
+  goal: string,
+  attachments?: AgentAttachment[],
+): Promise<AgentRun> {
   const res = await authorizedFetch("/agent-runs", {
     method: "POST",
-    body: JSON.stringify({ goal }),
+    body: JSON.stringify({
+      goal,
+      attachments: attachments && attachments.length > 0 ? attachments : undefined,
+    }),
   });
   if (!res.ok) throw new Error(await readError(res));
   return (await res.json()) as AgentRun;
@@ -93,10 +102,17 @@ export async function finishAgentRun(id: string): Promise<AgentRun> {
   return (await res.json()) as AgentRun;
 }
 
-export async function redirectAgentRun(id: string, message: string): Promise<AgentRun> {
+export async function redirectAgentRun(
+  id: string,
+  message: string,
+  attachments?: AgentAttachment[],
+): Promise<AgentRun> {
   const res = await authorizedFetch(`/agent-runs/${id}/redirect`, {
     method: "POST",
-    body: JSON.stringify({ message }),
+    body: JSON.stringify({
+      message,
+      attachments: attachments && attachments.length > 0 ? attachments : undefined,
+    }),
   });
   if (!res.ok) throw new Error(await readError(res));
   return (await res.json()) as AgentRun;
