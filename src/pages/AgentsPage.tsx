@@ -38,11 +38,38 @@ function resultSummary(result: Record<string, unknown> | null | undefined): stri
   if (typeof result.summary === "string" && result.summary.trim()) {
     return result.summary;
   }
+  if (typeof result.question === "string" && result.question.trim()) {
+    return result.question;
+  }
   try {
     return JSON.stringify(result, null, 2);
   } catch {
     return String(result);
   }
+}
+
+function pendingQuestion(result: Record<string, unknown> | null | undefined): string | null {
+  if (!result) return null;
+  if (typeof result.question === "string" && result.question.trim()) {
+    return result.question.trim();
+  }
+  if (result.kind === "ask_user" && typeof result.summary === "string" && result.summary.trim()) {
+    return result.summary.trim();
+  }
+  if (typeof result.summary === "string" && result.summary.trim() && String(result.kind ?? "").includes("ask")) {
+    return result.summary.trim();
+  }
+  return null;
+}
+
+function canReply(status: string): boolean {
+  return (
+    status === "waiting_for_user" ||
+    status === "running" ||
+    status === "queued" ||
+    status === "succeeded" ||
+    status === "failed"
+  );
 }
 
 function stepTitle(step: AgentStep): string {
@@ -256,6 +283,9 @@ export function AgentsPage() {
 
   const active = runs.find((r) => r.id === selected) ?? null;
   const summary = active ? resultSummary(active.result) : "";
+  const question =
+    active?.status === "waiting_for_user" ? pendingQuestion(active.result) ?? summary : null;
+  const showReply = active ? canReply(active.status) && active.status !== "cancelled" : false;
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col bg-white">
@@ -375,7 +405,24 @@ export function AgentsPage() {
                       )}
                     </div>
 
-                    {summary ? (
+                    {active.status === "waiting_for_user" ? (
+                      <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-3">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">
+                          Donna needs your reply
+                        </p>
+                        {question ? (
+                          <div className="mt-2 max-h-48 overflow-y-auto text-sm leading-relaxed text-amber-950">
+                            <MessageContent content={question} variant="assistant" className="text-sm" />
+                          </div>
+                        ) : (
+                          <p className="mt-1 text-sm text-amber-900">
+                            Answer below to continue this agent.
+                          </p>
+                        )}
+                      </div>
+                    ) : null}
+
+                    {summary && active.status !== "waiting_for_user" ? (
                       <div className="min-w-0">
                         <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-donna-muted">
                           Output
@@ -414,29 +461,37 @@ export function AgentsPage() {
                       </div>
                     </div>
 
-                    {(active.status === "running" ||
-                      active.status === "queued" ||
-                      active.status === "waiting_for_user") && (
-                      <div className="flex flex-col gap-2 sm:flex-row">
-                        <input
-                          className="min-w-0 flex-1 rounded-xl border border-donna-border bg-donna-surface px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-donna-primary-ring"
-                          placeholder="Steer: prefer United, aisle…"
-                          value={redirect}
-                          onChange={(e) => setRedirect(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") void onRedirect(active.id);
-                          }}
-                        />
-                        <Button
-                          variant="secondary"
-                          className="!w-auto px-4 py-2.5 text-sm"
-                          disabled={busy || !redirect.trim()}
-                          onClick={() => void onRedirect(active.id)}
-                        >
-                          Steer
-                        </Button>
+                    {showReply ? (
+                      <div className="rounded-lg border border-donna-border bg-donna-surface/60 p-3">
+                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-donna-muted">
+                          {active.status === "waiting_for_user" ? "Your reply" : "Continue / reply"}
+                        </p>
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                          <input
+                            className="min-w-0 flex-1 rounded-xl border border-donna-border bg-white px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-donna-primary-ring"
+                            placeholder={
+                              active.status === "waiting_for_user"
+                                ? "Type your answer…"
+                                : "Add a follow-up or correction…"
+                            }
+                            value={redirect}
+                            onChange={(e) => setRedirect(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") void onRedirect(active.id);
+                            }}
+                            autoFocus={active.status === "waiting_for_user"}
+                          />
+                          <Button
+                            className="!w-auto gap-2 px-4 py-2.5 text-sm"
+                            disabled={busy || !redirect.trim()}
+                            onClick={() => void onRedirect(active.id)}
+                          >
+                            <Send className="h-4 w-4" />
+                            Reply
+                          </Button>
+                        </div>
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 )}
               </section>
