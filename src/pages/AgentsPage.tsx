@@ -96,6 +96,15 @@ function canReply(status: string): boolean {
   );
 }
 
+function isFinishedStatus(status: string): boolean {
+  return (
+    status === "succeeded" ||
+    status === "failed" ||
+    status === "cancelled" ||
+    status === "expired"
+  );
+}
+
 function stepTitle(step: AgentStep): string {
   const p = step.payload || {};
   switch (step.kind) {
@@ -337,6 +346,7 @@ export function AgentsPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [stepsOpen, setStepsOpen] = useState(true);
 
   const refresh = useCallback(async () => {
     setError(null);
@@ -463,6 +473,14 @@ export function AgentsPage() {
     [steps],
   );
   const latestStepSeq = stepsNewestFirst[0]?.seq;
+
+  useEffect(() => {
+    if (!active) {
+      setStepsOpen(true);
+      return;
+    }
+    setStepsOpen(!isFinishedStatus(active.status));
+  }, [active?.id, active?.status]);
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col bg-white">
@@ -652,28 +670,45 @@ export function AgentsPage() {
                     ) : null}
 
                     <div className="min-w-0">
-                      <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-donna-muted">
-                        Steps ({steps.length})
-                      </p>
-                      <div className="max-h-[min(45vh,24rem)] overflow-y-auto overflow-x-hidden rounded-lg border border-donna-border">
-                        {stepsNewestFirst.length === 0 ? (
-                          <p className="p-3 text-xs text-donna-muted">Waiting for steps…</p>
+                      <button
+                        type="button"
+                        className="mb-1.5 flex w-full items-center gap-1.5 text-left text-xs font-semibold uppercase tracking-wide text-donna-muted hover:text-donna-text"
+                        onClick={() => setStepsOpen((v) => !v)}
+                        aria-expanded={stepsOpen}
+                      >
+                        {stepsOpen ? (
+                          <ChevronDown className="h-3.5 w-3.5 shrink-0" />
                         ) : (
-                          <ul>
-                            {stepsNewestFirst.map((s) => (
-                              <StepRow
-                                key={s.id}
-                                step={s}
-                                defaultOpen={
-                                  s.kind === "thought" ||
-                                  s.kind === "approval_request" ||
-                                  (s.kind === "tool_result" && s.seq === latestStepSeq)
-                                }
-                              />
-                            ))}
-                          </ul>
+                          <ChevronRight className="h-3.5 w-3.5 shrink-0" />
                         )}
-                      </div>
+                        Steps ({steps.length})
+                        {!stepsOpen && isFinishedStatus(active.status) ? (
+                          <span className="ml-1 font-normal normal-case tracking-normal text-donna-muted">
+                            · show timeline
+                          </span>
+                        ) : null}
+                      </button>
+                      {stepsOpen ? (
+                        <div className="max-h-[min(45vh,24rem)] overflow-y-auto overflow-x-hidden rounded-lg border border-donna-border">
+                          {stepsNewestFirst.length === 0 ? (
+                            <p className="p-3 text-xs text-donna-muted">Waiting for steps…</p>
+                          ) : (
+                            <ul>
+                              {stepsNewestFirst.map((s) => (
+                                <StepRow
+                                  key={s.id}
+                                  step={s}
+                                  defaultOpen={
+                                    s.kind === "thought" ||
+                                    s.kind === "approval_request" ||
+                                    (s.kind === "tool_result" && s.seq === latestStepSeq)
+                                  }
+                                />
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      ) : null}
                     </div>
                   </div>
                 )}
