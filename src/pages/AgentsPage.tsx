@@ -553,7 +553,7 @@ export function AgentsPage() {
               description="Background goals on Donna cloud — your phone can lock while it works."
             />
           ) : (
-            <div className="mx-auto flex w-full max-w-3xl flex-col gap-5 px-5 py-5 md:px-8">
+            <div className="flex w-full flex-col gap-5 px-5 py-5 md:px-8">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <p className="whitespace-pre-wrap break-words text-base font-semibold text-donna-text">
