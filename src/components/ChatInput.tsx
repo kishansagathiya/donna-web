@@ -58,6 +58,10 @@ type Props = {
   showWebSearch?: boolean;
   /** Allow send with empty text/attachments (e.g. option chips selected above). */
   allowEmptySend?: boolean;
+  /** Elevated sticky dock (agent platforms). Default "default". */
+  variant?: "default" | "dock";
+  /** Optional label above the composer (dock variant). */
+  dockLabel?: string;
 };
 
 const quickActionIcons: Record<string, typeof FileText> = {
@@ -81,6 +85,8 @@ export function ChatInput({
   sessionLabel,
   showWebSearch = true,
   allowEmptySend = false,
+  variant = "default",
+  dockLabel,
 }: Props) {
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
@@ -182,7 +188,19 @@ export function ChatInput({
   }
 
   return (
-    <div className="shrink-0 px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2">
+    <div
+      className={cn(
+        "shrink-0",
+        variant === "dock"
+          ? "border-t border-donna-border bg-donna-sidebar/80 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-sm md:px-6"
+          : "px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-2",
+      )}
+    >
+      {dockLabel && variant === "dock" ? (
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-donna-muted">
+          {dockLabel}
+        </p>
+      ) : null}
       {isDonnaThinkingPhase(sessionLabel) ? (
         <ThinkingIndicator className="mb-2 text-[0.8125rem] font-semibold" />
       ) : sessionLabel ? (
@@ -196,8 +214,10 @@ export function ChatInput({
       <form onSubmit={handleSubmit}>
         <div
           className={cn(
-            "rounded-2xl border border-donna-border bg-white px-3 py-2 shadow-sm",
-            "focus-within:border-donna-primary focus-within:ring-2 focus-within:ring-donna-primary-ring/20",
+            "rounded-2xl border bg-white px-3 py-2",
+            variant === "dock"
+              ? "border-donna-border shadow-md ring-1 ring-black/5 focus-within:border-donna-primary focus-within:ring-2 focus-within:ring-donna-primary-ring/30"
+              : "border-donna-border shadow-sm focus-within:border-donna-primary focus-within:ring-2 focus-within:ring-donna-primary-ring/20",
           )}
         >
           {attachments.length > 0 ? (
