@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Bot, ChevronDown, ChevronRight, RefreshCw, Send, Square } from "lucide-react";
+import { Bot, Check, ChevronDown, ChevronRight, RefreshCw, Send, Square } from "lucide-react";
 import {
   cancelAgentRun,
   createAgentRun,
+  finishAgentRun,
   listAgentRuns,
   listAgentSteps,
   redirectAgentRun,
@@ -413,6 +414,20 @@ export function AgentsPage() {
     }
   }
 
+  async function onFinish(id: string) {
+    setBusy(true);
+    try {
+      await finishAgentRun(id);
+      setRedirect("");
+      await refresh();
+      await refreshSteps(id);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Could not mark finished");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function onReply(id: string, message: string) {
     const msg = message.trim();
     if (!msg) return;
@@ -550,15 +565,26 @@ export function AgentsPage() {
                       {(active.status === "running" ||
                         active.status === "queued" ||
                         active.status === "waiting_for_user") && (
-                        <Button
-                          variant="ghost"
-                          className="!w-auto shrink-0 gap-1 px-3 py-2 text-sm"
-                          disabled={busy}
-                          onClick={() => void onCancel(active.id)}
-                        >
-                          <Square className="h-4 w-4" />
-                          Cancel
-                        </Button>
+                        <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
+                          <Button
+                            variant="secondary"
+                            className="!w-auto gap-1 px-3 py-2 text-sm"
+                            disabled={busy}
+                            onClick={() => void onFinish(active.id)}
+                          >
+                            <Check className="h-4 w-4" />
+                            Mark finished
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="!w-auto gap-1 px-3 py-2 text-sm"
+                            disabled={busy}
+                            onClick={() => void onCancel(active.id)}
+                          >
+                            <Square className="h-4 w-4" />
+                            Cancel
+                          </Button>
+                        </div>
                       )}
                     </div>
 
@@ -576,6 +602,20 @@ export function AgentsPage() {
                             Answer below to continue this agent.
                           </p>
                         )}
+                        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-amber-200/80 pt-3">
+                          <p className="mr-auto text-xs text-amber-900/80">
+                            Or close this agent without answering.
+                          </p>
+                          <Button
+                            variant="secondary"
+                            className="!w-auto gap-1.5 border-amber-300 bg-white px-3 py-2 text-sm text-amber-950 hover:border-amber-400"
+                            disabled={busy}
+                            onClick={() => void onFinish(active.id)}
+                          >
+                            <Check className="h-4 w-4" />
+                            Mark finished
+                          </Button>
+                        </div>
                       </div>
                     ) : null}
 

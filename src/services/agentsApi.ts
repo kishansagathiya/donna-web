@@ -87,6 +87,12 @@ export async function cancelAgentRun(id: string): Promise<AgentRun> {
   return (await res.json()) as AgentRun;
 }
 
+export async function finishAgentRun(id: string): Promise<AgentRun> {
+  const res = await authorizedFetch(`/agent-runs/${id}/finish`, { method: "POST" });
+  if (!res.ok) throw new Error(await readError(res));
+  return (await res.json()) as AgentRun;
+}
+
 export async function redirectAgentRun(id: string, message: string): Promise<AgentRun> {
   const res = await authorizedFetch(`/agent-runs/${id}/redirect`, {
     method: "POST",
