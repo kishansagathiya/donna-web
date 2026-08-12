@@ -458,6 +458,11 @@ export function AgentsPage() {
         (active.result?.args as { allow_multiple?: boolean } | undefined)?.allow_multiple === true),
   );
   const showReply = active ? canReply(active.status) && active.status !== "cancelled" : false;
+  const stepsNewestFirst = useMemo(
+    () => [...steps].sort((a, b) => b.seq - a.seq),
+    [steps],
+  );
+  const latestStepSeq = stepsNewestFirst[0]?.seq;
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col bg-white">
@@ -651,18 +656,18 @@ export function AgentsPage() {
                         Steps ({steps.length})
                       </p>
                       <div className="max-h-[min(45vh,24rem)] overflow-y-auto overflow-x-hidden rounded-lg border border-donna-border">
-                        {steps.length === 0 ? (
+                        {stepsNewestFirst.length === 0 ? (
                           <p className="p-3 text-xs text-donna-muted">Waiting for steps…</p>
                         ) : (
                           <ul>
-                            {steps.map((s) => (
+                            {stepsNewestFirst.map((s) => (
                               <StepRow
                                 key={s.id}
                                 step={s}
                                 defaultOpen={
                                   s.kind === "thought" ||
                                   s.kind === "approval_request" ||
-                                  (s.kind === "tool_result" && s.seq === steps[steps.length - 1]?.seq)
+                                  (s.kind === "tool_result" && s.seq === latestStepSeq)
                                 }
                               />
                             ))}
