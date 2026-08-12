@@ -1,23 +1,26 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Check,
-  ChevronDown,
-  ChevronRight,
   History,
   PanelRightOpen,
   Square,
 } from "lucide-react";
 import { AgentRunsSheet } from "../components/AgentRunsSheet";
 import { AgentRunsSidebar } from "../components/AgentRunsSidebar";
+import { AgentTurnView } from "../components/agents/AgentTurnView";
 import { ChatHero } from "../components/ChatHero";
 import { ChatInput } from "../components/ChatInput";
-import { MessageContent } from "../components/MessageContent";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { Button } from "../components/ui/Button";
 import { IconButton } from "../components/ui/IconButton";
 import { useVoiceSession } from "../hooks/useVoiceSession";
 import type { PendingAttachment } from "../lib/chatAttachments";
 import { cn } from "../lib/cn";
+import {
+  buildAgentTurns,
+  canReply,
+  parseOptions,
+} from "../lib/agentTurns";
 import {
   cancelAgentRun,
   createAgentRun,
@@ -30,8 +33,6 @@ import {
 } from "../services/agentsApi";
 
 const HISTORY_PANEL_KEY = "donna.agentHistory.panelOpen";
-
-type AskOption = { id: string; label: string };
 
 function statusTone(status: string) {
   switch (status) {
@@ -48,189 +49,6 @@ function statusTone(status: string) {
     default:
       return "bg-donna-surface text-donna-muted border-donna-border";
   }
-}
-
-function resultSummary(result: Record<string, unknown> | null | undefined): string {
-  if (!result) return "";
-  if (typeof result.summary === "string" && result.summary.trim()) {
-    return result.summary;
-  }
-  if (typeof result.question === "string" && result.question.trim()) {
-    return result.question;
-  }
-  try {
-    return JSON.stringify(result, null, 2);
-  } catch {
-    return String(result);
-  }
-}
-
-function pendingQuestion(result: Record<string, unknown> | null | undefined): string | null {
-  if (!result) return null;
-  if (typeof result.question === "string" && result.question.trim()) {
-    return result.question.trim();
-  }
-  if (result.kind === "ask_user" && typeof result.summary === "string" && result.summary.trim()) {
-    return result.summary.trim();
-  }
-  if (typeof result.summary === "string" && result.summary.trim() && String(result.kind ?? "").includes("ask")) {
-    return result.summary.trim();
-  }
-  return null;
-}
-
-function parseOptions(result: Record<string, unknown> | null | undefined): AskOption[] {
-  if (!result) return [];
-  const raw = result.options ?? (result.args as { options?: unknown } | undefined)?.options;
-  if (!Array.isArray(raw)) return [];
-  const out: AskOption[] = [];
-  raw.forEach((item, i) => {
-    if (typeof item === "string" && item.trim()) {
-      out.push({ id: `opt_${i + 1}`, label: item.trim() });
-      return;
-    }
-    if (item && typeof item === "object") {
-      const obj = item as Record<string, unknown>;
-      const label = String(obj.label ?? obj.text ?? "").trim();
-      if (!label) return;
-      const id = String(obj.id ?? `opt_${i + 1}`).trim() || `opt_${i + 1}`;
-      out.push({ id, label });
-    }
-  });
-  return out;
-}
-
-function canReply(status: string): boolean {
-  return (
-    status === "waiting_for_user" ||
-    status === "running" ||
-    status === "queued" ||
-    status === "succeeded" ||
-    status === "failed"
-  );
-}
-
-function isFinishedStatus(status: string): boolean {
-  return (
-    status === "succeeded" ||
-    status === "failed" ||
-    status === "cancelled" ||
-    status === "expired"
-  );
-}
-
-function stepTitle(step: AgentStep): string {
-  const p = step.payload || {};
-  switch (step.kind) {
-    case "status":
-      return String(p.text ?? "status");
-    case "thought":
-      return "Thought";
-    case "tool_call":
-      return `Tool → ${String(p.name ?? "tool")}`;
-    case "tool_result":
-      return `Result ← ${String(p.name ?? "tool")}`;
-    case "user_message":
-      return "Reply";
-    case "approval_request":
-      return p.kind === "ask_user" || p.tool === "ask_user" ? "Question for you" : "Approval requested";
-    case "error":
-      return "Error";
-    case "compress":
-      return "Context compressed";
-    case "memory_retrieve":
-      return "Memory";
-    default:
-      return step.kind;
-  }
-}
-
-function stepBody(step: AgentStep): string {
-  const p = step.payload || {};
-  switch (step.kind) {
-    case "status":
-      return String(p.text ?? "");
-    case "thought":
-      return String(p.text ?? "");
-    case "tool_call": {
-      const args = p.args;
-      if (args == null) return "";
-      if (typeof args === "string") return args;
-      try {
-        return JSON.stringify(args, null, 2);
-      } catch {
-        return String(args);
-      }
-    }
-    case "tool_result":
-      return String(p.content ?? "");
-    case "user_message":
-      return String(p.message ?? "");
-    case "approval_request":
-      if (typeof p.question === "string" && p.question.trim()) {
-        return p.question;
-      }
-      try {
-        return JSON.stringify(p, null, 2);
-      } catch {
-        return String(p);
-      }
-    case "error":
-      return String(p.error ?? "");
-    default:
-      try {
-        return JSON.stringify(p, null, 2);
-      } catch {
-        return "";
-      }
-  }
-}
-
-function StepRow({ step, defaultOpen }: { step: AgentStep; defaultOpen?: boolean }) {
-  const body = stepBody(step).trim();
-  const hasBody = body.length > 0 && body !== stepTitle(step);
-  const [open, setOpen] = useState(Boolean(defaultOpen || step.kind === "thought" || step.kind === "error"));
-
-  return (
-    <li className="border-b border-donna-border last:border-b-0">
-      <button
-        type="button"
-        className="flex w-full items-start gap-2 px-3 py-2.5 text-left hover:bg-donna-sidebar/60"
-        onClick={() => hasBody && setOpen((v) => !v)}
-        disabled={!hasBody}
-      >
-        <span className="mt-0.5 shrink-0 text-donna-muted">
-          {hasBody ? (
-            open ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />
-          ) : (
-            <span className="inline-block w-3.5" />
-          )}
-        </span>
-        <span className="min-w-0 flex-1">
-          <span className="font-mono text-[11px] text-donna-muted">#{step.seq}</span>{" "}
-          <span className="text-xs font-semibold text-donna-text">{stepTitle(step)}</span>
-          {!open && hasBody ? (
-            <span className="mt-0.5 block truncate text-xs text-donna-muted">{body.replace(/\s+/g, " ")}</span>
-          ) : null}
-        </span>
-      </button>
-      {open && hasBody ? (
-        <div className="border-t border-donna-border/60 bg-donna-sidebar/40 px-3 py-2.5 pl-9">
-          {step.kind === "thought" || step.kind === "tool_result" || step.kind === "approval_request" ? (
-            <MessageContent
-              content={body}
-              variant="assistant"
-              className="text-sm leading-relaxed text-donna-text [&_pre]:max-w-full [&_pre]:overflow-x-auto"
-            />
-          ) : (
-            <pre className="max-w-full overflow-x-auto whitespace-pre-wrap break-words font-mono text-xs leading-relaxed text-donna-text">
-              {body}
-            </pre>
-          )}
-        </div>
-      ) : null}
-    </li>
-  );
 }
 
 function attachmentPayloads(attachments: PendingAttachment[]) {
@@ -251,9 +69,9 @@ export function AgentsPage() {
       return false;
     }
   });
-  const [stepsOpen, setStepsOpen] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const transcriptEndRef = useRef<HTMLDivElement | null>(null);
 
   const selectedIdRef = useRef(selectedId);
   selectedIdRef.current = selectedId;
@@ -311,9 +129,10 @@ export function AgentsPage() {
   }, [historyPanelOpen]);
 
   const active = runs.find((r) => r.id === selectedId) ?? null;
-  const summary = active ? resultSummary(active.result) : "";
-  const question =
-    active?.status === "waiting_for_user" ? pendingQuestion(active.result) ?? summary : null;
+  const turns = useMemo(
+    () => (active ? buildAgentTurns(active, steps) : []),
+    [active, steps],
+  );
   const options = useMemo(
     () => (active?.status === "waiting_for_user" ? parseOptions(active.result) : []),
     [active?.status, active?.result],
@@ -327,11 +146,6 @@ export function AgentsPage() {
     active?.status === "waiting_for_user" && options.length > 0,
   );
   const showInput = !active || (canReply(active.status) && active.status !== "cancelled");
-  const stepsNewestFirst = useMemo(
-    () => [...steps].sort((a, b) => b.seq - a.seq),
-    [steps],
-  );
-  const latestStepSeq = stepsNewestFirst[0]?.seq;
 
   const optionKey = options.map((o) => o.id).join("|");
   useEffect(() => {
@@ -339,12 +153,9 @@ export function AgentsPage() {
   }, [optionKey, selectedId]);
 
   useEffect(() => {
-    if (!active) {
-      setStepsOpen(true);
-      return;
-    }
-    setStepsOpen(!isFinishedStatus(active.status));
-  }, [active?.id, active?.status]);
+    if (!active) return;
+    transcriptEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [active?.id, steps.length, turns.length, active?.status]);
 
   async function createRun(goal: string, attachments: PendingAttachment[] = []) {
     const g = goal.trim();
@@ -486,8 +297,50 @@ export function AgentsPage() {
     <div className="flex h-full min-h-0 w-full">
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <header className="flex shrink-0 items-center justify-between gap-2 px-5 py-3">
-          <h1 className="text-lg font-semibold text-donna-text">Agents</h1>
+          <div className="min-w-0">
+            <h1 className="text-lg font-semibold text-donna-text">Agents</h1>
+            {active ? (
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                <span
+                  className={cn(
+                    "rounded-full border px-2 py-0.5 text-[11px] font-medium",
+                    statusTone(active.status),
+                  )}
+                >
+                  {active.status === "waiting_for_user" ? "needs reply" : active.status}
+                </span>
+                {active.error ? (
+                  <span className="text-xs text-rose-700">{active.error}</span>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
           <div className="flex items-center gap-2">
+            {active &&
+            (active.status === "running" ||
+              active.status === "queued" ||
+              active.status === "waiting_for_user") ? (
+              <>
+                <Button
+                  variant="secondary"
+                  className="!w-auto gap-1 px-3 py-2 text-sm"
+                  disabled={busy}
+                  onClick={() => void onFinish(active.id)}
+                >
+                  <Check className="h-4 w-4" />
+                  Mark finished
+                </Button>
+                <Button
+                  variant="ghost"
+                  className="!w-auto gap-1 px-3 py-2 text-sm"
+                  disabled={busy}
+                  onClick={() => void onCancel(active.id)}
+                >
+                  <Square className="h-4 w-4" />
+                  Cancel
+                </Button>
+              </>
+            ) : null}
             <IconButton
               onClick={() => setHistorySheetOpen(true)}
               aria-label="Agent history"
@@ -527,139 +380,23 @@ export function AgentsPage() {
               description="Background goals on Donna cloud — your phone can lock while it works."
             />
           ) : (
-            <div className="flex w-full flex-col gap-5 px-5 py-5 md:px-8 lg:px-10">
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="whitespace-pre-wrap break-words text-sm font-semibold text-donna-text">
-                    {active.goal}
-                  </p>
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <span
-                      className={cn(
-                        "rounded-full border px-2 py-0.5 text-[11px] font-medium",
-                        statusTone(active.status),
-                      )}
-                    >
-                      {active.status === "waiting_for_user" ? "needs reply" : active.status}
-                    </span>
-                    {active.error ? (
-                      <span className="text-xs text-rose-700">{active.error}</span>
-                    ) : null}
-                  </div>
-                </div>
-                {(active.status === "running" ||
-                  active.status === "queued" ||
-                  active.status === "waiting_for_user") && (
-                  <div className="flex shrink-0 flex-wrap items-center justify-end gap-1">
-                    <Button
-                      variant="secondary"
-                      className="!w-auto gap-1 px-3 py-2 text-sm"
-                      disabled={busy}
-                      onClick={() => void onFinish(active.id)}
-                    >
-                      <Check className="h-4 w-4" />
-                      Mark finished
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      className="!w-auto gap-1 px-3 py-2 text-sm"
-                      disabled={busy}
-                      onClick={() => void onCancel(active.id)}
-                    >
-                      <Square className="h-4 w-4" />
-                      Cancel
-                    </Button>
-                  </div>
-                )}
-              </div>
-
-              {active.status === "waiting_for_user" ? (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">
-                    Donna needs your reply
-                  </p>
-                  {question ? (
-                    <div className="mt-3 min-h-[8rem] max-h-[min(55vh,28rem)] overflow-y-auto text-sm leading-relaxed text-amber-950">
-                      <MessageContent content={question} variant="assistant" className="text-[0.95rem]" />
-                    </div>
-                  ) : (
-                    <p className="mt-2 text-sm text-amber-900">
-                      Answer below to continue this agent.
-                    </p>
-                  )}
-                  <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-amber-200/80 pt-3">
-                    <p className="mr-auto text-xs text-amber-900/80">
-                      Or close this agent without answering.
-                    </p>
-                    <Button
-                      variant="secondary"
-                      className="!w-auto gap-1.5 border-amber-300 bg-white px-3 py-2 text-sm text-amber-950 hover:border-amber-400"
-                      disabled={busy}
-                      onClick={() => void onFinish(active.id)}
-                    >
-                      <Check className="h-4 w-4" />
-                      Mark finished
-                    </Button>
-                  </div>
-                </div>
-              ) : null}
-
-              {summary && active.status !== "waiting_for_user" ? (
-                <div className="min-w-0">
-                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-donna-muted">
-                    Output
-                  </p>
-                  <div className="min-h-[16rem] max-h-[min(70vh,40rem)] overflow-y-auto overflow-x-hidden rounded-lg border border-donna-border bg-donna-sidebar/50 px-4 py-4">
-                    <MessageContent
-                      content={summary}
-                      variant="assistant"
-                      className="text-[0.95rem] leading-relaxed text-donna-text [&_pre]:max-w-full [&_pre]:overflow-x-auto"
-                    />
-                  </div>
-                </div>
-              ) : null}
-
-              <div className="min-w-0">
-                <button
-                  type="button"
-                  className="mb-1.5 flex w-full items-center gap-1.5 text-left text-xs font-semibold uppercase tracking-wide text-donna-muted hover:text-donna-text"
-                  onClick={() => setStepsOpen((v) => !v)}
-                  aria-expanded={stepsOpen}
-                >
-                  {stepsOpen ? (
-                    <ChevronDown className="h-3.5 w-3.5 shrink-0" />
-                  ) : (
-                    <ChevronRight className="h-3.5 w-3.5 shrink-0" />
-                  )}
-                  Steps ({steps.length})
-                  {!stepsOpen && isFinishedStatus(active.status) ? (
-                    <span className="ml-1 font-normal normal-case tracking-normal text-donna-muted">
-                      · show timeline
-                    </span>
-                  ) : null}
-                </button>
-                {stepsOpen ? (
-                  <div className="max-h-[min(45vh,24rem)] overflow-y-auto overflow-x-hidden rounded-lg border border-donna-border">
-                    {stepsNewestFirst.length === 0 ? (
-                      <p className="p-3 text-xs text-donna-muted">Waiting for steps…</p>
-                    ) : (
-                      <ul>
-                        {stepsNewestFirst.map((s) => (
-                          <StepRow
-                            key={s.id}
-                            step={s}
-                            defaultOpen={
-                              s.kind === "thought" ||
-                              s.kind === "approval_request" ||
-                              (s.kind === "tool_result" && s.seq === latestStepSeq)
-                            }
-                          />
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                ) : null}
-              </div>
+            <div className="flex w-full flex-col gap-8 px-5 py-5 md:px-8 lg:px-10">
+              {turns.map((turn) => (
+                <AgentTurnView
+                  key={turn.id}
+                  turn={turn}
+                  runStatus={active.status}
+                  waitingExtras={
+                    turn.isLatest && active.status === "waiting_for_user"
+                      ? {
+                          busy,
+                          onFinish: () => void onFinish(active.id),
+                        }
+                      : null
+                  }
+                />
+              ))}
+              <div ref={transcriptEndRef} />
             </div>
           )}
         </div>
