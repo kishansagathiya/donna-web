@@ -465,7 +465,7 @@ export function AgentsPage() {
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-        <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-5 py-5 md:px-8">
+        <div className="flex w-full flex-col gap-5 px-5 py-5 md:px-8 lg:px-10">
           {error ? <AlertBanner>{error}</AlertBanner> : null}
 
           <section className="rounded-donna border border-donna-border bg-white p-4">
@@ -502,8 +502,8 @@ export function AgentsPage() {
               description="Start a background goal above. Donna will search memory and the web while you do other things."
             />
           ) : (
-            <div className="grid gap-4 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
-              <div className="flex max-h-[min(70vh,36rem)] flex-col gap-2 overflow-y-auto pr-1">
+            <div className="grid gap-4 lg:grid-cols-[minmax(18rem,22rem)_minmax(0,1fr)]">
+              <div className="flex max-h-[min(80vh,48rem)] flex-col gap-2 overflow-y-auto pr-1">
                 {runs.map((run) => (
                   <button
                     key={run.id}
