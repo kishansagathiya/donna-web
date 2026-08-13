@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Check,
   History,
@@ -56,6 +57,8 @@ function attachmentPayloads(attachments: PendingAttachment[]) {
 }
 
 export function AgentsPage() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [runs, setRuns] = useState<AgentRun[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [steps, setSteps] = useState<AgentStep[]>([]);
@@ -274,12 +277,19 @@ export function AgentsPage() {
     }
   }
 
-  function handleNewRun() {
+  const handleNewRun = useCallback(() => {
     setSelectedId(null);
     setSteps([]);
     setSelectedOptions([]);
     setError(null);
-  }
+  }, []);
+
+  useEffect(() => {
+    const state = location.state as { newAgent?: number } | null;
+    if (!state?.newAgent) return;
+    handleNewRun();
+    navigate("/app/agents", { replace: true, state: null });
+  }, [location.state, navigate, handleNewRun]);
 
   function toggleOption(id: string) {
     setSelectedOptions((prev) => {

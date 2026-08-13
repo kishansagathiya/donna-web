@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Bot,
   CalendarCheck,
@@ -19,7 +19,7 @@ const navItems = [
   { to: "/app/voice", label: "Voice", icon: Mic, end: true },
   { to: "/app/notes", label: "Notes", icon: StickyNote, end: false },
   { to: "/app/actions", label: "Actions", icon: Inbox, end: false },
-  { to: "/app/agents", label: "Agents", icon: Bot, end: false },
+  { to: "/app/agents", label: "Agents", icon: Bot, end: false, newAgent: true },
   { to: "/app/today", label: "Today", icon: CalendarCheck, end: false },
   { to: "/app/search", label: "Memory", icon: Database, end: false },
   { to: "/app/profile", label: "Profile", icon: User, end: false },
@@ -32,6 +32,7 @@ type Props = {
 };
 
 export function Sidebar({ onNewChat, onNavigate, className }: Props) {
+  const location = useLocation();
   const navigate = useNavigate();
 
   function handleNewChat() {
@@ -78,26 +79,38 @@ export function Sidebar({ onNewChat, onNavigate, className }: Props) {
       </div>
 
       <nav className="flex flex-col gap-1 px-3" aria-label="Main">
-        {navItems.map(({ to, label, icon: Icon, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            onClick={onNavigate}
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
-                isActive
-                  ? "bg-donna-primary-light text-donna-primary"
-                  : "text-donna-muted hover:bg-donna-surface hover:text-donna-text",
-              )
-            }
-          >
-            <Icon className="h-5 w-5" strokeWidth={1.75} />
-            {label}
-          </NavLink>
-        ))}
+        {navItems.map((item) => {
+          const { to, label, icon: Icon, end } = item;
+          const newAgent = "newAgent" in item && item.newAgent;
+          return (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              onClick={(e) => {
+                onNavigate?.();
+                if (!newAgent) return;
+                e.preventDefault();
+                navigate(to, {
+                  replace: location.pathname === to,
+                  state: { newAgent: Date.now() },
+                });
+              }}
+              className={({ isActive }) =>
+                cn(
+                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
+                  isActive
+                    ? "bg-donna-primary-light text-donna-primary"
+                    : "text-donna-muted hover:bg-donna-surface hover:text-donna-text",
+                )
+              }
+            >
+              <Icon className="h-5 w-5" strokeWidth={1.75} />
+              {label}
+            </NavLink>
+          );
+        })}
       </nav>
 
       <div className="mt-2 border-t border-donna-border px-3 py-3">
