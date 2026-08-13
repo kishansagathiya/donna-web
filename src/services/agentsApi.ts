@@ -117,3 +117,51 @@ export async function redirectAgentRun(
   if (!res.ok) throw new Error(await readError(res));
   return (await res.json()) as AgentRun;
 }
+
+export type AgentRunShare = {
+  url: string;
+  token: string;
+  created_at: string;
+  expires_at?: string;
+};
+
+export type PublicSharedAgentTurn = {
+  prompt: string;
+  output: { kind: "summary" | "question" | "none"; text?: string };
+};
+
+export type PublicSharedAgentRun = {
+  goal: string;
+  status: string;
+  created_at: string;
+  turns: PublicSharedAgentTurn[];
+};
+
+export async function createAgentRunShare(id: string): Promise<AgentRunShare> {
+  const res = await authorizedFetch(`/agent-runs/${encodeURIComponent(id)}/share`, {
+    method: "POST",
+  });
+  if (!res.ok) throw new Error(await readError(res));
+  return (await res.json()) as AgentRunShare;
+}
+
+export async function revokeAgentRunShare(id: string): Promise<void> {
+  const res = await authorizedFetch(`/agent-runs/${encodeURIComponent(id)}/share`, {
+    method: "DELETE",
+  });
+  if (!res.ok) throw new Error(await readError(res));
+}
+
+/** Public endpoint — no auth. */
+export async function getSharedAgentRun(
+  token: string,
+): Promise<PublicSharedAgentRun> {
+  const res = await fetch(
+    `${API_BASE_URL}/share/agent/${encodeURIComponent(token)}`,
+  );
+  if (!res.ok) {
+    if (res.status === 404) throw new Error("not_found");
+    throw new Error(await readError(res));
+  }
+  return (await res.json()) as PublicSharedAgentRun;
+}

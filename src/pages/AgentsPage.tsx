@@ -4,6 +4,7 @@ import {
   Check,
   History,
   PanelRightOpen,
+  Share2,
   Square,
 } from "lucide-react";
 import { AgentRunsSheet } from "../components/AgentRunsSheet";
@@ -11,6 +12,7 @@ import { AgentRunsSidebar } from "../components/AgentRunsSidebar";
 import { AgentTurnView } from "../components/agents/AgentTurnView";
 import { ChatHero } from "../components/ChatHero";
 import { ChatInput } from "../components/ChatInput";
+import { ShareAgentRunSheet } from "../components/ShareAgentRunSheet";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { Button } from "../components/ui/Button";
 import { IconButton } from "../components/ui/IconButton";
@@ -65,6 +67,7 @@ export function AgentsPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [historySheetOpen, setHistorySheetOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const [historyPanelOpen, setHistoryPanelOpen] = useState(() => {
     try {
       return localStorage.getItem(HISTORY_PANEL_KEY) === "1";
@@ -282,6 +285,7 @@ export function AgentsPage() {
     setSteps([]);
     setSelectedOptions([]);
     setError(null);
+    setShareOpen(false);
   }, []);
 
   useEffect(() => {
@@ -326,6 +330,15 @@ export function AgentsPage() {
             ) : null}
           </div>
           <div className="flex items-center gap-2">
+            {active ? (
+              <IconButton
+                onClick={() => setShareOpen(true)}
+                aria-label="Share agent"
+                className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
+              >
+                <Share2 className="h-5 w-5" strokeWidth={1.75} />
+              </IconButton>
+            ) : null}
             {active &&
             (active.status === "running" ||
               active.status === "queued" ||
@@ -481,6 +494,12 @@ export function AgentsPage() {
           />
         ) : null}
 
+        <ShareAgentRunSheet
+          open={shareOpen}
+          runId={active?.id ?? null}
+          goal={active?.goal}
+          onClose={() => setShareOpen(false)}
+        />
         <AgentRunsSheet
           open={historySheetOpen}
           onClose={() => setHistorySheetOpen(false)}

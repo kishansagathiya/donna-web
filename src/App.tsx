@@ -36,6 +36,7 @@ import {
 } from "./pages/AppShell";
 import { AppLayout } from "./pages/AppLayout";
 import { SharedConversationPage } from "./pages/SharedConversationPage";
+import { SharedAgentRunPage } from "./pages/SharedAgentRunPage";
 
 function RedirectContextToNote() {
   const { id } = useParams<{ id: string }>();
@@ -85,6 +86,7 @@ export default function App() {
           </Route>
 
           <Route element={<SharedShell />}>
+            <Route path="share/agent/:token" element={<SharedAgentRunPage />} />
             <Route path="share/:token" element={<SharedConversationPage />} />
           </Route>
 
