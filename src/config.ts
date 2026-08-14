@@ -11,7 +11,7 @@ export const SUPABASE_ANON_KEY =
 /** Donna backend (REST). Empty string uses same origin (Vite dev proxy). */
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ??
-  (import.meta.env.DEV ? "" : "https://donna-server-go-production.up.railway.app");
+  (import.meta.env.DEV ? "" : "https://api.donnadoesit.com");
 
 export const PRIVACY_POLICY_URL =
   import.meta.env.VITE_PRIVACY_POLICY_URL ?? "/privacy";
@@ -34,8 +34,7 @@ export const AI_DATA_CONSENT_KEY = "donna.ai_data_consent.v1";
 
 export const THEME_STORAGE_KEY = "donna.app_theme.v1";
 
-const PRODUCTION_VOICE_WS_URL =
-  "wss://donna-server-go-production.up.railway.app/voice";
+const PRODUCTION_VOICE_WS_URL = "wss://api.donnadoesit.com/voice";
 
 function resolveVoiceWsUrl(): string {
   if (import.meta.env.VITE_VOICE_WS_URL) {
