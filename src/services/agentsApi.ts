@@ -1,5 +1,6 @@
 import { API_BASE_URL } from "../config";
 import { getAccessToken } from "./auth";
+import { reportError } from "./errorReporting";
 import type { ChatAttachmentPayload } from "../lib/chatAttachments";
 
 export type AgentRun = {
@@ -33,6 +34,11 @@ export type AgentStep = {
 
 export type AgentAttachment = ChatAttachmentPayload;
 
+function isGet(init: RequestInit): boolean {
+  const method = (init.method ?? "GET").toUpperCase();
+  return method === "GET" || method === "HEAD";
+}
+
 async function authorizedFetch(path: string, init: RequestInit = {}): Promise<Response> {
   const token = await getAccessToken();
   if (!token) {
@@ -43,7 +49,26 @@ async function authorizedFetch(path: string, init: RequestInit = {}): Promise<Re
   if (init.body && !headers.has("Content-Type")) {
     headers.set("Content-Type", "application/json");
   }
-  return fetch(`${API_BASE_URL}${path}`, { ...init, headers });
+
+  const run = () =>
+    fetch(`${API_BASE_URL}${path}`, { ...init, headers, cache: "no-store" });
+
+  try {
+    return await run();
+  } catch (err) {
+    reportError(err, { endpoint: path });
+    // Safari can fail the real GET after a successful CORS preflight
+    // ("NetworkError when attempting to fetch resource") while a retry works.
+    if (isGet(init)) {
+      try {
+        return await run();
+      } catch (retryErr) {
+        reportError(retryErr, { endpoint: path, retry: "1" });
+        throw retryErr;
+      }
+    }
+    throw err;
+  }
 }
 
 async function readError(res: Response): Promise<string> {
@@ -55,11 +80,31 @@ async function readError(res: Response): Promise<string> {
   }
 }
 
+let inFlightList: Promise<AgentRun[]> | null = null;
+
 export async function listAgentRuns(status?: string): Promise<AgentRun[]> {
-  const q = status ? `?status=${encodeURIComponent(status)}` : "";
-  const res = await authorizedFetch(`/agent-runs${q}`);
-  if (!res.ok) throw new Error(await readError(res));
-  return (await res.json()) as AgentRun[];
+  const params = new URLSearchParams();
+  params.set("limit", "50");
+  if (status) params.set("status", status);
+  const path = `/agent-runs?${params.toString()}`;
+
+  if (!status && inFlightList) {
+    return inFlightList;
+  }
+
+  const pending = (async () => {
+    const res = await authorizedFetch(path);
+    if (!res.ok) throw new Error(await readError(res));
+    return (await res.json()) as AgentRun[];
+  })();
+
+  if (!status) {
+    inFlightList = pending.finally(() => {
+      if (inFlightList === pending) inFlightList = null;
+    });
+    return inFlightList;
+  }
+  return pending;
 }
 
 export async function createAgentRun(
