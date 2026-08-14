@@ -24,7 +24,10 @@ export function useAssetIngest() {
       setBusy(true);
       try {
         const result = await ingestUrl(url);
-        const message = ingestMessageForKind(result.asset_kind);
+        const message = ingestMessageForKind(
+          result.asset_kind,
+          result.extractor,
+        );
         showToast(message);
         return { ok: true as const, message };
       } catch (err) {
@@ -44,7 +47,10 @@ export function useAssetIngest() {
       setBusy(true);
       try {
         const result = await ingestFile(file);
-        const message = ingestMessageForKind(result.asset_kind);
+        const message = ingestMessageForKind(
+          result.asset_kind,
+          result.extractor,
+        );
         showToast(message);
         return { ok: true as const, message };
       } catch (err) {

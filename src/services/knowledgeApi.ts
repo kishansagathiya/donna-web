@@ -6,6 +6,7 @@ export type IngestResult = {
   status: string;
   asset_kind: string;
   title: string | null;
+  extractor?: string;
 };
 
 async function authorizedFetch(
@@ -75,7 +76,10 @@ export async function ingestFile(file: File): Promise<IngestResult> {
   return parseIngestResponse(res);
 }
 
-export function ingestMessageForKind(assetKind: string): string {
+export function ingestMessageForKind(assetKind: string, extractor?: string): string {
+  if ((extractor ?? "").startsWith("twitter")) {
+    return "Saved tweet to memory";
+  }
   switch (assetKind) {
     case "link":
       return "Saved link to memory";

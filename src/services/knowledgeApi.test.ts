@@ -34,5 +34,6 @@ describe("knowledgeApi", () => {
     expect(ingestMessageForKind("image")).toBe("Saved photo to memory");
     expect(ingestMessageForKind("audio")).toBe("Saved audio to memory");
     expect(ingestMessageForKind("unknown")).toBe("Saved document to memory");
+    expect(ingestMessageForKind("link", "twitter")).toBe("Saved tweet to memory");
   });
 });
