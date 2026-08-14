@@ -21,7 +21,7 @@ export type PendingAttachment = {
 };
 
 const MAX_CHAT_ATTACHMENT_BYTES = 15 * 1024 * 1024;
-const MAX_CHAT_ATTACHMENTS = 5;
+const MAX_CHAT_ATTACHMENTS = 10;
 
 export function isImageMime(mime?: string): boolean {
   return Boolean(mime && mime.startsWith("image/"));
