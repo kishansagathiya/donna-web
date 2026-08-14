@@ -22,31 +22,57 @@ export type PendingAttachment = {
 
 const MAX_CHAT_ATTACHMENT_BYTES = 15 * 1024 * 1024;
 const MAX_CHAT_ATTACHMENTS = 10;
+export const CHAT_IMAGE_MAX_EDGE = 1568;
+export const CHAT_IMAGE_JPEG_QUALITY = 0.82;
 
 export function isImageMime(mime?: string): boolean {
   return Boolean(mime && mime.startsWith("image/"));
+}
+
+export function scaledImageSize(
+  width: number,
+  height: number,
+  maxEdge = CHAT_IMAGE_MAX_EDGE,
+): { width: number; height: number } {
+  const w = Math.max(1, Math.round(width));
+  const h = Math.max(1, Math.round(height));
+  const edge = Math.max(w, h);
+  if (edge <= maxEdge) {
+    return { width: w, height: h };
+  }
+  const scale = maxEdge / edge;
+  return {
+    width: Math.max(1, Math.round(w * scale)),
+    height: Math.max(1, Math.round(h * scale)),
+  };
 }
 
 export async function fileToChatAttachment(file: File): Promise<PendingAttachment> {
   if (file.size > MAX_CHAT_ATTACHMENT_BYTES) {
     throw new Error("File is too large (max 15MB)");
   }
-  const dataUrl = await readFileAsDataURL(file);
+  const mime = file.type || guessMime(file.name);
+  const compressed = isImageMime(mime) ? await compressImageForChat(file, mime) : null;
+  const source = compressed?.blob ?? file;
+  const outMime = compressed?.mime ?? mime;
+  const filename = compressed?.filename ?? (file.name || "attachment");
+  const dataUrl = await readFileAsDataURL(source);
   const base64 = dataUrl.includes("base64,")
     ? dataUrl.slice(dataUrl.indexOf("base64,") + "base64,".length)
     : dataUrl;
-  const mime = file.type || guessMime(file.name);
-  const previewUrl = isImageMime(mime) ? URL.createObjectURL(file) : undefined;
+  const previewUrl = isImageMime(outMime)
+    ? URL.createObjectURL(compressed?.blob ?? file)
+    : undefined;
   return {
     id: crypto.randomUUID(),
     kind: "file",
-    filename: file.name || "attachment",
-    mime,
+    filename,
+    mime: outMime,
     previewUrl,
     payload: {
-      kind: isImageMime(mime) ? "file" : "file",
-      filename: file.name || "attachment",
-      mime,
+      kind: "file",
+      filename,
+      mime: outMime,
       data_base64: base64,
     },
   };
@@ -86,7 +112,69 @@ export function assertAttachmentBudget(currentCount: number, adding = 1): void {
   }
 }
 
-function readFileAsDataURL(file: File): Promise<string> {
+async function compressImageForChat(
+  file: File,
+  mime: string,
+): Promise<{ blob: Blob; mime: string; filename: string } | null> {
+  if (mime === "image/gif" || mime === "image/svg+xml") {
+    return null;
+  }
+  if (typeof createImageBitmap !== "function") {
+    return null;
+  }
+  let bitmap: ImageBitmap;
+  try {
+    bitmap = await createImageBitmap(file);
+  } catch {
+    return null;
+  }
+  try {
+    const { width, height } = scaledImageSize(bitmap.width, bitmap.height);
+    const alreadySmall =
+      width === bitmap.width &&
+      height === bitmap.height &&
+      file.size <= 400_000;
+    if (alreadySmall) {
+      return null;
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      return null;
+    }
+    ctx.drawImage(bitmap, 0, 0, width, height);
+
+    const outputMime = mime === "image/png" ? "image/png" : "image/jpeg";
+    const blob = await new Promise<Blob | null>((resolve) => {
+      canvas.toBlob(
+        resolve,
+        outputMime,
+        outputMime === "image/jpeg" ? CHAT_IMAGE_JPEG_QUALITY : undefined,
+      );
+    });
+    if (!blob || blob.size >= file.size) {
+      return null;
+    }
+    return {
+      blob,
+      mime: blob.type || outputMime,
+      filename: rewriteImageFilename(file.name || "photo", blob.type || outputMime),
+    };
+  } finally {
+    bitmap.close();
+  }
+}
+
+export function rewriteImageFilename(filename: string, mime: string): string {
+  const ext = mime === "image/png" ? ".png" : mime === "image/webp" ? ".webp" : ".jpg";
+  const trimmed = filename.trim() || "photo";
+  return trimmed.replace(/\.[a-z0-9]+$/i, "") + ext;
+}
+
+function readFileAsDataURL(file: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => reject(new Error("Failed to read file"));

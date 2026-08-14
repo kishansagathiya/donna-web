@@ -148,10 +148,7 @@ export function ChatInput({
     if (list.length === 0) return;
     try {
       assertAttachmentBudget(attachments.length, list.length);
-      const next: PendingAttachment[] = [];
-      for (const file of list) {
-        next.push(await fileToChatAttachment(file));
-      }
+      const next = await Promise.all(list.map((file) => fileToChatAttachment(file)));
       setAttachments((prev) => [...prev, ...next]);
     } catch (err) {
       onError?.(err instanceof Error ? err.message : "Could not attach file");
