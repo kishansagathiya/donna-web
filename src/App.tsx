@@ -14,6 +14,8 @@ import { Layout } from "./components/Layout";
 import { Landing } from "./pages/Landing";
 import { Privacy } from "./pages/Privacy";
 import { Pitch } from "./pages/Pitch";
+import { BlogPage } from "./pages/BlogPage";
+import { BlogPostPage } from "./pages/BlogPostPage";
 import { Support } from "./pages/Support";
 import { Login } from "./pages/Login";
 import { Consent } from "./pages/Consent";
@@ -63,7 +65,11 @@ function PageTitle() {
       "/privacy": "Privacy — Donna",
       "/pitch": "Pitch — Donna",
       "/support": "Support — Donna",
+      "/blog": "Blog — Donna",
     };
+    if (pathname.startsWith("/blog/") && pathname.length > "/blog/".length) {
+      return;
+    }
     document.title = titles[pathname] ?? "Donna";
   }, [pathname]);
 
@@ -82,6 +88,8 @@ export default function App() {
             <Route index element={<Landing />} />
             <Route path="privacy" element={<Privacy />} />
             <Route path="pitch" element={<Pitch />} />
+            <Route path="blog" element={<BlogPage />} />
+            <Route path="blog/:slug" element={<BlogPostPage />} />
             <Route path="support" element={<Support />} />
           </Route>
 
