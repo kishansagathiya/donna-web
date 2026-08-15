@@ -19,9 +19,7 @@ function StepRow({
 }) {
   const body = stepBody(step).trim();
   const hasBody = body.length > 0 && body !== stepTitle(step);
-  const [open, setOpen] = useState(
-    Boolean(defaultOpen || active || step.kind === "thought" || step.kind === "error"),
-  );
+  const [open, setOpen] = useState(true);
 
   return (
     <li
@@ -94,12 +92,14 @@ export function AgentStepsGroup({
   steps,
   activeStepId,
   showEmptyWaiting = false,
+  defaultOpen = true,
 }: {
   steps: AgentStepLike[];
   activeStepId: string | null;
   showEmptyWaiting?: boolean;
+  defaultOpen?: boolean;
 }) {
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(defaultOpen);
 
   if (steps.length === 0) {
     if (!showEmptyWaiting) return null;

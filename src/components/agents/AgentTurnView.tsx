@@ -30,21 +30,55 @@ export function AgentTurnView({
           steps={turn.steps}
           activeStepId={turn.activeStepId}
           showEmptyWaiting={turn.isLatest && isActiveStatus(runStatus)}
+          defaultOpen
         />
 
-        {turn.output.kind === "question" ? (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-4">
-            <p className="text-xs font-semibold uppercase tracking-wide text-amber-800">
-              Donna needs your reply
+        {turn.output.kind === "summary" ? (
+          <div className="min-w-0">
+            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-donna-muted">
+              Output
             </p>
-            <div className="mt-3 text-sm leading-relaxed text-amber-950">
+            <div className="overflow-x-hidden rounded-lg border border-donna-border bg-donna-sidebar/50 px-4 py-4">
               <MessageContent
                 content={turn.output.text}
+                variant="assistant"
+                className="text-[0.95rem] leading-relaxed text-donna-text [&_pre]:max-w-full [&_pre]:overflow-x-auto"
+              />
+            </div>
+          </div>
+        ) : null}
+
+        {turn.question ? (
+          <div
+            className={
+              turn.question.live
+                ? "rounded-lg border border-amber-200 bg-amber-50 px-4 py-4"
+                : "rounded-lg border border-donna-border bg-donna-sidebar/50 px-4 py-4"
+            }
+          >
+            <p
+              className={
+                turn.question.live
+                  ? "text-xs font-semibold uppercase tracking-wide text-amber-800"
+                  : "text-xs font-semibold uppercase tracking-wide text-donna-muted"
+              }
+            >
+              {turn.question.live ? "Donna needs your reply" : "Question"}
+            </p>
+            <div
+              className={
+                turn.question.live
+                  ? "mt-3 text-sm leading-relaxed text-amber-950"
+                  : "mt-3 text-sm leading-relaxed text-donna-text"
+              }
+            >
+              <MessageContent
+                content={turn.question.text}
                 variant="assistant"
                 className="text-[0.95rem]"
               />
             </div>
-            {waitingExtras ? (
+            {turn.question.live && waitingExtras ? (
               <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-amber-200/80 pt-3">
                 <p className="mr-auto text-xs text-amber-900/80">
                   Or close this agent without answering.
@@ -60,21 +94,6 @@ export function AgentTurnView({
                 </Button>
               </div>
             ) : null}
-          </div>
-        ) : null}
-
-        {turn.output.kind === "summary" ? (
-          <div className="min-w-0">
-            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-donna-muted">
-              Output
-            </p>
-            <div className="overflow-x-hidden rounded-lg border border-donna-border bg-donna-sidebar/50 px-4 py-4">
-              <MessageContent
-                content={turn.output.text}
-                variant="assistant"
-                className="text-[0.95rem] leading-relaxed text-donna-text [&_pre]:max-w-full [&_pre]:overflow-x-auto"
-              />
-            </div>
           </div>
         ) : null}
       </div>

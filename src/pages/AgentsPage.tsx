@@ -141,18 +141,20 @@ export function AgentsPage() {
     () => (active ? buildAgentTurns(active, steps) : []),
     [active, steps],
   );
+  const needsReply = Boolean(
+    active?.status === "waiting_for_user" ||
+      turns[turns.length - 1]?.question?.live,
+  );
   const options = useMemo(
-    () => (active?.status === "waiting_for_user" ? parseOptions(active.result) : []),
-    [active?.status, active?.result],
+    () => (needsReply ? parseOptions(active?.result) : []),
+    [needsReply, active?.result],
   );
   const allowMultiple = Boolean(
-    active?.status === "waiting_for_user" &&
-      (active.result?.allow_multiple === true ||
-        (active.result?.args as { allow_multiple?: boolean } | undefined)?.allow_multiple === true),
+    needsReply &&
+      (active?.result?.allow_multiple === true ||
+        (active?.result?.args as { allow_multiple?: boolean } | undefined)?.allow_multiple === true),
   );
-  const waitingWithOptions = Boolean(
-    active?.status === "waiting_for_user" && options.length > 0,
-  );
+  const waitingWithOptions = Boolean(needsReply && options.length > 0);
   const showInput = !active || (canReply(active.status) && active.status !== "cancelled");
 
   const optionKey = options.map((o) => o.id).join("|");
@@ -328,10 +330,10 @@ export function AgentsPage() {
                 <span
                   className={cn(
                     "rounded-full border px-2 py-0.5 text-[11px] font-medium",
-                    statusTone(active.status),
+                    statusTone(needsReply ? "waiting_for_user" : active.status),
                   )}
                 >
-                  {active.status === "waiting_for_user" ? "needs reply" : active.status}
+                  {needsReply ? "needs reply" : active.status}
                 </span>
                 {active.error ? (
                   <span className="text-xs text-rose-700">{active.error}</span>
@@ -352,7 +354,7 @@ export function AgentsPage() {
             {active &&
             (active.status === "running" ||
               active.status === "queued" ||
-              active.status === "waiting_for_user") ? (
+              needsReply) ? (
               <>
                 <Button
                   variant="secondary"
@@ -420,7 +422,7 @@ export function AgentsPage() {
                   turn={turn}
                   runStatus={active.status}
                   waitingExtras={
-                    turn.isLatest && active.status === "waiting_for_user"
+                    turn.isLatest && needsReply
                       ? {
                           busy,
                           onFinish: () => void onFinish(active.id),
@@ -490,7 +492,7 @@ export function AgentsPage() {
                   ? allowMultiple
                     ? "Optional note to add with your selection…"
                     : "Or type a different answer…"
-                  : active.status === "waiting_for_user"
+                  : needsReply
                     ? "Write your answer…"
                     : "Add a follow-up or correction…"
             }
