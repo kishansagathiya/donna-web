@@ -311,6 +311,32 @@ describe("buildAgentTurns", () => {
     expect(turns[1].activeStepId).toBeNull();
   });
 
+  it("treats an ask on a queued run as a live question", () => {
+    const steps = [
+      step({
+        id: "s1",
+        seq: 1,
+        kind: "thought",
+        payload: { text: "I need a date to continue." },
+      }),
+      step({
+        id: "s2",
+        seq: 2,
+        kind: "approval_request",
+        payload: { kind: "ask_user", question: "Which date works?" },
+      }),
+    ];
+    const turns = buildAgentTurns(
+      { ...baseRun, status: "queued", result: { question: "Which date works?" } },
+      steps,
+    );
+    expect(turns).toHaveLength(1);
+    expect(turns[0].question).toEqual({
+      text: "Which date works?",
+      live: true,
+    });
+  });
+
   it("puts the follow-up result at the end instead of the previous question", () => {
     const steps = [
       step({
@@ -547,6 +573,28 @@ describe("helpers", () => {
     expect(mergeAgentRuns([older], [local], null)).toEqual([older]);
     expect(isPendingAgentRunId(PENDING_AGENT_RUN_ID)).toBe(true);
     expect(isPendingAgentRunId("run_1")).toBe(false);
+  });
+
+  it("does not let a stale list snapshot downgrade a newer selected run", () => {
+    const queued = {
+      id: "run_1",
+      status: "queued",
+      updated_at: "2026-08-15T10:00:00.000Z",
+    };
+    const waiting = {
+      id: "run_1",
+      status: "waiting_for_user",
+      updated_at: "2026-08-15T10:00:05.000Z",
+    };
+    const other = {
+      id: "run_2",
+      status: "succeeded",
+      updated_at: "2026-08-15T09:00:00.000Z",
+    };
+    expect(mergeAgentRuns([queued, other], [waiting], "run_1")).toEqual([
+      waiting,
+      other,
+    ]);
   });
 
   it("shows thinking only while an active turn has no steps yet", () => {

@@ -33,6 +33,7 @@ import {
   cancelAgentRun,
   createAgentRun,
   finishAgentRun,
+  getAgentRun,
   listAgentRuns,
   listAgentSteps,
   redirectAgentRun,
@@ -120,6 +121,16 @@ export function AgentsPage() {
     }
   }, []);
 
+  const refreshSelectedRun = useCallback(async (id: string) => {
+    if (!id || isPendingAgentRunId(id)) return;
+    try {
+      const run = await getAgentRun(id);
+      setRuns((prev) => upsertAgentRun(prev, run));
+    } catch {
+      // List polling still updates the sidebar.
+    }
+  }, []);
+
   const refreshSteps = useCallback(async (id: string) => {
     try {
       const list = await listAgentSteps(id);
@@ -140,13 +151,15 @@ export function AgentsPage() {
       }
       return;
     }
+    void refreshSelectedRun(selectedId);
     void refreshSteps(selectedId);
     const t = window.setInterval(() => {
+      void refreshSelectedRun(selectedId);
       void refreshRuns();
       void refreshSteps(selectedId);
     }, 2500);
     return () => window.clearInterval(t);
-  }, [selectedId, refreshRuns, refreshSteps]);
+  }, [selectedId, refreshRuns, refreshSelectedRun, refreshSteps]);
 
   useEffect(() => {
     try {

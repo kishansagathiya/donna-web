@@ -78,16 +78,33 @@ export function upsertAgentRun<T extends { id: string }>(runs: T[], run: T): T[]
  * Prefer the server list, but keep a locally pinned run (just-created or
  * still-pending) if a fetch has not caught up yet.
  */
-export function mergeAgentRuns<T extends { id: string }>(
+export function mergeAgentRuns<T extends { id: string; updated_at?: string }>(
   remote: T[],
   local: T[],
   pinId?: string | null,
 ): T[] {
-  if (!pinId) return remote;
-  if (remote.some((r) => r.id === pinId)) return remote;
-  const pinned = local.find((r) => r.id === pinId);
-  if (!pinned) return remote;
-  return upsertAgentRun(remote, pinned);
+  const localById = new Map(local.map((r) => [r.id, r]));
+  const merged = remote.map((r) => {
+    const prev = localById.get(r.id);
+    if (prev && isNewerRun(prev, r)) return prev;
+    return r;
+  });
+  if (!pinId) return merged;
+  if (merged.some((r) => r.id === pinId)) return merged;
+  const pinned = localById.get(pinId);
+  if (!pinned) return merged;
+  return upsertAgentRun(merged, pinned);
+}
+
+function isNewerRun(
+  candidate: { updated_at?: string },
+  current: { updated_at?: string },
+): boolean {
+  const next = candidate.updated_at ?? "";
+  const prev = current.updated_at ?? "";
+  if (!next) return false;
+  if (!prev) return true;
+  return next > prev;
 }
 
 /** Rotating "Donna is thinking" while the latest turn has no steps yet. */
@@ -368,7 +385,17 @@ function artifactsForTurn(
   const resultSummary = resultSummaryText(run);
   const resultSplit = splitTrailingQuestion(resultSummary);
   const skipped = closedByUser(run.result);
-  if (isLatest && (isActiveStatus(run.status) || leftoverBelongsToPrevious)) {
+  // A stale "queued"/"running" snapshot must not hide a question the agent
+  // already asked on this turn.
+  if (isLatest && leftoverBelongsToPrevious && !stepQuestion) {
+    return { output: { kind: "none" }, question: null };
+  }
+  if (
+    isLatest &&
+    isActiveStatus(run.status) &&
+    !stepQuestion &&
+    !leftoverBelongsToPrevious
+  ) {
     return { output: { kind: "none" }, question: null };
   }
 
@@ -385,6 +412,7 @@ function artifactsForTurn(
 
   const waiting =
     run.status === "waiting_for_user" ||
+    (isLatest && Boolean(stepQuestion) && !skipped) ||
     (isLatest &&
       Boolean(questionText) &&
       !skipped &&
