@@ -23,6 +23,7 @@ import {
   buildAgentTurns,
   canReply,
   parseOptions,
+  upsertAgentRun,
 } from "../lib/agentTurns";
 import {
   cancelAgentRun,
@@ -83,19 +84,20 @@ export function AgentsPage() {
   selectedIdRef.current = selectedId;
   const busyRef = useRef(busy);
   busyRef.current = busy;
+  const listFetchGen = useRef(0);
 
   const bumpRefresh = useCallback(() => {
     setRefreshKey((k) => k + 1);
   }, []);
 
-  const refreshRuns = useCallback(async () => {
+  const refreshRuns = useCallback(async (fresh = false) => {
+    const gen = ++listFetchGen.current;
     try {
-      const list = await listAgentRuns();
+      const list = await listAgentRuns(undefined, fresh ? { fresh: true } : undefined);
+      if (gen !== listFetchGen.current) return;
       setRuns(list);
-      if (selectedIdRef.current && !list.some((r) => r.id === selectedIdRef.current)) {
-        setSelectedId(null);
-      }
     } catch (e) {
+      if (gen !== listFetchGen.current) return;
       setError(e instanceof Error ? e.message : "Failed to load agents");
     }
   }, []);
@@ -173,9 +175,11 @@ export function AgentsPage() {
         g || "See attached",
         attachments.length > 0 ? attachmentPayloads(attachments) : undefined,
       );
+      listFetchGen.current += 1;
+      setRuns((prev) => upsertAgentRun(prev, run));
       setSelectedId(run.id);
       bumpRefresh();
-      await refreshRuns();
+      await refreshRuns(true);
       await refreshSteps(run.id);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to start agent");
@@ -194,14 +198,16 @@ export function AgentsPage() {
     setBusy(true);
     setError(null);
     try {
-      await redirectAgentRun(
+      const run = await redirectAgentRun(
         id,
         msg || "See attached",
         attachments.length > 0 ? attachmentPayloads(attachments) : undefined,
       );
+      listFetchGen.current += 1;
+      setRuns((prev) => upsertAgentRun(prev, run));
       setSelectedOptions([]);
       bumpRefresh();
-      await refreshRuns();
+      await refreshRuns(true);
       await refreshSteps(id);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Reply failed");
@@ -256,9 +262,11 @@ export function AgentsPage() {
   async function onCancel(id: string) {
     setBusy(true);
     try {
-      await cancelAgentRun(id);
+      const run = await cancelAgentRun(id);
+      listFetchGen.current += 1;
+      setRuns((prev) => upsertAgentRun(prev, run));
       bumpRefresh();
-      await refreshRuns();
+      await refreshRuns(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Cancel failed");
     } finally {
@@ -269,9 +277,11 @@ export function AgentsPage() {
   async function onFinish(id: string) {
     setBusy(true);
     try {
-      await finishAgentRun(id);
+      const run = await finishAgentRun(id);
+      listFetchGen.current += 1;
+      setRuns((prev) => upsertAgentRun(prev, run));
       bumpRefresh();
-      await refreshRuns();
+      await refreshRuns(true);
       await refreshSteps(id);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not mark finished");

@@ -82,13 +82,17 @@ async function readError(res: Response): Promise<string> {
 
 let inFlightList: Promise<AgentRun[]> | null = null;
 
-export async function listAgentRuns(status?: string): Promise<AgentRun[]> {
+export async function listAgentRuns(
+  status?: string,
+  opts?: { fresh?: boolean },
+): Promise<AgentRun[]> {
   const params = new URLSearchParams();
   params.set("limit", "50");
   if (status) params.set("status", status);
   const path = `/agent-runs?${params.toString()}`;
+  const fresh = Boolean(opts?.fresh);
 
-  if (!status && inFlightList) {
+  if (!status && !fresh && inFlightList) {
     return inFlightList;
   }
 
@@ -98,7 +102,7 @@ export async function listAgentRuns(status?: string): Promise<AgentRun[]> {
     return (await res.json()) as AgentRun[];
   })();
 
-  if (!status) {
+  if (!status && !fresh) {
     inFlightList = pending.finally(() => {
       if (inFlightList === pending) inFlightList = null;
     });

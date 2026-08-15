@@ -69,4 +69,29 @@ describe("listAgentRuns", () => {
     await expect(listAgentRuns()).resolves.toEqual([run("run-2")]);
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+
+  it("skips in-flight dedupe when fresh is requested", async () => {
+    const { listAgentRuns } = await import("./agentsApi");
+    let resolveFirst: ((value: Response) => void) | undefined;
+    const fetchMock = vi.fn(
+      () =>
+        new Promise<Response>((resolve) => {
+          if (!resolveFirst) {
+            resolveFirst = resolve;
+            return;
+          }
+          resolve(Response.json([run("run-fresh")]));
+        }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const stale = listAgentRuns();
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledOnce());
+    const fresh = listAgentRuns(undefined, { fresh: true });
+    await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+
+    resolveFirst!(Response.json([run("run-stale")]));
+    await expect(stale).resolves.toEqual([run("run-stale")]);
+    await expect(fresh).resolves.toEqual([run("run-fresh")]);
+  });
 });
