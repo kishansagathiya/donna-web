@@ -22,9 +22,13 @@ import { cn } from "../lib/cn";
 import {
   buildAgentTurns,
   canReply,
+  isPendingAgentRunId,
+  mergeAgentRuns,
   parseOptions,
+  PENDING_AGENT_RUN_ID,
   upsertAgentRun,
 } from "../lib/agentTurns";
+import { DONNA_THINKING_PHASE } from "../lib/thinkingPhrases";
 import {
   cancelAgentRun,
   createAgentRun,
@@ -57,6 +61,20 @@ function statusTone(status: string) {
 
 function attachmentPayloads(attachments: PendingAttachment[]) {
   return attachments.map((a) => a.payload);
+}
+
+function makePendingAgentRun(goal: string): AgentRun {
+  const now = new Date().toISOString();
+  return {
+    id: PENDING_AGENT_RUN_ID,
+    user_id: "",
+    goal,
+    status: "queued",
+    max_steps: 0,
+    step_count: 0,
+    created_at: now,
+    updated_at: now,
+  };
 }
 
 export function AgentsPage() {
@@ -95,7 +113,7 @@ export function AgentsPage() {
     try {
       const list = await listAgentRuns(undefined, fresh ? { fresh: true } : undefined);
       if (gen !== listFetchGen.current) return;
-      setRuns(list);
+      setRuns((prev) => mergeAgentRuns(list, prev, selectedIdRef.current));
     } catch (e) {
       if (gen !== listFetchGen.current) return;
       setError(e instanceof Error ? e.message : "Failed to load agents");
@@ -116,8 +134,10 @@ export function AgentsPage() {
   }, [refreshRuns, refreshKey]);
 
   useEffect(() => {
-    if (!selectedId) {
-      setSteps([]);
+    if (!selectedId || isPendingAgentRunId(selectedId)) {
+      if (!isPendingAgentRunId(selectedId)) {
+        setSteps([]);
+      }
       return;
     }
     void refreshSteps(selectedId);
@@ -170,20 +190,33 @@ export function AgentsPage() {
   async function createRun(goal: string, attachments: PendingAttachment[] = []) {
     const g = goal.trim();
     if ((!g && attachments.length === 0) || busyRef.current) return;
+    const goalText = g || "See attached";
     setBusy(true);
     setError(null);
+    setSteps([]);
+    setRuns((prev) => upsertAgentRun(prev, makePendingAgentRun(goalText)));
+    setSelectedId(PENDING_AGENT_RUN_ID);
     try {
       const run = await createAgentRun(
-        g || "See attached",
+        goalText,
         attachments.length > 0 ? attachmentPayloads(attachments) : undefined,
       );
       listFetchGen.current += 1;
-      setRuns((prev) => upsertAgentRun(prev, run));
-      setSelectedId(run.id);
+      setRuns((prev) =>
+        upsertAgentRun(
+          prev.filter((r) => !isPendingAgentRunId(r.id)),
+          run,
+        ),
+      );
+      setSelectedId((id) => (id === PENDING_AGENT_RUN_ID ? run.id : id));
       bumpRefresh();
       await refreshRuns(true);
-      await refreshSteps(run.id);
+      if (selectedIdRef.current === run.id) {
+        await refreshSteps(run.id);
+      }
     } catch (e) {
+      setRuns((prev) => prev.filter((r) => !isPendingAgentRunId(r.id)));
+      setSelectedId((id) => (id === PENDING_AGENT_RUN_ID ? null : id));
       setError(e instanceof Error ? e.message : "Failed to start agent");
     } finally {
       setBusy(false);
@@ -228,7 +261,7 @@ export function AgentsPage() {
 
   async function handleSend(text: string, attachments: PendingAttachment[]) {
     const composed = composeWithOptions(text);
-    if (selectedId) {
+    if (selectedId && !isPendingAgentRunId(selectedId)) {
       await replyToRun(selectedId, composed, attachments);
     } else {
       await createRun(composed, attachments);
@@ -247,8 +280,9 @@ export function AgentsPage() {
     onTranscript: (text) => {
       const trimmed = text.trim();
       if (!trimmed) return;
-      if (selectedIdRef.current) {
-        void replyToRun(selectedIdRef.current, trimmed);
+      const id = selectedIdRef.current;
+      if (id && !isPendingAgentRunId(id)) {
+        void replyToRun(id, trimmed);
       } else {
         void createRun(trimmed);
       }
@@ -298,6 +332,7 @@ export function AgentsPage() {
     setSelectedOptions([]);
     setError(null);
     setShareOpen(false);
+    setRuns((prev) => prev.filter((r) => !isPendingAgentRunId(r.id)));
   }, []);
 
   useEffect(() => {
@@ -318,6 +353,9 @@ export function AgentsPage() {
 
   const inputDisabled = busy || micDisabled || sessionActive;
   const allowEmptySend = waitingWithOptions && selectedOptions.length > 0;
+  const isPending = isPendingAgentRunId(active?.id);
+  const heroSessionLabel =
+    busy && !active ? DONNA_THINKING_PHASE : sessionLabel;
 
   return (
     <div className="flex h-full min-h-0 w-full">
@@ -342,7 +380,7 @@ export function AgentsPage() {
             ) : null}
           </div>
           <div className="flex items-center gap-2">
-            {active ? (
+            {active && !isPending ? (
               <IconButton
                 onClick={() => setShareOpen(true)}
                 aria-label="Share agent"
@@ -352,6 +390,7 @@ export function AgentsPage() {
               </IconButton>
             ) : null}
             {active &&
+            !isPending &&
             (active.status === "running" ||
               active.status === "queued" ||
               needsReply) ? (
@@ -410,7 +449,7 @@ export function AgentsPage() {
               onMicPress={() => void toggleTalk()}
               micDisabled={micDisabled || busy}
               showMic
-              sessionLabel={sessionLabel}
+              sessionLabel={heroSessionLabel}
               title="Start a cloud agent goal…"
               description="Background goals on Donna cloud — your phone can lock while it works."
             />
@@ -499,8 +538,8 @@ export function AgentsPage() {
             showMic={Boolean(active)}
             micState={micState}
             onMicPress={() => void toggleTalk()}
-            micDisabled={micDisabled}
-            sessionLabel={sessionLabel}
+            micDisabled={micDisabled || busy}
+            sessionLabel={heroSessionLabel}
             showWebSearch={false}
             allowEmptySend={allowEmptySend}
           />

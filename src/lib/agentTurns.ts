@@ -62,9 +62,40 @@ export function canReply(status: string): boolean {
   );
 }
 
+/** Local placeholder until POST /agent-runs returns a real id. */
+export const PENDING_AGENT_RUN_ID = "__pending__";
+
+export function isPendingAgentRunId(id: string | null | undefined): boolean {
+  return id === PENDING_AGENT_RUN_ID;
+}
+
 /** Put `run` at the front of the list, replacing any previous copy. */
 export function upsertAgentRun<T extends { id: string }>(runs: T[], run: T): T[] {
   return [run, ...runs.filter((r) => r.id !== run.id)];
+}
+
+/**
+ * Prefer the server list, but keep a locally pinned run (just-created or
+ * still-pending) if a fetch has not caught up yet.
+ */
+export function mergeAgentRuns<T extends { id: string }>(
+  remote: T[],
+  local: T[],
+  pinId?: string | null,
+): T[] {
+  if (!pinId) return remote;
+  if (remote.some((r) => r.id === pinId)) return remote;
+  const pinned = local.find((r) => r.id === pinId);
+  if (!pinned) return remote;
+  return upsertAgentRun(remote, pinned);
+}
+
+/** Rotating "Donna is thinking" while the latest turn has no steps yet. */
+export function shouldShowAgentThinking(
+  status: string,
+  latestTurnStepCount: number,
+): boolean {
+  return isActiveStatus(status) && latestTurnStepCount === 0;
 }
 
 export function resultSummary(

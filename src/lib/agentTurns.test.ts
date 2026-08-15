@@ -2,8 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   buildAgentTurns,
   canReply,
+  isPendingAgentRunId,
+  mergeAgentRuns,
   parseOptions,
+  PENDING_AGENT_RUN_ID,
   pendingQuestion,
+  shouldShowAgentThinking,
   stepBody,
   stepTitle,
   upsertAgentRun,
@@ -527,6 +531,30 @@ describe("helpers", () => {
     const b2 = { id: "b", goal: "two-updated" };
     expect(upsertAgentRun([a], b)).toEqual([b, a]);
     expect(upsertAgentRun([a, b], b2)).toEqual([b2, a]);
+  });
+
+  it("keeps a pinned local run when the remote list has not caught up", () => {
+    const local = { id: "new", goal: "just started" };
+    const older = { id: "old", goal: "earlier" };
+    expect(mergeAgentRuns([older], [local, older], "new")).toEqual([
+      local,
+      older,
+    ]);
+    expect(mergeAgentRuns([local, older], [local], "new")).toEqual([
+      local,
+      older,
+    ]);
+    expect(mergeAgentRuns([older], [local], null)).toEqual([older]);
+    expect(isPendingAgentRunId(PENDING_AGENT_RUN_ID)).toBe(true);
+    expect(isPendingAgentRunId("run_1")).toBe(false);
+  });
+
+  it("shows thinking only while an active turn has no steps yet", () => {
+    expect(shouldShowAgentThinking("queued", 0)).toBe(true);
+    expect(shouldShowAgentThinking("running", 0)).toBe(true);
+    expect(shouldShowAgentThinking("running", 2)).toBe(false);
+    expect(shouldShowAgentThinking("waiting_for_user", 0)).toBe(false);
+    expect(shouldShowAgentThinking("succeeded", 0)).toBe(false);
   });
 
   it("formats step titles and bodies", () => {

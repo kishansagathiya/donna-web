@@ -1,8 +1,9 @@
 import { MessageContent } from "../MessageContent";
+import { AssistantThinkingBlock } from "../ThinkingIndicator";
 import { Button } from "../ui/Button";
 import { Check } from "lucide-react";
 import type { AgentTurn } from "../../lib/agentTurns";
-import { isActiveStatus } from "../../lib/agentTurns";
+import { shouldShowAgentThinking } from "../../lib/agentTurns";
 import { AgentStepsGroup } from "./AgentStepsGroup";
 
 export function AgentTurnView({
@@ -26,12 +27,16 @@ export function AgentTurnView({
       </div>
 
       <div className="flex flex-col gap-3 pl-1 sm:pl-2">
-        <AgentStepsGroup
-          steps={turn.steps}
-          activeStepId={turn.activeStepId}
-          showEmptyWaiting={turn.isLatest && isActiveStatus(runStatus)}
-          defaultOpen
-        />
+        {turn.isLatest &&
+        shouldShowAgentThinking(runStatus, turn.steps.length) ? (
+          <AssistantThinkingBlock />
+        ) : (
+          <AgentStepsGroup
+            steps={turn.steps}
+            activeStepId={turn.activeStepId}
+            defaultOpen
+          />
+        )}
 
         {turn.output.kind === "summary" ? (
           <div className="min-w-0">
