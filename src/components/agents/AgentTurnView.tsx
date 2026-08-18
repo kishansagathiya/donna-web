@@ -3,7 +3,10 @@ import { AssistantThinkingBlock } from "../ThinkingIndicator";
 import { Button } from "../ui/Button";
 import { Check } from "lucide-react";
 import type { AgentTurn } from "../../lib/agentTurns";
-import { shouldShowAgentThinking } from "../../lib/agentTurns";
+import {
+  isFinishedStatus,
+  shouldShowAgentThinking,
+} from "../../lib/agentTurns";
 import { AgentStepsGroup } from "./AgentStepsGroup";
 
 export function AgentTurnView({
@@ -18,6 +21,12 @@ export function AgentTurnView({
     busy: boolean;
   } | null;
 }) {
+  // Finished turn with a visible result: collapse the steps timeline so the
+  // Output sits directly under the prompt. `key` forces a remount on the
+  // live → finished transition so the collapsed default takes effect.
+  const collapseSteps =
+    isFinishedStatus(runStatus) && turn.output.kind === "summary";
+
   return (
     <section className="flex w-full flex-col gap-3">
       <div className="flex justify-end">
@@ -32,9 +41,10 @@ export function AgentTurnView({
           <AssistantThinkingBlock />
         ) : (
           <AgentStepsGroup
+            key={collapseSteps ? "collapsed" : "open"}
             steps={turn.steps}
             activeStepId={turn.activeStepId}
-            defaultOpen
+            defaultOpen={!collapseSteps}
           />
         )}
 
