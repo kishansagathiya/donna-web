@@ -25,11 +25,61 @@ function makeTurn(overrides: Partial<AgentTurn> = {}): AgentTurn {
 }
 
 describe("AgentTurnView steps collapse", () => {
+  it("collapses steps when a live run finishes and shows output", () => {
+    const { rerender } = render(
+      <AgentTurnView turn={makeTurn()} runStatus="running" />,
+    );
+    expect(screen.getByText(/Tool → search/)).toBeInTheDocument();
+
+    rerender(
+      <AgentTurnView
+        turn={makeTurn({
+          output: { kind: "summary", text: "Found three flights." },
+        })}
+        runStatus="succeeded"
+      />,
+    );
+
+    expect(screen.getByText("Found three flights.")).toBeInTheDocument();
+    expect(screen.getByText(/show timeline/)).toBeInTheDocument();
+    expect(screen.queryByText(/Tool → search/)).not.toBeInTheDocument();
+  });
+
   it("keeps steps expanded while the run is active", () => {
     render(<AgentTurnView turn={makeTurn()} runStatus="running" />);
 
     expect(screen.getByText(/Steps \(1\)/)).toBeInTheDocument();
     expect(screen.getByText(/Tool → search/)).toBeInTheDocument();
+  });
+
+  it("collapses steps when the run waits for a reply with output shown", () => {
+    render(
+      <AgentTurnView
+        turn={makeTurn({
+          output: { kind: "summary", text: "Found three flights." },
+          question: { text: "Which one should I book?", live: true },
+        })}
+        runStatus="waiting_for_user"
+      />,
+    );
+
+    expect(screen.getByText("Found three flights.")).toBeInTheDocument();
+    expect(screen.getByText(/show timeline/)).toBeInTheDocument();
+    expect(screen.queryByText(/Tool → search/)).not.toBeInTheDocument();
+  });
+
+  it("keeps steps expanded on an active run even with a live question", () => {
+    render(
+      <AgentTurnView
+        turn={makeTurn({
+          output: { kind: "summary", text: "Partial findings so far." },
+        })}
+        runStatus="running"
+      />,
+    );
+
+    expect(screen.getByText(/Tool → search/)).toBeInTheDocument();
+    expect(screen.queryByText(/show timeline/)).not.toBeInTheDocument();
   });
 
   it("collapses steps once the run is finished and the output is shown", () => {
