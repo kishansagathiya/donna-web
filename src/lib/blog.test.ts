@@ -152,4 +152,24 @@ describe("bundled posts", () => {
     expect(post?.title).toMatch(/reasoning traces/i);
     expect(post?.body).toContain("2608.09867");
   });
+
+  it("includes llm-as-a-verifier", () => {
+    const post = getPost("llm-as-a-verifier");
+    expect(post).toBeDefined();
+    expect(post?.title).toMatch(/LLM-as-a-Verifier/i);
+    expect(post?.body).toContain("2607.05391");
+    expect(post?.body).toContain("https://llm-as-a-verifier.com/");
+    expect(post?.body).toContain(
+      "https://github.com/llm-as-a-verifier/llm-as-a-verifier",
+    );
+    expect(post?.body).toContain(
+      "https://github.com/llm-as-a-verifier/TurboAgent",
+    );
+    expect(post?.body).toContain(
+      "https://x.com/jackyk02/status/2074969820739805275",
+    );
+    expect(post?.body).toContain(
+      "https://x.com/jackyk02/status/2089421448784023553",
+    );
+  });
 });
