@@ -49,6 +49,23 @@ export type ConversationHistoryListProps = {
   refreshKey?: number;
 };
 
+function agentStatusClass(status: string) {
+  switch (status) {
+    case "succeeded":
+      return "border-emerald-200 bg-emerald-50 text-emerald-800";
+    case "failed":
+    case "cancelled":
+      return "border-rose-200 bg-rose-50 text-rose-800";
+    case "waiting_for_user":
+      return "border-amber-200 bg-amber-50 text-amber-800";
+    case "running":
+    case "queued":
+      return "border-sky-200 bg-sky-50 text-sky-800";
+    default:
+      return "border-donna-border bg-donna-surface text-donna-muted";
+  }
+}
+
 type FilterMode = "active" | "archived";
 
 export function ConversationHistoryList({
@@ -257,7 +274,7 @@ export function ConversationHistoryList({
           </button>
           {availableTags.length > 0 ? (
             <div className="flex max-w-full flex-wrap gap-1">
-              {availableTags.slice(0, 6).map((tag) => (
+              {availableTags.slice(0, 8).map((tag) => (
                 <button
                   key={tag}
                   type="button"
@@ -333,16 +350,25 @@ export function ConversationHistoryList({
                       "disabled:cursor-not-allowed",
                     )}
                   >
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-donna-primary-light text-donna-primary">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-50 text-sky-700">
                       <Bot className="h-3.5 w-3.5" strokeWidth={1.75} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="flex items-center gap-1.5 truncate text-sm font-medium text-donna-text">
                         <span className="truncate">{item.run.goal}</span>
                       </p>
-                      <p className="mt-0.5 truncate text-xs text-donna-muted">
-                        {formatConversationDate(item.run.updated_at)}
-                        {` · ${historyKindLabel(item)} · ${agentStatusLabel(item.run.status)}`}
+                      <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-donna-muted">
+                        <span>{formatConversationDate(item.run.updated_at)}</span>
+                        <span>·</span>
+                        <span>{historyKindLabel(item)}</span>
+                        <span
+                          className={cn(
+                            "rounded-full border px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide",
+                            agentStatusClass(item.run.status),
+                          )}
+                        >
+                          {agentStatusLabel(item.run.status)}
+                        </span>
                       </p>
                     </div>
                   </button>
@@ -378,7 +404,14 @@ export function ConversationHistoryList({
                       "disabled:cursor-not-allowed",
                     )}
                   >
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-donna-primary-light text-donna-primary">
+                    <div
+                      className={cn(
+                        "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
+                        conversation.channel === "voice"
+                          ? "bg-purple-50 text-purple-600"
+                          : "bg-donna-primary-light text-donna-primary",
+                      )}
+                    >
                       <Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
                     </div>
                     <div className="min-w-0 flex-1">
