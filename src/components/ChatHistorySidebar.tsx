@@ -44,9 +44,11 @@ export function ChatHistorySidebar({
 }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [resumingId, setResumingId] = useState<string | null>(null);
 
   async function handleSelect(conversation: ConversationSummary) {
     setError(null);
+    setResumingId(conversation.id);
     try {
       const detail = await getConversation(conversation.id);
       const messages: UiMessage[] = turnsToMessages(detail.turns).map((m) => ({
@@ -62,6 +64,8 @@ export function ChatHistorySidebar({
       setRefreshKey((k) => k + 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to open conversation");
+    } finally {
+      setResumingId(null);
     }
   }
 
@@ -111,6 +115,7 @@ export function ChatHistorySidebar({
         compact
         selectedChatId={selectedChatId}
         selectedAgentId={selectedAgentId}
+        busyChatId={resumingId}
         refreshKey={refreshKey}
         onSelect={handleSelect}
         onSelectAgent={onSelectAgent}

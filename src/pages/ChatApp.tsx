@@ -4,8 +4,7 @@ import {
   Check,
   History,
   PanelRightOpen,
-  Settings,
-  Share2,
+  Plus,
   Square,
 } from "lucide-react";
 import { AgentTurnView } from "../components/agents/AgentTurnView";
@@ -16,7 +15,6 @@ import { ChatInput } from "../components/ChatInput";
 import { ChatMessages } from "../components/ChatMessages";
 import { IngestToast } from "../components/IngestToast";
 import { ShareAgentRunSheet } from "../components/ShareAgentRunSheet";
-import { ShareConversationSheet } from "../components/ShareConversationSheet";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { Button } from "../components/ui/Button";
 import { IconButton } from "../components/ui/IconButton";
@@ -71,23 +69,6 @@ function UserAvatar({ onClick }: { onClick: () => void }) {
       {initial}
     </button>
   );
-}
-
-function statusTone(status: string) {
-  switch (status) {
-    case "succeeded":
-      return "bg-emerald-50 text-emerald-800 border-emerald-200";
-    case "failed":
-    case "cancelled":
-      return "bg-rose-50 text-rose-800 border-rose-200";
-    case "waiting_for_user":
-      return "bg-amber-50 text-amber-800 border-amber-200";
-    case "running":
-    case "queued":
-      return "bg-sky-50 text-sky-800 border-sky-200";
-    default:
-      return "bg-donna-surface text-donna-muted border-donna-border";
-  }
 }
 
 export function ChatApp() {
@@ -279,99 +260,27 @@ export function ChatApp() {
     <div className="flex h-full min-h-0 w-full">
       <div className="flex min-h-0 min-w-0 flex-1 flex-col">
         <header className="flex shrink-0 items-center justify-between gap-2 px-5 py-3">
-          <div className="min-w-0">
-            <h1 className="text-lg font-semibold text-donna-text">
-              {isAgent ? "Agent" : "Chat"}
-            </h1>
-            {isAgent && agent.active ? (
-              <div className="mt-1 flex flex-wrap items-center gap-2">
-                <span
-                  className={cn(
-                    "rounded-full border px-2 py-0.5 text-[11px] font-medium",
-                    statusTone(
-                      agent.needsReply ? "waiting_for_user" : agent.active.status,
-                    ),
-                  )}
-                >
-                  {agent.needsReply ? "needs reply" : agent.active.status}
-                </span>
-                {agent.active.error ? (
-                  <span className="text-xs text-rose-700">
-                    {agent.active.error}
-                  </span>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
+          <h1 className="min-w-0 truncate text-lg font-semibold text-donna-text">
+            {isAgent ? "Agent" : "Chat"}
+          </h1>
           <div className="flex items-center gap-2">
-            {isAgent && agent.active && !agent.isPending ? (
-              <IconButton
-                onClick={() => setShareOpen(true)}
-                aria-label="Share agent"
-                className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
-              >
-                <Share2 className="h-5 w-5" strokeWidth={1.75} />
-              </IconButton>
-            ) : null}
-            {!isAgent && activeConversationId && hasChatThread ? (
-              <IconButton
-                onClick={() => setShareOpen(true)}
-                aria-label="Share conversation"
-                className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
-              >
-                <Share2 className="h-5 w-5" strokeWidth={1.75} />
-              </IconButton>
-            ) : null}
-            {showAgentActions && agent.active ? (
-              <>
-                <Button
-                  variant="secondary"
-                  className="!w-auto gap-1 px-3 py-2 text-sm"
-                  disabled={agent.busy}
-                  onClick={() => void agent.onFinish(agent.active!.id)}
-                >
-                  <Check className="h-4 w-4" />
-                  Mark finished
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="!w-auto gap-1 px-3 py-2 text-sm"
-                  disabled={agent.busy}
-                  onClick={() => void agent.onCancel(agent.active!.id)}
-                >
-                  <Square className="h-4 w-4" />
-                  Cancel
-                </Button>
-              </>
-            ) : null}
-            <UserAvatar onClick={() => navigate("/app/profile")} />
-            {!isAgent ? (
-              <IconButton
-                onClick={() => navigate("/app/profile")}
-                aria-label="Profile and settings"
-                className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
-              >
-                <Settings className="h-5 w-5" strokeWidth={1.75} />
-              </IconButton>
-            ) : null}
+            <IconButton
+              onClick={handleNewThread}
+              aria-label="New chat"
+              className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
+            >
+              <Plus className="h-5 w-5" strokeWidth={1.75} />
+            </IconButton>
             <IconButton
               onClick={() => setHistorySheetOpen(true)}
-              aria-label={isAgent ? "Agent history" : "Chat history"}
+              aria-label="History"
               className="!h-9 !w-9 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface lg:!hidden"
             >
               <History className="h-5 w-5" strokeWidth={1.75} />
             </IconButton>
             <IconButton
               onClick={() => setHistoryPanelOpen((open) => !open)}
-              aria-label={
-                historyPanelOpen
-                  ? isAgent
-                    ? "Close agent history"
-                    : "Close chat history"
-                  : isAgent
-                    ? "Open agent history"
-                    : "Open chat history"
-              }
+              aria-label={historyPanelOpen ? "Close history" : "Open history"}
               aria-pressed={historyPanelOpen}
               className={cn(
                 "!h-9 !w-9 !border-transparent !bg-transparent hover:!bg-donna-surface !hidden lg:!inline-flex",
@@ -384,6 +293,7 @@ export function ChatApp() {
                 <PanelRightOpen className="h-5 w-5" strokeWidth={1.75} />
               )}
             </IconButton>
+            <UserAvatar onClick={() => navigate("/app/profile")} />
           </div>
         </header>
 
@@ -400,22 +310,62 @@ export function ChatApp() {
                 description="Background goals on Donna cloud — your phone can lock while it works."
               />
             ) : (
-              <div className="flex w-full flex-col gap-8 px-5 py-5 md:px-8 lg:px-10">
-                {agent.turns.map((turn) => (
-                  <AgentTurnView
-                    key={turn.id}
-                    turn={turn}
-                    runStatus={agent.active!.status}
-                    waitingExtras={
-                      turn.isLatest && agent.needsReply
-                        ? {
-                            busy: agent.busy,
-                            onFinish: () => void agent.onFinish(agent.active!.id),
-                          }
-                        : null
-                    }
-                  />
-                ))}
+              <div className="flex w-full flex-col gap-6 px-5 py-5 md:px-8 lg:px-10">
+                <div className="flex items-start justify-between gap-3">
+                  <p className="min-w-0 text-sm text-donna-muted">
+                    {agent.needsReply ? "needs reply" : agent.active.status}
+                    {agent.active.error ? ` · ${agent.active.error}` : ""}
+                  </p>
+                  {!agent.isPending ? (
+                    <button
+                      type="button"
+                      onClick={() => setShareOpen(true)}
+                      className="shrink-0 text-sm font-medium text-donna-primary hover:underline"
+                    >
+                      Share
+                    </button>
+                  ) : null}
+                </div>
+                {showAgentActions && agent.active ? (
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      variant="secondary"
+                      className="!w-auto gap-1 px-3 py-2 text-sm"
+                      disabled={agent.busy}
+                      onClick={() => void agent.onFinish(agent.active!.id)}
+                    >
+                      <Check className="h-4 w-4" />
+                      Mark finished
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="!w-auto gap-1 px-3 py-2 text-sm"
+                      disabled={agent.busy}
+                      onClick={() => void agent.onCancel(agent.active!.id)}
+                    >
+                      <Square className="h-4 w-4" />
+                      Cancel
+                    </Button>
+                  </div>
+                ) : null}
+                <div className="flex flex-col gap-8">
+                  {agent.turns.map((turn) => (
+                    <AgentTurnView
+                      key={turn.id}
+                      turn={turn}
+                      runStatus={agent.active!.status}
+                      waitingExtras={
+                        turn.isLatest && agent.needsReply
+                          ? {
+                              busy: agent.busy,
+                              onFinish: () =>
+                                void agent.onFinish(agent.active!.id),
+                            }
+                          : null
+                      }
+                    />
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -502,19 +452,6 @@ export function ChatApp() {
                 );
               })}
             </div>
-            {agent.selectedOptions.length > 0 ? (
-              <div className="mt-3 flex justify-end">
-                <Button
-                  className="!w-auto px-4 py-2 text-sm"
-                  disabled={agent.busy}
-                  onClick={() =>
-                    void agent.handleSend(agent.composeWithOptions(""), [])
-                  }
-                >
-                  Confirm
-                </Button>
-              </div>
-            ) : null}
           </div>
         ) : null}
 
@@ -558,20 +495,12 @@ export function ChatApp() {
 
         <IngestToast toast={toast} />
 
-        {isAgent ? (
-          <ShareAgentRunSheet
-            open={shareOpen}
-            runId={agent.active?.id ?? null}
-            goal={agent.active?.goal}
-            onClose={() => setShareOpen(false)}
-          />
-        ) : (
-          <ShareConversationSheet
-            open={shareOpen}
-            conversationId={activeConversationId}
-            onClose={() => setShareOpen(false)}
-          />
-        )}
+        <ShareAgentRunSheet
+          open={isAgent && shareOpen}
+          runId={agent.active?.id ?? null}
+          goal={agent.active?.goal}
+          onClose={() => setShareOpen(false)}
+        />
         <ChatHistorySheet
           open={historySheetOpen}
           onClose={() => setHistorySheetOpen(false)}

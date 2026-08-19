@@ -40,6 +40,7 @@ export type ConversationHistoryListProps = {
   active?: boolean;
   selectedChatId?: string | null;
   selectedAgentId?: string | null;
+  busyChatId?: string | null;
   compact?: boolean;
   className?: string;
   onSelect: (conversation: ConversationSummary) => void | Promise<void>;
@@ -48,29 +49,13 @@ export type ConversationHistoryListProps = {
   refreshKey?: number;
 };
 
-function agentStatusClass(status: string) {
-  switch (status) {
-    case "succeeded":
-      return "border-emerald-200 bg-emerald-50 text-emerald-800";
-    case "failed":
-    case "cancelled":
-      return "border-rose-200 bg-rose-50 text-rose-800";
-    case "waiting_for_user":
-      return "border-amber-200 bg-amber-50 text-amber-800";
-    case "running":
-    case "queued":
-      return "border-sky-200 bg-sky-50 text-sky-800";
-    default:
-      return "border-donna-border bg-donna-surface text-donna-muted";
-  }
-}
-
 type FilterMode = "active" | "archived";
 
 export function ConversationHistoryList({
   active = true,
   selectedChatId = null,
   selectedAgentId = null,
+  busyChatId = null,
   compact = false,
   className,
   onSelect,
@@ -91,6 +76,11 @@ export function ConversationHistoryList({
   const [shareTarget, setShareTarget] = useState<ConversationSummary | null>(
     null,
   );
+  const [editTarget, setEditTarget] = useState<ConversationSummary | null>(
+    null,
+  );
+  const [editMode, setEditMode] = useState<"rename" | "tags" | null>(null);
+  const [editValue, setEditValue] = useState("");
 
   useEffect(() => {
     const timer = window.setTimeout(() => setDebouncedQuery(query.trim()), 250);
@@ -185,29 +175,42 @@ export function ConversationHistoryList({
   }
 
   async function handleRename(conversation: ConversationSummary) {
-    const next = window.prompt("Rename conversation", conversation.title);
-    if (next === null) return;
-    const title = next.trim();
-    if (!title || title === conversation.title) return;
-    await runAction(conversation.id, () =>
-      patchConversation(conversation.id, { title }),
-    );
+    setMenuId(null);
+    setEditTarget(conversation);
+    setEditMode("rename");
+    setEditValue(conversation.title);
   }
 
   async function handleSetTags(conversation: ConversationSummary) {
-    const current = (conversation.tags ?? []).join(", ");
-    const next = window.prompt(
-      "Tags (comma-separated)",
-      current,
-    );
-    if (next === null) return;
-    const tags = next
-      .split(",")
-      .map((t) => t.trim().toLowerCase().replace(/^#/, ""))
-      .filter(Boolean);
-    await runAction(conversation.id, () =>
-      patchConversation(conversation.id, { tags }),
-    );
+    setMenuId(null);
+    setEditTarget(conversation);
+    setEditMode("tags");
+    setEditValue((conversation.tags ?? []).join(", "));
+  }
+
+  async function submitEdit() {
+    if (!editTarget || !editMode) return;
+    if (editMode === "rename") {
+      const title = editValue.trim();
+      if (!title || title === editTarget.title) {
+        setEditMode(null);
+        setEditTarget(null);
+        return;
+      }
+      await runAction(editTarget.id, () =>
+        patchConversation(editTarget.id, { title }),
+      );
+    } else {
+      const tags = editValue
+        .split(",")
+        .map((t) => t.trim().toLowerCase().replace(/^#/, ""))
+        .filter(Boolean);
+      await runAction(editTarget.id, () =>
+        patchConversation(editTarget.id, { tags }),
+      );
+    }
+    setEditMode(null);
+    setEditTarget(null);
   }
 
   return (
@@ -254,7 +257,7 @@ export function ConversationHistoryList({
           </button>
           {availableTags.length > 0 ? (
             <div className="flex max-w-full flex-wrap gap-1">
-              {availableTags.slice(0, 8).map((tag) => (
+              {availableTags.slice(0, 6).map((tag) => (
                 <button
                   key={tag}
                   type="button"
@@ -315,7 +318,7 @@ export function ConversationHistoryList({
                 <li key={`agent:${item.run.id}`} className="relative">
                   <button
                     type="button"
-                    disabled={busy || busyId !== null}
+                    disabled={busy || busyId !== null || busyChatId !== null}
                     onClick={() => {
                       const run = runs.find((r) => r.id === item.run.id);
                       if (run) onSelectAgent(run);
@@ -330,25 +333,16 @@ export function ConversationHistoryList({
                       "disabled:cursor-not-allowed",
                     )}
                   >
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-50 text-sky-700">
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-donna-primary-light text-donna-primary">
                       <Bot className="h-3.5 w-3.5" strokeWidth={1.75} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="flex items-center gap-1.5 truncate text-sm font-medium text-donna-text">
                         <span className="truncate">{item.run.goal}</span>
                       </p>
-                      <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-donna-muted">
-                        <span>{formatConversationDate(item.run.updated_at)}</span>
-                        <span>·</span>
-                        <span>{historyKindLabel(item)}</span>
-                        <span
-                          className={cn(
-                            "rounded-full border px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide",
-                            agentStatusClass(item.run.status),
-                          )}
-                        >
-                          {agentStatusLabel(item.run.status)}
-                        </span>
+                      <p className="mt-0.5 truncate text-xs text-donna-muted">
+                        {formatConversationDate(item.run.updated_at)}
+                        {` · ${historyKindLabel(item)} · ${agentStatusLabel(item.run.status)}`}
                       </p>
                     </div>
                   </button>
@@ -358,7 +352,8 @@ export function ConversationHistoryList({
 
             const conversation = item.conversation as ConversationSummary;
             const Icon = conversation.channel === "voice" ? Mic : MessageSquare;
-            const busy = busyId === conversation.id;
+            const busy =
+              busyId === conversation.id || busyChatId === conversation.id;
             const selected = selectedChatId === conversation.id;
             const pinned = Boolean(conversation.pinned_at);
 
@@ -375,7 +370,7 @@ export function ConversationHistoryList({
                 >
                   <button
                     type="button"
-                    disabled={busy || busyId !== null}
+                    disabled={busy || busyId !== null || busyChatId !== null}
                     onClick={() => void onSelect(conversation)}
                     className={cn(
                       "flex min-w-0 flex-1 items-start gap-2.5 text-left",
@@ -383,14 +378,7 @@ export function ConversationHistoryList({
                       "disabled:cursor-not-allowed",
                     )}
                   >
-                    <div
-                      className={cn(
-                        "mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full",
-                        conversation.channel === "voice"
-                          ? "bg-purple-50 text-purple-600"
-                          : "bg-donna-primary-light text-donna-primary",
-                      )}
-                    >
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-donna-primary-light text-donna-primary">
                       <Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
                     </div>
                     <div className="min-w-0 flex-1">
@@ -422,7 +410,7 @@ export function ConversationHistoryList({
                     <button
                       type="button"
                       aria-label="Conversation actions"
-                      disabled={busy || busyId !== null}
+                      disabled={busy || busyId !== null || busyChatId !== null}
                       onClick={(e) => {
                         e.stopPropagation();
                         setMenuId((prev) =>
@@ -514,6 +502,68 @@ export function ConversationHistoryList({
           })}
         </ul>
       )}
+
+      {editMode && editTarget ? (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-6"
+          onClick={() => {
+            setEditMode(null);
+            setEditTarget(null);
+          }}
+          role="presentation"
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-donna-border bg-white p-5 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-labelledby="history-edit-title"
+          >
+            <h2
+              id="history-edit-title"
+              className="text-base font-semibold text-donna-text"
+            >
+              {editMode === "rename" ? "Rename chat" : "Edit tags"}
+            </h2>
+            <p className="mt-1.5 mb-3 text-sm text-donna-muted">
+              {editMode === "tags"
+                ? "Comma-separated tags, e.g. work, personal"
+                : "Choose a short title"}
+            </p>
+            <TextInput
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              placeholder={editMode === "tags" ? "work, personal" : "Title"}
+              aria-label={editMode === "rename" ? "Chat title" : "Tags"}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void submitEdit();
+                }
+              }}
+            />
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                className="rounded-lg px-3 py-2 text-sm font-medium text-donna-muted hover:bg-donna-surface"
+                onClick={() => {
+                  setEditMode(null);
+                  setEditTarget(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="rounded-lg bg-donna-primary px-3 py-2 text-sm font-medium text-white"
+                onClick={() => void submitEdit()}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <ShareConversationSheet
         open={Boolean(shareTarget)}

@@ -73,6 +73,7 @@ export function ChatHistorySheet({
         active={open}
         selectedChatId={resumingId ?? selectedChatId}
         selectedAgentId={selectedAgentId}
+        busyChatId={resumingId}
         onSelect={handleSelect}
         onSelectAgent={(run) => {
           onSelectAgent(run);
