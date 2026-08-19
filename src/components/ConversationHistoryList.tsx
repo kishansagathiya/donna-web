@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Archive,
+  Bot,
   MessageSquare,
   Mic,
   MoreHorizontal,
@@ -12,6 +13,7 @@ import {
   Tag,
   Trash2,
 } from "lucide-react";
+import { listAgentRuns, type AgentRun } from "../services/agentsApi";
 import {
   deleteConversation,
   formatConversationDate,
@@ -20,6 +22,12 @@ import {
   patchConversation,
   type ConversationSummary,
 } from "../services/conversationsApi";
+import {
+  agentStatusLabel,
+  historyKindLabel,
+  matchesHistoryQuery,
+  mergeHistoryItems,
+} from "../lib/unifiedHistory";
 import { EmptyState } from "./ui/EmptyState";
 import { Spinner } from "./ui/Spinner";
 import { AlertBanner } from "./ui/AlertBanner";
@@ -30,27 +38,49 @@ import { ShareConversationSheet } from "./ShareConversationSheet";
 export type ConversationHistoryListProps = {
   /** When false, skip fetching (e.g. closed sheet). Defaults to true. */
   active?: boolean;
-  selectedId?: string | null;
+  selectedChatId?: string | null;
+  selectedAgentId?: string | null;
   compact?: boolean;
   className?: string;
   onSelect: (conversation: ConversationSummary) => void | Promise<void>;
+  onSelectAgent: (run: AgentRun) => void;
   /** Optional refresh signal from parent (increment to reload). */
   refreshKey?: number;
 };
+
+function agentStatusClass(status: string) {
+  switch (status) {
+    case "succeeded":
+      return "border-emerald-200 bg-emerald-50 text-emerald-800";
+    case "failed":
+    case "cancelled":
+      return "border-rose-200 bg-rose-50 text-rose-800";
+    case "waiting_for_user":
+      return "border-amber-200 bg-amber-50 text-amber-800";
+    case "running":
+    case "queued":
+      return "border-sky-200 bg-sky-50 text-sky-800";
+    default:
+      return "border-donna-border bg-donna-surface text-donna-muted";
+  }
+}
 
 type FilterMode = "active" | "archived";
 
 export function ConversationHistoryList({
   active = true,
-  selectedId = null,
+  selectedChatId = null,
+  selectedAgentId = null,
   compact = false,
   className,
   onSelect,
+  onSelectAgent,
   refreshKey = 0,
 }: ConversationHistoryListProps) {
   const [loading, setLoading] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const [runs, setRuns] = useState<AgentRun[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -67,11 +97,13 @@ export function ConversationHistoryList({
     return () => window.clearTimeout(timer);
   }, [query]);
 
+  const includeAgents = filterMode === "active" && !tagFilter;
+
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const [items, tags] = await Promise.all([
+      const [items, tags, agentRuns] = await Promise.all([
         listConversations({
           q: debouncedQuery || undefined,
           tag: tagFilter || undefined,
@@ -80,16 +112,37 @@ export function ConversationHistoryList({
           limit: 50,
         }),
         listConversationTags().catch(() => [] as string[]),
+        includeAgents ? listAgentRuns().catch(() => [] as AgentRun[]) : Promise.resolve([] as AgentRun[]),
       ]);
       setConversations(items);
       setAvailableTags(tags);
+      setRuns(agentRuns);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load history");
       setConversations([]);
+      setRuns([]);
     } finally {
       setLoading(false);
     }
-  }, [debouncedQuery, filterMode, tagFilter]);
+  }, [debouncedQuery, filterMode, includeAgents, tagFilter]);
+
+  const items = useMemo(() => {
+    const agentRuns = includeAgents
+      ? runs.filter((run) =>
+          matchesHistoryQuery(
+            {
+              kind: "agent",
+              id: run.id,
+              updatedAt: run.updated_at,
+              pinned: false,
+              run,
+            },
+            debouncedQuery,
+          ),
+        )
+      : [];
+    return mergeHistoryItems(conversations, agentRuns);
+  }, [conversations, debouncedQuery, includeAgents, runs]);
 
   useEffect(() => {
     if (!active) return;
@@ -106,10 +159,10 @@ export function ConversationHistoryList({
   }, [menuId]);
 
   const emptyTitle = useMemo(() => {
-    if (debouncedQuery) return "No matching chats";
+    if (debouncedQuery) return "No matching history";
     if (filterMode === "archived") return "No archived chats";
     if (tagFilter) return "No chats with this tag";
-    return "No conversations yet";
+    return "No history yet";
   }, [debouncedQuery, filterMode, tagFilter]);
 
   async function runAction(
@@ -168,8 +221,8 @@ export function ConversationHistoryList({
           <TextInput
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search chats…"
-            aria-label="Search conversations"
+            placeholder="Search history…"
+            aria-label="Search history"
             className="!py-2 pl-9 text-sm"
           />
         </div>
@@ -236,14 +289,14 @@ export function ConversationHistoryList({
         <div className="flex flex-1 items-center justify-center py-10">
           <Spinner />
         </div>
-      ) : conversations.length === 0 ? (
+      ) : items.length === 0 ? (
         <EmptyState
           icon={Search}
           title={emptyTitle}
           description={
             debouncedQuery
               ? "Try a different keyword or clear filters."
-              : "Your past chats will appear here once you start talking with Donna."
+              : "Your past chats and agent runs will appear here."
           }
           className="py-6"
         />
@@ -254,14 +307,63 @@ export function ConversationHistoryList({
             compact ? "px-2 pb-3" : "max-h-[min(60vh,28rem)]",
           )}
         >
-          {conversations.map((conversation) => {
+          {items.map((item) => {
+            if (item.kind === "agent") {
+              const busy = busyId === item.run.id;
+              const selected = selectedAgentId === item.run.id;
+              return (
+                <li key={`agent:${item.run.id}`} className="relative">
+                  <button
+                    type="button"
+                    disabled={busy || busyId !== null}
+                    onClick={() => {
+                      const run = runs.find((r) => r.id === item.run.id);
+                      if (run) onSelectAgent(run);
+                    }}
+                    className={cn(
+                      "group flex w-full items-start gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-colors",
+                      selected
+                        ? "border-donna-primary/40 bg-donna-primary-light/60"
+                        : "border-donna-border hover:border-donna-primary/30 hover:bg-donna-surface",
+                      busy && "opacity-60",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
+                      "disabled:cursor-not-allowed",
+                    )}
+                  >
+                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-50 text-sky-700">
+                      <Bot className="h-3.5 w-3.5" strokeWidth={1.75} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="flex items-center gap-1.5 truncate text-sm font-medium text-donna-text">
+                        <span className="truncate">{item.run.goal}</span>
+                      </p>
+                      <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-donna-muted">
+                        <span>{formatConversationDate(item.run.updated_at)}</span>
+                        <span>·</span>
+                        <span>{historyKindLabel(item)}</span>
+                        <span
+                          className={cn(
+                            "rounded-full border px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide",
+                            agentStatusClass(item.run.status),
+                          )}
+                        >
+                          {agentStatusLabel(item.run.status)}
+                        </span>
+                      </p>
+                    </div>
+                  </button>
+                </li>
+              );
+            }
+
+            const conversation = item.conversation as ConversationSummary;
             const Icon = conversation.channel === "voice" ? Mic : MessageSquare;
             const busy = busyId === conversation.id;
-            const selected = selectedId === conversation.id;
+            const selected = selectedChatId === conversation.id;
             const pinned = Boolean(conversation.pinned_at);
 
             return (
-              <li key={conversation.id} className="relative">
+              <li key={`chat:${conversation.id}`} className="relative">
                 <div
                   className={cn(
                     "group flex w-full items-start gap-2 rounded-xl border px-3 py-2.5 text-left transition-colors",
@@ -308,6 +410,7 @@ export function ConversationHistoryList({
                       ) : null}
                       <p className="mt-0.5 text-xs text-donna-muted">
                         {formatConversationDate(conversation.updated_at)}
+                        {` · ${historyKindLabel(item)}`}
                         {conversation.tags && conversation.tags.length > 0
                           ? ` · ${conversation.tags.map((t) => `#${t}`).join(" ")}`
                           : ""}

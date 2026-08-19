@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { AgentRun } from "../services/agentsApi";
 import {
   getConversation,
   turnsToMessages,
@@ -12,18 +13,28 @@ import { AlertBanner } from "./ui/AlertBanner";
 type Props = {
   open: boolean;
   onClose: () => void;
+  selectedChatId?: string | null;
+  selectedAgentId?: string | null;
   onResume: (
     conversationId: string,
     sessionId: string | undefined,
     messages: UiMessage[],
   ) => void;
+  onSelectAgent: (run: AgentRun) => void;
 };
 
 function nextId(): string {
   return crypto.randomUUID();
 }
 
-export function ChatHistorySheet({ open, onClose, onResume }: Props) {
+export function ChatHistorySheet({
+  open,
+  onClose,
+  selectedChatId = null,
+  selectedAgentId = null,
+  onResume,
+  onSelectAgent,
+}: Props) {
   const [resumingId, setResumingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,7 +62,7 @@ export function ChatHistorySheet({ open, onClose, onResume }: Props) {
   }
 
   return (
-    <Sheet open={open} onClose={onClose} title="Chat history">
+    <Sheet open={open} onClose={onClose} title="History">
       {error ? (
         <AlertBanner className="mb-4" onDismiss={() => setError(null)}>
           {error}
@@ -60,8 +71,13 @@ export function ChatHistorySheet({ open, onClose, onResume }: Props) {
 
       <ConversationHistoryList
         active={open}
-        selectedId={resumingId}
+        selectedChatId={resumingId ?? selectedChatId}
+        selectedAgentId={selectedAgentId}
         onSelect={handleSelect}
+        onSelectAgent={(run) => {
+          onSelectAgent(run);
+          onClose();
+        }}
       />
     </Sheet>
   );

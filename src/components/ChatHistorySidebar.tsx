@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { History, PanelRightClose, Plus } from "lucide-react";
+import type { AgentRun } from "../services/agentsApi";
 import {
   getConversation,
   turnsToMessages,
@@ -14,13 +15,15 @@ import { cn } from "../lib/cn";
 type Props = {
   open: boolean;
   onClose: () => void;
-  selectedId?: string | null;
+  selectedChatId?: string | null;
+  selectedAgentId?: string | null;
   onNewChat: () => void;
   onResume: (
     conversationId: string,
     sessionId: string | undefined,
     messages: UiMessage[],
   ) => void;
+  onSelectAgent: (run: AgentRun) => void;
   className?: string;
 };
 
@@ -32,9 +35,11 @@ function nextId(): string {
 export function ChatHistorySidebar({
   open,
   onClose,
-  selectedId = null,
+  selectedChatId = null,
+  selectedAgentId = null,
   onNewChat,
   onResume,
+  onSelectAgent,
   className,
 }: Props) {
   const [error, setError] = useState<string | null>(null);
@@ -70,12 +75,12 @@ export function ChatHistorySidebar({
         "hidden h-full w-80 shrink-0 flex-col border-l border-donna-border bg-donna-sidebar lg:flex",
         className,
       )}
-      aria-label="Chat history"
+      aria-label="History"
     >
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-donna-border px-3 py-3">
         <div className="flex items-center gap-2 text-sm font-semibold text-donna-text">
           <History className="h-4 w-4 text-donna-primary" strokeWidth={1.75} />
-          Chats
+          History
         </div>
         <div className="flex items-center gap-1">
           <IconButton
@@ -87,7 +92,7 @@ export function ChatHistorySidebar({
           </IconButton>
           <IconButton
             onClick={onClose}
-            aria-label="Close chat history"
+            aria-label="Close history"
             className="!h-8 !w-8 !border-transparent !bg-transparent !text-donna-muted hover:!bg-donna-surface"
           >
             <PanelRightClose className="h-4 w-4" strokeWidth={1.75} />
@@ -104,9 +109,11 @@ export function ChatHistorySidebar({
       <ConversationHistoryList
         active={open}
         compact
-        selectedId={selectedId}
+        selectedChatId={selectedChatId}
+        selectedAgentId={selectedAgentId}
         refreshKey={refreshKey}
         onSelect={handleSelect}
+        onSelectAgent={onSelectAgent}
         className="min-h-0 pt-2"
       />
     </aside>

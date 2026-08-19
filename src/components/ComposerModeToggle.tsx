@@ -46,11 +46,11 @@ export function ComposerModeToggle({
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
               "disabled:cursor-not-allowed",
               selected
-                ? "bg-white text-donna-text shadow-sm"
+                ? "bg-donna-primary text-white"
                 : "text-donna-muted hover:text-donna-text",
             )}
           >
-            <option.Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
+            <option.Icon className="h-3.5 w-3.5" strokeWidth={2} />
             {option.label}
           </button>
         );

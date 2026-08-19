@@ -8,8 +8,6 @@ import {
   Share2,
   Square,
 } from "lucide-react";
-import { AgentRunsSheet } from "../components/AgentRunsSheet";
-import { AgentRunsSidebar } from "../components/AgentRunsSidebar";
 import { AgentTurnView } from "../components/agents/AgentTurnView";
 import { ChatHero } from "../components/ChatHero";
 import { ChatHistorySheet } from "../components/ChatHistorySheet";
@@ -235,6 +233,11 @@ export function ChatApp() {
     setMode("chat");
     setActiveConversationId(conversationId);
     loadConversation(nextSessionId, nextMessages);
+  }
+
+  function handleSelectAgent(runId: string) {
+    setMode("agent");
+    agent.setSelectedId(runId);
   }
 
   function dismissActiveError() {
@@ -556,61 +559,42 @@ export function ChatApp() {
         <IngestToast toast={toast} />
 
         {isAgent ? (
-          <>
-            <ShareAgentRunSheet
-              open={shareOpen}
-              runId={agent.active?.id ?? null}
-              goal={agent.active?.goal}
-              onClose={() => setShareOpen(false)}
-            />
-            <AgentRunsSheet
-              open={historySheetOpen}
-              onClose={() => setHistorySheetOpen(false)}
-              selectedId={agent.selectedId}
-              onSelect={(run) => agent.setSelectedId(run.id)}
-              refreshKey={agent.refreshKey}
-              runs={agent.runs}
-            />
-          </>
+          <ShareAgentRunSheet
+            open={shareOpen}
+            runId={agent.active?.id ?? null}
+            goal={agent.active?.goal}
+            onClose={() => setShareOpen(false)}
+          />
         ) : (
-          <>
-            <ChatHistorySheet
-              open={historySheetOpen}
-              onClose={() => setHistorySheetOpen(false)}
-              onResume={(conversationId, sessionId, nextMessages) => {
-                handleResume(conversationId, sessionId, nextMessages);
-              }}
-            />
-            <ShareConversationSheet
-              open={shareOpen}
-              conversationId={activeConversationId}
-              onClose={() => setShareOpen(false)}
-            />
-          </>
+          <ShareConversationSheet
+            open={shareOpen}
+            conversationId={activeConversationId}
+            onClose={() => setShareOpen(false)}
+          />
         )}
-      </div>
-
-      {isAgent ? (
-        <AgentRunsSidebar
-          open={historyPanelOpen}
-          onClose={() => setHistoryPanelOpen(false)}
-          selectedId={agent.selectedId}
-          onNewRun={agent.handleNewRun}
-          onSelect={(run) => agent.setSelectedId(run.id)}
-          refreshKey={agent.refreshKey}
-          runs={agent.runs}
-        />
-      ) : (
-        <ChatHistorySidebar
-          open={historyPanelOpen}
-          onClose={() => setHistoryPanelOpen(false)}
-          selectedId={activeConversationId}
-          onNewChat={handleNewThread}
+        <ChatHistorySheet
+          open={historySheetOpen}
+          onClose={() => setHistorySheetOpen(false)}
+          selectedChatId={isAgent ? null : activeConversationId}
+          selectedAgentId={isAgent ? agent.selectedId : null}
           onResume={(conversationId, sessionId, nextMessages) => {
             handleResume(conversationId, sessionId, nextMessages);
           }}
+          onSelectAgent={(run) => handleSelectAgent(run.id)}
         />
-      )}
+      </div>
+
+      <ChatHistorySidebar
+        open={historyPanelOpen}
+        onClose={() => setHistoryPanelOpen(false)}
+        selectedChatId={isAgent ? null : activeConversationId}
+        selectedAgentId={isAgent ? agent.selectedId : null}
+        onNewChat={handleNewThread}
+        onResume={(conversationId, sessionId, nextMessages) => {
+          handleResume(conversationId, sessionId, nextMessages);
+        }}
+        onSelectAgent={(run) => handleSelectAgent(run.id)}
+      />
     </div>
   );
 }
