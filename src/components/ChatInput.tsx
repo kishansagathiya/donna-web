@@ -20,6 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "../lib/cn";
+import type { ComposerMode } from "../lib/composerMode";
 import {
   assertAttachmentBudget,
   fileToChatAttachment,
@@ -28,6 +29,7 @@ import {
   type PendingAttachment,
 } from "../lib/chatAttachments";
 import { isDonnaThinkingPhase } from "../lib/thinkingPhrases";
+import { ComposerModeToggle } from "./ComposerModeToggle";
 import type { MicState } from "./MicButton";
 import { ThinkingIndicator } from "./ThinkingIndicator";
 import { Spinner } from "./ui/Spinner";
@@ -133,6 +135,8 @@ type Props = {
   showWebSearch?: boolean;
   /** Allow send with empty text/attachments (e.g. option chips selected above). */
   allowEmptySend?: boolean;
+  mode?: ComposerMode;
+  onModeChange?: (mode: ComposerMode) => void;
 };
 
 const quickActionIcons: Record<string, typeof FileText> = {
@@ -156,6 +160,8 @@ export function ChatInput({
   sessionLabel,
   showWebSearch = true,
   allowEmptySend = false,
+  mode,
+  onModeChange,
 }: Props) {
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
@@ -315,85 +321,87 @@ export function ChatInput({
             </div>
           ) : null}
 
-          <div className="flex items-end gap-2">
-            <textarea
-              ref={textareaRef}
-              className={cn(
-                "max-h-32 min-h-10 flex-1 resize-none bg-transparent px-1 py-2 text-[0.9375rem] leading-snug text-donna-text",
-                "placeholder:text-donna-muted",
-                "focus:outline-none",
-                "disabled:opacity-60",
-              )}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onPaste={(e) => void handlePaste(e)}
-              placeholder={placeholder}
-              rows={1}
-              disabled={disabled}
-              aria-label={placeholder}
-            />
+          <textarea
+            ref={textareaRef}
+            className={cn(
+              "max-h-32 min-h-10 w-full resize-none bg-transparent px-1 py-2 text-[0.9375rem] leading-snug text-donna-text",
+              "placeholder:text-donna-muted",
+              "focus:outline-none",
+              "disabled:opacity-60",
+            )}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onPaste={(e) => void handlePaste(e)}
+            placeholder={placeholder}
+            rows={1}
+            disabled={disabled}
+            aria-label={placeholder}
+          />
 
-            {showWebSearch ? (
-              <div className="mb-0.5">
-                <button
-                  type="button"
-                  onClick={() => setWebSearch((enabled) => !enabled)}
-                  disabled={disabled}
-                  aria-label="Use web search"
-                  aria-pressed={webSearch}
-                  title={webSearch ? "Web search on" : "Web search off"}
-                  className={cn(
-                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-                    "transition-colors",
-                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
-                    "disabled:cursor-not-allowed disabled:opacity-50",
-                    webSearch
-                      ? "bg-donna-primary-light text-donna-primary hover:bg-donna-primary-light/80"
-                      : "text-donna-muted hover:bg-donna-surface hover:text-donna-text",
-                  )}
-                >
-                  <Globe2 className="h-5 w-5" strokeWidth={1.75} />
-                </button>
-              </div>
+          <div className="mt-1 flex items-center gap-1">
+            {mode && onModeChange ? (
+              <ComposerModeToggle mode={mode} onChange={onModeChange} />
             ) : null}
 
-            <div className="mb-0.5">
+            {showWebSearch ? (
               <button
                 type="button"
-                onClick={() => attachInputRef.current?.click()}
+                onClick={() => setWebSearch((enabled) => !enabled)}
                 disabled={disabled}
-                aria-label="Attach to message"
-                aria-busy={isAttaching}
+                aria-label="Use web search"
+                aria-pressed={webSearch}
+                title={webSearch ? "Web search on" : "Web search off"}
                 className={cn(
-                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-donna-muted",
-                  "transition-colors hover:bg-donna-surface hover:text-donna-text",
+                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+                  "transition-colors",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
                   "disabled:cursor-not-allowed disabled:opacity-50",
+                  webSearch
+                    ? "bg-donna-primary-light text-donna-primary hover:bg-donna-primary-light/80"
+                    : "text-donna-muted hover:bg-donna-surface hover:text-donna-text",
                 )}
               >
-                {isAttaching ? (
-                  <Spinner
-                    className="!h-4 !w-4 !border-2"
-                    label="Uploading attachment"
-                  />
-                ) : (
-                  <Paperclip className="h-5 w-5" strokeWidth={1.75} />
-                )}
+                <Globe2 className="h-5 w-5" strokeWidth={1.75} />
               </button>
-              <input
-                ref={attachInputRef}
-                type="file"
-                hidden
-                multiple
-                accept="image/*,.pdf,.txt,.md,.doc,.docx,.csv,.json,.html"
-                onChange={(e) => {
-                  const files = e.target.files;
-                  e.target.value = "";
-                  if (files) void addFiles(files);
-                }}
-              />
-            </div>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={() => attachInputRef.current?.click()}
+              disabled={disabled}
+              aria-label="Attach to message"
+              aria-busy={isAttaching}
+              className={cn(
+                "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-donna-muted",
+                "transition-colors hover:bg-donna-surface hover:text-donna-text",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+              )}
+            >
+              {isAttaching ? (
+                <Spinner
+                  className="!h-4 !w-4 !border-2"
+                  label="Uploading attachment"
+                />
+              ) : (
+                <Paperclip className="h-5 w-5" strokeWidth={1.75} />
+              )}
+            </button>
+            <input
+              ref={attachInputRef}
+              type="file"
+              hidden
+              multiple
+              accept="image/*,.pdf,.txt,.md,.doc,.docx,.csv,.json,.html"
+              onChange={(e) => {
+                const files = e.target.files;
+                e.target.value = "";
+                if (files) void addFiles(files);
+              }}
+            />
+
+            <div className="flex-1" />
 
             {showInlineMic ? (
               <button
@@ -409,7 +417,7 @@ export function ChatInput({
                 }
                 aria-busy={isRequesting}
                 className={cn(
-                  "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-donna-primary text-white",
+                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-donna-primary text-white",
                   "transition-colors hover:bg-donna-primary-hover",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring focus-visible:ring-offset-2",
                   "disabled:cursor-not-allowed disabled:opacity-60",
@@ -435,7 +443,7 @@ export function ChatInput({
                 onClick={onStop}
                 aria-label="Stop generating"
                 className={cn(
-                  "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-donna-primary text-white",
+                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-donna-primary text-white",
                   "transition-colors hover:bg-donna-primary-hover",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring focus-visible:ring-offset-2",
                 )}
@@ -448,7 +456,7 @@ export function ChatInput({
                 disabled={disabled || !canSend}
                 aria-label="Send message"
                 className={cn(
-                  "mb-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-donna-primary text-white",
+                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-donna-primary text-white",
                   "transition-colors hover:bg-donna-primary-hover",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring focus-visible:ring-offset-2",
                   "disabled:cursor-not-allowed disabled:opacity-40",

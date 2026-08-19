@@ -1,6 +1,5 @@
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
-  Bot,
   CalendarCheck,
   CircleHelp,
   Database,
@@ -19,7 +18,6 @@ const navItems = [
   { to: "/app/voice", label: "Voice", icon: Mic, end: true },
   { to: "/app/notes", label: "Notes", icon: StickyNote, end: false },
   { to: "/app/actions", label: "Actions", icon: Inbox, end: false },
-  { to: "/app/agents", label: "Agents", icon: Bot, end: false, newAgent: true },
   { to: "/app/today", label: "Today", icon: CalendarCheck, end: false },
   { to: "/app/search", label: "Memory", icon: Database, end: false },
   { to: "/app/profile", label: "Profile", icon: User, end: false },
@@ -32,7 +30,6 @@ type Props = {
 };
 
 export function Sidebar({ onNewChat, onNavigate, className }: Props) {
-  const location = useLocation();
   const navigate = useNavigate();
 
   function handleNewChat() {
@@ -81,20 +78,13 @@ export function Sidebar({ onNewChat, onNavigate, className }: Props) {
       <nav className="flex flex-col gap-1 px-3" aria-label="Main">
         {navItems.map((item) => {
           const { to, label, icon: Icon, end } = item;
-          const newAgent = "newAgent" in item && item.newAgent;
           return (
             <NavLink
               key={to}
               to={to}
               end={end}
-              onClick={(e) => {
+              onClick={() => {
                 onNavigate?.();
-                if (!newAgent) return;
-                e.preventDefault();
-                navigate(to, {
-                  replace: location.pathname === to,
-                  state: { newAgent: Date.now() },
-                });
               }}
               className={({ isActive }) =>
                 cn(

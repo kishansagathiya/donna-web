@@ -23,7 +23,6 @@ import { ChatApp } from "./pages/ChatApp";
 import { VoicePage } from "./pages/VoicePage";
 import { DailyTasksPage } from "./pages/DailyTasksPage";
 import { IntentsInboxPage } from "./pages/IntentsInboxPage";
-import { AgentsPage } from "./pages/AgentsPage";
 import { NoteDetailPage } from "./pages/NoteDetailPage";
 import { NotesPage } from "./pages/NotesPage";
 import { SearchNotesPage } from "./pages/SearchContextPage";
@@ -58,7 +57,6 @@ function PageTitle() {
       "/app/notes": "Notes — Donna",
       "/app/notes/search": "Search notes — Donna",
       "/app/actions": "Actions — Donna",
-      "/app/agents": "Agents — Donna",
       "/app/today": "Today — Donna",
       "/app/search": "Memory — Donna",
       "/app/profile": "Profile — Donna",
@@ -111,7 +109,10 @@ export default function App() {
               <Route path="app" element={<ChatApp />} />
               <Route path="app/voice" element={<VoicePage />} />
               <Route path="app/actions" element={<IntentsInboxPage />} />
-              <Route path="app/agents" element={<AgentsPage />} />
+              <Route
+                path="app/agents"
+                element={<Navigate to="/app?mode=agent" replace />}
+              />
               <Route path="app/today" element={<DailyTasksPage />} />
               <Route path="app/search" element={<ExtractedMemoryPage />} />
               <Route path="app/add" element={<AddMemoryPage />} />

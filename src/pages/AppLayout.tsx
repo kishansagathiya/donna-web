@@ -3,6 +3,7 @@ import { Outlet } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Sidebar } from "../components/Sidebar";
 import { ChatSessionProvider } from "../hooks/ChatSessionProvider";
+import { ComposerModeProvider } from "../hooks/ComposerModeProvider";
 import { VoiceSessionProvider } from "../hooks/VoiceSessionProvider";
 import { cn } from "../lib/cn";
 
@@ -50,11 +51,13 @@ export function AppLayout() {
           <span className="ml-2 text-sm font-semibold text-donna-primary">Donna</span>
         </div>
 
-        <ChatSessionProvider>
-          <VoiceSessionProvider>
-            <Outlet />
-          </VoiceSessionProvider>
-        </ChatSessionProvider>
+        <ComposerModeProvider>
+          <ChatSessionProvider>
+            <VoiceSessionProvider>
+              <Outlet />
+            </VoiceSessionProvider>
+          </ChatSessionProvider>
+        </ComposerModeProvider>
       </main>
     </div>
   );

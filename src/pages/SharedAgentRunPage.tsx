@@ -81,7 +81,7 @@ export function SharedAgentRunPage() {
 
   const title =
     state.status === "ready" ? titleFromGoal(state.data.goal) : "Shared agent";
-  const openHref = isAuthenticated ? "/app/agents" : "/login";
+  const openHref = isAuthenticated ? "/app?mode=agent" : "/login";
   const inProgress =
     state.status === "ready" &&
     (state.data.status === "running" || state.data.status === "queued");
@@ -123,7 +123,7 @@ export function SharedAgentRunPage() {
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring focus-visible:ring-offset-2",
           )}
         >
-          {isAuthenticated ? "Open agents" : "Open Donna"}
+              {isAuthenticated ? "Open in Donna" : "Open Donna"}
         </Link>
       </header>
 
@@ -144,7 +144,7 @@ export function SharedAgentRunPage() {
               to={openHref}
               className="mt-1 text-sm font-medium text-donna-primary underline-offset-2 hover:underline"
             >
-              {isAuthenticated ? "Back to agents" : "Go to Donna"}
+              {isAuthenticated ? "Back to Donna" : "Go to Donna"}
             </Link>
           </div>
         ) : null}
