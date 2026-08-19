@@ -203,7 +203,8 @@ export function AgentsPage() {
   async function createRun(goal: string, attachments: PendingAttachment[] = []) {
     const g = goal.trim();
     if ((!g && attachments.length === 0) || busyRef.current) return;
-    const goalText = g || "See attached";
+    const labels = attachments.map((a) => a.filename).join(", ");
+    const goalText = g || (labels ? `See attached: ${labels}` : "See attached");
     setBusy(true);
     setError(null);
     setSteps([]);
@@ -243,12 +244,14 @@ export function AgentsPage() {
   ) {
     const msg = message.trim();
     if ((!msg && attachments.length === 0) || busyRef.current) return;
+    const labels = attachments.map((a) => a.filename).join(", ");
+    const replyText = msg || (labels ? `See attached: ${labels}` : "See attached");
     setBusy(true);
     setError(null);
     try {
       const run = await redirectAgentRun(
         id,
-        msg || "See attached",
+        replyText,
         attachments.length > 0 ? attachmentPayloads(attachments) : undefined,
       );
       listFetchGen.current += 1;
@@ -535,6 +538,7 @@ export function AgentsPage() {
         {showInput ? (
           <ChatInput
             onSend={(text, attachments) => void handleSend(text, attachments)}
+            onError={(message) => setError(message)}
             disabled={inputDisabled}
             busy={busy}
             placeholder={

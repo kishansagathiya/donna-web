@@ -37,6 +37,81 @@ type QuickAction = {
   onClick: () => void;
 };
 
+type StagingAttachment = {
+  id: string;
+  filename: string;
+  mime?: string;
+};
+
+function isPdfAttachment(filename: string, mime?: string): boolean {
+  return (
+    mime === "application/pdf" || filename.toLowerCase().endsWith(".pdf")
+  );
+}
+
+function AttachmentChip({
+  filename,
+  mime,
+  kind,
+  previewUrl,
+  loading,
+  onRemove,
+}: {
+  filename: string;
+  mime?: string;
+  kind?: PendingAttachment["kind"];
+  previewUrl?: string;
+  loading?: boolean;
+  onRemove?: () => void;
+}) {
+  const pdf = isPdfAttachment(filename, mime);
+  return (
+    <div
+      className="group relative flex max-w-[14rem] items-center gap-2 rounded-xl border border-donna-border bg-donna-surface px-2 py-1.5"
+      aria-busy={loading || undefined}
+    >
+      <div className="relative flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-md bg-white">
+        {previewUrl && isImageMime(mime) ? (
+          <img
+            src={previewUrl}
+            alt=""
+            className="h-8 w-8 rounded-md object-cover"
+          />
+        ) : kind === "url" ? (
+          <Link2 className="h-4 w-4 text-donna-muted" />
+        ) : pdf ? (
+          <span className="text-[9px] font-bold tracking-wide text-donna-primary">
+            PDF
+          </span>
+        ) : (
+          <FileText className="h-4 w-4 text-donna-muted" />
+        )}
+        {loading ? (
+          <div className="absolute inset-0 flex items-center justify-center rounded-md bg-white/85">
+            <Spinner
+              className="!h-4 !w-4 !border-2"
+              label={`Uploading ${filename}`}
+            />
+          </div>
+        ) : null}
+      </div>
+      <span className="min-w-0 truncate text-xs font-medium text-donna-text">
+        {filename}
+      </span>
+      {onRemove && !loading ? (
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label={`Remove ${filename}`}
+          className="rounded p-0.5 text-donna-muted hover:bg-white hover:text-donna-text"
+        >
+          <X className="h-3.5 w-3.5" />
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
 type Props = {
   onSend: (
     text: string,
@@ -84,12 +159,15 @@ export function ChatInput({
 }: Props) {
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
+  const [staging, setStaging] = useState<StagingAttachment[]>([]);
   const [webSearch, setWebSearch] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const attachInputRef = useRef<HTMLInputElement>(null);
   const hasText = text.trim().length > 0;
-  const hasAttachments = attachments.length > 0;
-  const canSend = hasText || hasAttachments || allowEmptySend;
+  const isAttaching = staging.length > 0;
+  const hasAttachments = attachments.length > 0 || isAttaching;
+  const canSend =
+    !isAttaching && (hasText || attachments.length > 0 || allowEmptySend);
   const showStop = busy && Boolean(onStop);
   const showInlineMic =
     showMic && !hasText && !hasAttachments && onMicPress && !showStop;
@@ -147,11 +225,28 @@ export function ChatInput({
     const list = Array.from(files);
     if (list.length === 0) return;
     try {
-      assertAttachmentBudget(attachments.length, list.length);
-      const next = await Promise.all(list.map((file) => fileToChatAttachment(file)));
+      assertAttachmentBudget(attachments.length + staging.length, list.length);
+    } catch (err) {
+      onError?.(err instanceof Error ? err.message : "Could not attach file");
+      return;
+    }
+
+    const staged: StagingAttachment[] = list.map((file) => ({
+      id: crypto.randomUUID(),
+      filename: file.name || "attachment",
+      mime: file.type || undefined,
+    }));
+    setStaging((prev) => [...prev, ...staged]);
+    try {
+      const next = await Promise.all(
+        list.map((file) => fileToChatAttachment(file)),
+      );
       setAttachments((prev) => [...prev, ...next]);
     } catch (err) {
       onError?.(err instanceof Error ? err.message : "Could not attach file");
+    } finally {
+      const stagedIds = new Set(staged.map((item) => item.id));
+      setStaging((prev) => prev.filter((item) => !stagedIds.has(item.id)));
     }
   }
 
@@ -197,36 +292,25 @@ export function ChatInput({
             "focus-within:border-donna-primary focus-within:ring-2 focus-within:ring-donna-primary-ring/20",
           )}
         >
-          {attachments.length > 0 ? (
+          {hasAttachments ? (
             <div className="mb-2 flex flex-wrap gap-2">
               {attachments.map((att) => (
-                <div
+                <AttachmentChip
                   key={att.id}
-                  className="group relative flex max-w-[11rem] items-center gap-2 rounded-xl border border-donna-border bg-donna-surface px-2 py-1.5"
-                >
-                  {att.previewUrl && isImageMime(att.mime) ? (
-                    <img
-                      src={att.previewUrl}
-                      alt=""
-                      className="h-8 w-8 rounded-md object-cover"
-                    />
-                  ) : att.kind === "url" ? (
-                    <Link2 className="h-4 w-4 shrink-0 text-donna-muted" />
-                  ) : (
-                    <FileText className="h-4 w-4 shrink-0 text-donna-muted" />
-                  )}
-                  <span className="truncate text-xs font-medium text-donna-text">
-                    {att.filename}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => removeAttachment(att.id)}
-                    aria-label={`Remove ${att.filename}`}
-                    className="rounded p-0.5 text-donna-muted hover:bg-white hover:text-donna-text"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </div>
+                  filename={att.filename}
+                  mime={att.mime}
+                  kind={att.kind}
+                  previewUrl={att.previewUrl}
+                  onRemove={() => removeAttachment(att.id)}
+                />
+              ))}
+              {staging.map((att) => (
+                <AttachmentChip
+                  key={att.id}
+                  filename={att.filename}
+                  mime={att.mime}
+                  loading
+                />
               ))}
             </div>
           ) : null}
@@ -280,6 +364,7 @@ export function ChatInput({
                 onClick={() => attachInputRef.current?.click()}
                 disabled={disabled}
                 aria-label="Attach to message"
+                aria-busy={isAttaching}
                 className={cn(
                   "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-donna-muted",
                   "transition-colors hover:bg-donna-surface hover:text-donna-text",
@@ -287,7 +372,14 @@ export function ChatInput({
                   "disabled:cursor-not-allowed disabled:opacity-50",
                 )}
               >
-                <Paperclip className="h-5 w-5" strokeWidth={1.75} />
+                {isAttaching ? (
+                  <Spinner
+                    className="!h-4 !w-4 !border-2"
+                    label="Uploading attachment"
+                  />
+                ) : (
+                  <Paperclip className="h-5 w-5" strokeWidth={1.75} />
+                )}
               </button>
               <input
                 ref={attachInputRef}
