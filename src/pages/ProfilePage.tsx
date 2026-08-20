@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import {
   deleteAccount,
   downloadAccountExport,
@@ -333,6 +334,20 @@ export function ProfilePage() {
         <ExperimentalSection />
 
         <IntegrationsSection />
+
+        <div className="mb-8 max-w-lg">
+          <p className="mb-1 text-sm font-semibold text-donna-text">Skills</p>
+          <p className="mb-3 text-xs leading-relaxed text-donna-muted">
+            Reusable procedures Donna's agents follow — yours, saved by agents,
+            or bundled. Donna picks the right one automatically; you can also
+            choose.
+          </p>
+          <Link to="/app/skills">
+            <Button variant="secondary" fullWidth>
+              Manage skills
+            </Button>
+          </Link>
+        </div>
 
         <ImportChatGPTSection />
 

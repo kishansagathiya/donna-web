@@ -114,12 +114,14 @@ export async function listAgentRuns(
 export async function createAgentRun(
   goal: string,
   attachments?: AgentAttachment[],
+  skills?: string[],
 ): Promise<AgentRun> {
   const res = await authorizedFetch("/agent-runs", {
     method: "POST",
     body: JSON.stringify({
       goal,
       attachments: attachments && attachments.length > 0 ? attachments : undefined,
+      skills: skills && skills.length > 0 ? skills : undefined,
     }),
   });
   if (!res.ok) throw new Error(await readError(res));

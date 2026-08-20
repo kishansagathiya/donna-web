@@ -145,6 +145,17 @@ export function ChatApp() {
   }, [searchParams, setSearchParams, setMode]);
 
   useEffect(() => {
+    const skill = searchParams.get("skill");
+    if (!skill) return;
+    setMode("agent");
+    agent.setSelectedSkills([skill]);
+    const next = new URLSearchParams(searchParams);
+    next.delete("skill");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  useEffect(() => {
     const state = location.state as {
       ingestToast?: { message: string; isError: boolean };
       newChat?: boolean;
@@ -451,6 +462,30 @@ export function ChatApp() {
                   </button>
                 );
               })}
+            </div>
+          </div>
+        ) : null}
+
+        {isAgent && agent.selectedSkills.length > 0 ? (
+          <div className="shrink-0 px-4 pb-1 pt-2 md:px-6">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-donna-muted">
+              <span>Using skill:</span>
+              {agent.selectedSkills.map((name) => (
+                <span
+                  key={name}
+                  className="inline-flex items-center gap-1 rounded-full border border-donna-border bg-white px-2 py-1 text-donna-text"
+                >
+                  {name}
+                  <button
+                    type="button"
+                    aria-label={`Remove skill ${name}`}
+                    onClick={() => agent.setSelectedSkills([])}
+                    className="text-donna-muted transition-colors hover:text-donna-text"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
             </div>
           </div>
         ) : null}

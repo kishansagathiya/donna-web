@@ -47,6 +47,7 @@ export function useAgentSession(enabled = true) {
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
 
   const selectedIdRef = useRef(selectedId);
   selectedIdRef.current = selectedId;
@@ -151,6 +152,7 @@ export function useAgentSession(enabled = true) {
     if ((!g && attachments.length === 0) || busyRef.current) return;
     const labels = attachments.map((a) => a.filename).join(", ");
     const goalText = g || (labels ? `See attached: ${labels}` : "See attached");
+    const skills = selectedSkills;
     setBusy(true);
     setError(null);
     setSteps([]);
@@ -160,6 +162,7 @@ export function useAgentSession(enabled = true) {
       const run = await createAgentRun(
         goalText,
         attachments.length > 0 ? attachmentPayloads(attachments) : undefined,
+        skills.length > 0 ? skills : undefined,
       );
       listFetchGen.current += 1;
       setRuns((prev) =>
@@ -169,6 +172,7 @@ export function useAgentSession(enabled = true) {
         ),
       );
       setSelectedId((id) => (id === PENDING_AGENT_RUN_ID ? run.id : id));
+      setSelectedSkills([]);
       bumpRefresh();
       await refreshRuns(true);
       if (selectedIdRef.current === run.id) {
@@ -273,6 +277,7 @@ export function useAgentSession(enabled = true) {
     setSelectedId(null);
     setSteps([]);
     setSelectedOptions([]);
+    setSelectedSkills([]);
     setError(null);
     setRuns((prev) => prev.filter((r) => !isPendingAgentRunId(r.id)));
   }, []);
@@ -299,6 +304,8 @@ export function useAgentSession(enabled = true) {
     setError,
     refreshKey,
     selectedOptions,
+    selectedSkills,
+    setSelectedSkills,
     active,
     turns,
     needsReply,
