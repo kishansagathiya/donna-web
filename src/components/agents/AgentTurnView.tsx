@@ -8,8 +8,9 @@ import remarkGfm from "remark-gfm";
 import { cn } from "../../lib/cn";
 import type { AgentTurn, AskOption } from "../../lib/agentTurns";
 import {
-  isActiveStatus,
+  shouldCollapseTurnSteps,
   shouldShowAgentThinking,
+  timelineSteps,
 } from "../../lib/agentTurns";
 import { AgentStepsGroup } from "./AgentStepsGroup";
 
@@ -95,12 +96,11 @@ export function AgentTurnView({
   } | null;
   ask?: AskChoiceProps | null;
 }) {
-  // Run is no longer live (finished or waiting for a reply) and the Output
-  // block is visible: collapse the steps timeline so the Output sits directly
-  // under the prompt. `key` forces a remount on the live → settled transition
-  // so the collapsed default takes effect.
-  const collapseSteps =
-    !isActiveStatus(runStatus) && turn.output.kind === "summary";
+  // Prompt → steps → result → follow-up. Collapse this turn's timeline once
+  // it has a result, even if a later follow-up is still running. `key` forces
+  // a remount on the live → settled transition so the collapsed default sticks.
+  const collapseSteps = shouldCollapseTurnSteps(turn, runStatus);
+  const steps = timelineSteps(turn);
 
   return (
     <section className="flex w-full flex-col gap-3">
@@ -117,7 +117,7 @@ export function AgentTurnView({
         ) : (
           <AgentStepsGroup
             key={collapseSteps ? "collapsed" : "open"}
-            steps={turn.steps}
+            steps={steps}
             activeStepId={turn.activeStepId}
             defaultOpen={!collapseSteps}
           />

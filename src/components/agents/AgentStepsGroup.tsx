@@ -19,7 +19,7 @@ function StepRow({
 }) {
   const body = stepBody(step).trim();
   const hasBody = body.length > 0 && body !== stepTitle(step);
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(Boolean(defaultOpen));
 
   return (
     <li
@@ -136,11 +136,7 @@ export function AgentStepsGroup({
                 key={s.id}
                 step={s}
                 active={activeStepId === s.id}
-                defaultOpen={
-                  activeStepId === s.id ||
-                  s.kind === "thought" ||
-                  s.kind === "approval_request"
-                }
+                defaultOpen={activeStepId === s.id}
               />
             ))}
           </ul>

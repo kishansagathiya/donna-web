@@ -114,6 +114,71 @@ describe("AgentTurnView steps collapse", () => {
     expect(screen.getByText("Insurance & risk").tagName).toBe("STRONG");
   });
 
+  it("collapses previous-turn steps while a follow-up is still running", () => {
+    render(
+      <AgentTurnView
+        turn={makeTurn({
+          isLatest: false,
+          output: { kind: "summary", text: "Found three flights." },
+        })}
+        runStatus="running"
+      />,
+    );
+
+    expect(screen.getByText("Found three flights.")).toBeInTheDocument();
+    expect(screen.getByText(/show timeline/)).toBeInTheDocument();
+    expect(screen.queryByText(/Tool → search/)).not.toBeInTheDocument();
+  });
+
+  it("does not repeat the result inside the step timeline", () => {
+    render(
+      <AgentTurnView
+        turn={makeTurn({
+          steps: [
+            {
+              id: "s1",
+              seq: 1,
+              kind: "tool_call",
+              payload: { name: "search", args: { q: "flights" } },
+            },
+            {
+              id: "s2",
+              seq: 2,
+              kind: "thought",
+              payload: { text: "Found three flights." },
+            },
+          ],
+          output: { kind: "summary", text: "Found three flights." },
+        })}
+        runStatus="running"
+      />,
+    );
+
+    expect(screen.getByText(/Tool → search/)).toBeInTheDocument();
+    expect(screen.queryByText(/Thought/)).not.toBeInTheDocument();
+    expect(screen.getAllByText("Found three flights.")).toHaveLength(1);
+  });
+
+  it("renders prompt, then steps, then result, then follow-up", () => {
+    render(
+      <AgentTurnView
+        turn={makeTurn({
+          output: { kind: "summary", text: "Found three flights." },
+          question: { text: "Which one should I book?", live: true },
+        })}
+        runStatus="waiting_for_user"
+      />,
+    );
+
+    const prompt = screen.getByText("Find the best flight to Lisbon");
+    const steps = screen.getByText(/Steps \(1\)/);
+    const result = screen.getByText("Found three flights.");
+    const followUp = screen.getByText("Which one should I book?");
+    expect(prompt.compareDocumentPosition(steps) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(steps.compareDocumentPosition(result) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(result.compareDocumentPosition(followUp) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("keeps steps expanded while the run is active", () => {
     render(<AgentTurnView turn={makeTurn()} runStatus="running" />);
 
