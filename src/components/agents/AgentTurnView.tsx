@@ -2,17 +2,72 @@ import { MessageContent } from "../MessageContent";
 import { AssistantThinkingBlock } from "../ThinkingIndicator";
 import { Button } from "../ui/Button";
 import { Check } from "lucide-react";
-import type { AgentTurn } from "../../lib/agentTurns";
+import { cn } from "../../lib/cn";
+import type { AgentTurn, AskOption } from "../../lib/agentTurns";
 import {
   isActiveStatus,
   shouldShowAgentThinking,
 } from "../../lib/agentTurns";
 import { AgentStepsGroup } from "./AgentStepsGroup";
 
+export type AskChoiceProps = {
+  options: AskOption[];
+  allowMultiple: boolean;
+  selected: string[];
+  busy: boolean;
+  onToggle: (id: string) => void;
+};
+
+function AskOptions({
+  options,
+  allowMultiple,
+  selected,
+  busy,
+  onToggle,
+}: AskChoiceProps) {
+  if (options.length === 0) return null;
+  return (
+    <div className="mt-3">
+      <p className="mb-2 text-xs text-amber-900/80">
+        {allowMultiple ? "Select one or more" : "Select one"}
+      </p>
+      <div
+        className={
+          options.length > 1
+            ? "grid grid-cols-2 gap-2"
+            : "flex flex-col gap-2"
+        }
+      >
+        {options.map((opt) => {
+          const on = selected.includes(opt.id);
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              disabled={busy}
+              aria-pressed={on}
+              onClick={() => onToggle(opt.id)}
+              className={cn(
+                "rounded-xl border px-3 py-2 text-left text-[13px] leading-snug transition-colors",
+                on
+                  ? "border-donna-primary bg-donna-primary text-white"
+                  : "border-amber-200 bg-white text-amber-950 hover:border-donna-primary/50",
+              )}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function AgentTurnView({
   turn,
   runStatus,
   waitingExtras,
+  ask,
 }: {
   turn: AgentTurn;
   runStatus: string;
@@ -20,6 +75,7 @@ export function AgentTurnView({
     onFinish: () => void;
     busy: boolean;
   } | null;
+  ask?: AskChoiceProps | null;
 }) {
   // Run is no longer live (finished or waiting for a reply) and the Output
   // block is visible: collapse the steps timeline so the Output sits directly
@@ -94,6 +150,7 @@ export function AgentTurnView({
                 className="text-[0.95rem]"
               />
             </div>
+            {turn.question.live && ask ? <AskOptions {...ask} /> : null}
             {turn.question.live && waitingExtras ? (
               <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-amber-200/80 pt-3">
                 <p className="mr-auto text-xs text-amber-900/80">
@@ -111,8 +168,11 @@ export function AgentTurnView({
               </div>
             ) : null}
           </div>
+        ) : ask && turn.isLatest ? (
+          <AskOptions {...ask} />
         ) : null}
       </div>
     </section>
   );
 }
+

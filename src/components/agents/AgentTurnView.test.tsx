@@ -45,6 +45,41 @@ describe("AgentTurnView steps collapse", () => {
     expect(screen.queryByText(/Tool → search/)).not.toBeInTheDocument();
   });
 
+  it("renders live options after the question, capping display to the provided list", () => {
+    render(
+      <AgentTurnView
+        turn={makeTurn({
+          output: { kind: "summary", text: "Found three flights." },
+          question: { text: "Which one should I book?", live: true },
+        })}
+        runStatus="waiting_for_user"
+        ask={{
+          options: [
+            { id: "a", label: "Morning" },
+            { id: "b", label: "Afternoon" },
+            { id: "c", label: "Evening" },
+            { id: "d", label: "Red-eye" },
+          ],
+          allowMultiple: false,
+          selected: ["a"],
+          busy: false,
+          onToggle: () => {},
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Found three flights.")).toBeInTheDocument();
+    expect(screen.getByText("Select one")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Morning" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "Afternoon" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+  });
+
   it("keeps steps expanded while the run is active", () => {
     render(<AgentTurnView turn={makeTurn()} runStatus="running" />);
 

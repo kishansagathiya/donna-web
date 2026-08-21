@@ -156,6 +156,20 @@ export function pendingQuestion(
   return null;
 }
 
+export const MAX_ASK_OPTIONS = 4;
+
+export function parseAllowMultiple(
+  result: Record<string, unknown> | null | undefined,
+): boolean {
+  if (!result) return false;
+  if (result.allow_multiple === true) return true;
+  const args = result.args;
+  if (args && typeof args === "object") {
+    return (args as { allow_multiple?: unknown }).allow_multiple === true;
+  }
+  return false;
+}
+
 export function parseOptions(
   result: Record<string, unknown> | null | undefined,
 ): AskOption[] {
@@ -164,6 +178,7 @@ export function parseOptions(
   if (!Array.isArray(raw)) return [];
   const out: AskOption[] = [];
   raw.forEach((item, i) => {
+    if (out.length >= MAX_ASK_OPTIONS) return;
     if (typeof item === "string" && item.trim()) {
       out.push({ id: `opt_${i + 1}`, label: item.trim() });
       return;

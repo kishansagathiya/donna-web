@@ -365,6 +365,17 @@ export function ChatApp() {
                       key={turn.id}
                       turn={turn}
                       runStatus={agent.active!.status}
+                      ask={
+                        turn.isLatest && agent.waitingWithOptions
+                          ? {
+                              options: agent.options,
+                              allowMultiple: agent.allowMultiple,
+                              selected: agent.selectedOptions,
+                              busy: agent.busy,
+                              onToggle: agent.toggleOption,
+                            }
+                          : null
+                      }
                       waitingExtras={
                         turn.isLatest && agent.needsReply
                           ? {
@@ -433,37 +444,6 @@ export function ChatApp() {
           >
             {activeError}
           </AlertBanner>
-        ) : null}
-
-        {isAgent && agent.waitingWithOptions ? (
-          <div className="shrink-0 border-t border-donna-border px-4 pb-2 pt-3 md:px-6">
-            <p className="mb-2 text-xs text-donna-muted">
-              {agent.allowMultiple
-                ? "Select one or more options"
-                : "Select an option"}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {agent.options.map((opt) => {
-                const on = agent.selectedOptions.includes(opt.id);
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    disabled={agent.busy}
-                    onClick={() => agent.toggleOption(opt.id)}
-                    className={cn(
-                      "rounded-xl border px-3 py-2 text-left text-sm transition-colors",
-                      on
-                        ? "border-donna-primary bg-donna-primary text-white"
-                        : "border-donna-border bg-white text-donna-text hover:border-donna-primary/50",
-                    )}
-                  >
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
         ) : null}
 
         {isAgent && agent.selectedSkills.length > 0 ? (
