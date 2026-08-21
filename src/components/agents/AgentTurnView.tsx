@@ -28,7 +28,7 @@ function AskOptions({
   if (options.length === 0) return null;
   return (
     <div className="mt-3">
-      <p className="mb-2 text-xs text-amber-900/80">
+      <p className="mb-2 text-xs text-amber-800">
         {allowMultiple ? "Select one or more" : "Select one"}
       </p>
       <div
@@ -51,7 +51,7 @@ function AskOptions({
                 "rounded-xl border px-3 py-2 text-left text-[13px] leading-snug transition-colors",
                 on
                   ? "border-donna-primary bg-donna-primary text-white"
-                  : "border-amber-200 bg-white text-amber-950 hover:border-donna-primary/50",
+                  : "border-amber-300 bg-amber-50 text-amber-950 hover:border-amber-400",
               )}
             >
               {opt.label}
@@ -121,13 +121,7 @@ export function AgentTurnView({
         ) : null}
 
         {turn.question ? (
-          <div
-            className={
-              turn.question.live
-                ? "rounded-lg border border-amber-200 bg-amber-50 px-4 py-4"
-                : "rounded-lg border border-donna-border bg-donna-sidebar/50 px-4 py-4"
-            }
-          >
+          <div className="rounded-lg border border-donna-border bg-donna-sidebar/50 px-4 py-4">
             <p
               className={
                 turn.question.live
@@ -137,13 +131,7 @@ export function AgentTurnView({
             >
               {turn.question.live ? "Donna needs your reply" : "Question"}
             </p>
-            <div
-              className={
-                turn.question.live
-                  ? "mt-3 text-sm leading-relaxed text-amber-950"
-                  : "mt-3 text-sm leading-relaxed text-donna-text"
-              }
-            >
+            <div className="mt-3 text-sm leading-relaxed text-donna-text">
               <MessageContent
                 content={turn.question.text}
                 variant="assistant"
@@ -152,13 +140,13 @@ export function AgentTurnView({
             </div>
             {turn.question.live && ask ? <AskOptions {...ask} /> : null}
             {turn.question.live && waitingExtras ? (
-              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-amber-200/80 pt-3">
-                <p className="mr-auto text-xs text-amber-900/80">
+              <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-donna-border pt-3">
+                <p className="mr-auto text-xs text-donna-muted">
                   Or close this agent without answering.
                 </p>
                 <Button
                   variant="secondary"
-                  className="!w-auto gap-1.5 border-amber-300 bg-white px-3 py-2 text-sm text-amber-950 hover:border-amber-400"
+                  className="!w-auto gap-1.5 px-3 py-2 text-sm"
                   disabled={waitingExtras.busy}
                   onClick={waitingExtras.onFinish}
                 >
