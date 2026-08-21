@@ -2,6 +2,9 @@ import { MessageContent } from "../MessageContent";
 import { AssistantThinkingBlock } from "../ThinkingIndicator";
 import { Button } from "../ui/Button";
 import { Check } from "lucide-react";
+import type { Components } from "react-markdown";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { cn } from "../../lib/cn";
 import type { AgentTurn, AskOption } from "../../lib/agentTurns";
 import {
@@ -16,6 +19,16 @@ export type AskChoiceProps = {
   selected: string[];
   busy: boolean;
   onToggle: (id: string) => void;
+};
+
+const optionMarkdown: Components = {
+  p: ({ children }) => <>{children}</>,
+  strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+  em: ({ children }) => <em>{children}</em>,
+  a: ({ children }) => <>{children}</>,
+  code: ({ children }) => (
+    <code className="font-mono text-[12px]">{children}</code>
+  ),
 };
 
 function AskOptions({
@@ -54,7 +67,12 @@ function AskOptions({
                   : "border-amber-300 bg-amber-50 text-amber-950 hover:border-amber-400",
               )}
             >
-              {opt.label}
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={optionMarkdown}
+              >
+                {opt.label}
+              </ReactMarkdown>
             </button>
           );
         })}

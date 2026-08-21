@@ -80,6 +80,40 @@ describe("AgentTurnView steps collapse", () => {
     );
   });
 
+  it("renders markdown emphasis in option labels instead of raw asterisks", () => {
+    render(
+      <AgentTurnView
+        turn={makeTurn({
+          output: { kind: "summary", text: "Narrow the search." },
+          question: { text: "Which lead source?", live: true },
+        })}
+        runStatus="waiting_for_user"
+        ask={{
+          options: [
+            {
+              id: "a",
+              label: "Look at **AWS Data Exchange** categories",
+            },
+            { id: "b", label: "**Insurance & risk**" },
+          ],
+          allowMultiple: false,
+          selected: [],
+          busy: false,
+          onToggle: () => {},
+        }}
+      />,
+    );
+
+    expect(screen.queryByText(/\*\*/)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: "Look at AWS Data Exchange categories",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("AWS Data Exchange").tagName).toBe("STRONG");
+    expect(screen.getByText("Insurance & risk").tagName).toBe("STRONG");
+  });
+
   it("keeps steps expanded while the run is active", () => {
     render(<AgentTurnView turn={makeTurn()} runStatus="running" />);
 
