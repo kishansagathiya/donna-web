@@ -37,6 +37,10 @@ export function Layout() {
           <span className="layout-footer-sep" aria-hidden="true">
             ·
           </span>
+          <Link to="/private">Private</Link>
+          <span className="layout-footer-sep" aria-hidden="true">
+            ·
+          </span>
           <Link to="/support">Support</Link>
           <span className="layout-footer-sep" aria-hidden="true">
             ·

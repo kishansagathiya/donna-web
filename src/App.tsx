@@ -13,6 +13,7 @@ import { ThemeProvider } from "./hooks/useTheme";
 import { Layout } from "./components/Layout";
 import { Landing } from "./pages/Landing";
 import { Privacy } from "./pages/Privacy";
+import { PrivateHosting } from "./pages/PrivateHosting";
 import { Pitch } from "./pages/Pitch";
 import { BlogPage } from "./pages/BlogPage";
 import { BlogPostPage } from "./pages/BlogPostPage";
@@ -63,6 +64,7 @@ function PageTitle() {
       "/app/profile": "Profile — Donna",
       "/app/skills": "Skills — Donna",
       "/privacy": "Privacy — Donna",
+      "/private": "Private — Donna",
       "/pitch": "Pitch — Donna",
       "/support": "Support — Donna",
       "/blog": "Blog — Donna",
@@ -87,6 +89,7 @@ export default function App() {
           <Route element={<Layout />}>
             <Route index element={<Landing />} />
             <Route path="privacy" element={<Privacy />} />
+            <Route path="private" element={<PrivateHosting />} />
             <Route path="pitch" element={<Pitch />} />
             <Route path="blog" element={<BlogPage />} />
             <Route path="blog/:slug" element={<BlogPostPage />} />
