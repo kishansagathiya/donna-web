@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Bell,
   CalendarCheck,
+  Check,
   Flame,
   RefreshCw,
   Star,
@@ -12,6 +13,7 @@ import {
 import {
   checkDailyNotes,
   deleteNote,
+  updateNote,
   type DailyBriefing,
   type DailyTask,
 } from "../services/notesApi";
@@ -26,8 +28,10 @@ import {
   collapseDailyNoteText,
   dailyTaskText,
   shouldCollapseDailyNote,
+  TODAY_CLEAR_FLAGS,
+  todayActionError,
 } from "../lib/dailyTasks";
-import { removeNoteFromFeeds } from "../lib/notesCache";
+import { patchNoteInFeeds, removeNoteFromFeeds } from "../lib/notesCache";
 import { notesQueryKeys } from "../lib/notesQueryKeys";
 
 const PRIORITY_SECTIONS: Array<{
@@ -89,13 +93,19 @@ function showDailyNotification(briefing: DailyBriefing) {
 function TaskCard({
   task,
   selected,
+  busy,
   onToggle,
   onOpen,
+  onDone,
+  onRemove,
 }: {
   task: DailyTask;
   selected: boolean;
+  busy: boolean;
   onToggle: (id: string) => void;
   onOpen: (id: string) => void;
+  onDone: (id: string) => void;
+  onRemove: (id: string) => void;
 }) {
   const text = dailyTaskText(task);
   const long = shouldCollapseDailyNote(text);
@@ -157,6 +167,24 @@ function TaskCard({
             {expanded ? "Show less" : "Show more"}
           </button>
         ) : null}
+        <div className="mt-2 flex flex-wrap gap-2">
+          <button
+            type="button"
+            className="rounded-donna border border-donna-border px-2.5 py-1 text-sm font-medium text-donna-text hover:border-donna-primary disabled:opacity-50"
+            disabled={busy}
+            onClick={() => onDone(task.note_id)}
+          >
+            Done
+          </button>
+          <button
+            type="button"
+            className="rounded-donna px-2.5 py-1 text-sm font-medium text-donna-muted hover:text-donna-text disabled:opacity-50"
+            disabled={busy}
+            onClick={() => onRemove(task.note_id)}
+          >
+            Remove from Today
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -168,7 +196,7 @@ export function DailyTasksPage() {
   const { userId } = useAuth();
   const [briefing, setBriefing] = useState<DailyBriefing | null>(null);
   const [checking, setChecking] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [acting, setActing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [notificationsEnabled, setNotificationsEnabled] = useState(
@@ -254,6 +282,71 @@ export function DailyTasksPage() {
     setSelected(allSelected ? new Set() : new Set(allNoteIds));
   };
 
+  const finishIds = (ids: string[], failed: string[]) => {
+    if (ids.length > 0) {
+      setBriefing((prev) => (prev ? briefingWithoutNotes(prev, ids) : prev));
+    }
+    setSelected((prev) => {
+      if (failed.length > 0) {
+        return new Set(failed);
+      }
+      const next = new Set(prev);
+      for (const id of ids) {
+        next.delete(id);
+      }
+      return next;
+    });
+  };
+
+  const dismissFromToday = async (
+    ids: string[],
+    action: "done" | "remove",
+  ) => {
+    if (ids.length === 0 || !briefing) {
+      return;
+    }
+    setActing(true);
+    setError(null);
+    try {
+      const results = await Promise.allSettled(
+        ids.map((id) => updateNote(id, TODAY_CLEAR_FLAGS)),
+      );
+      const ok: string[] = [];
+      const failed: string[] = [];
+      results.forEach((result, index) => {
+        if (result.status === "fulfilled") {
+          ok.push(ids[index]);
+        } else {
+          failed.push(ids[index]);
+        }
+      });
+
+      if (ok.length > 0 && userId) {
+        for (const id of ok) {
+          patchNoteInFeeds(queryClient, userId, id, { ...TODAY_CLEAR_FLAGS });
+        }
+        void queryClient.invalidateQueries({
+          queryKey: notesQueryKeys.feeds(userId),
+        });
+      }
+
+      finishIds(ok, failed);
+      if (failed.length > 0) {
+        setError(todayActionError(action, ok.length, failed.length));
+      }
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : action === "done"
+            ? "Failed to mark notes done"
+            : "Failed to remove notes from Today",
+      );
+    } finally {
+      setActing(false);
+    }
+  };
+
   const handleBulkDelete = async () => {
     if (selectedCount === 0 || !briefing) {
       return;
@@ -264,7 +357,7 @@ export function DailyTasksPage() {
       return;
     }
 
-    setDeleting(true);
+    setActing(true);
     setError(null);
     try {
       const results = await Promise.allSettled(ids.map((id) => deleteNote(id)));
@@ -278,34 +371,29 @@ export function DailyTasksPage() {
         }
       });
 
-      if (deleted.length > 0) {
-        setBriefing((prev) => (prev ? briefingWithoutNotes(prev, deleted) : prev));
-        if (userId) {
-          for (const id of deleted) {
-            removeNoteFromFeeds(queryClient, userId, id);
-            queryClient.removeQueries({
-              queryKey: notesQueryKeys.detail(userId, id),
-            });
-          }
-          void queryClient.invalidateQueries({
-            queryKey: notesQueryKeys.feeds(userId),
-          });
-          void queryClient.invalidateQueries({
-            queryKey: notesQueryKeys.tags(userId),
+      if (deleted.length > 0 && userId) {
+        for (const id of deleted) {
+          removeNoteFromFeeds(queryClient, userId, id);
+          queryClient.removeQueries({
+            queryKey: notesQueryKeys.detail(userId, id),
           });
         }
+        void queryClient.invalidateQueries({
+          queryKey: notesQueryKeys.feeds(userId),
+        });
+        void queryClient.invalidateQueries({
+          queryKey: notesQueryKeys.tags(userId),
+        });
       }
 
-      setSelected(new Set(failed));
+      finishIds(deleted, failed);
       if (failed.length > 0) {
-        setError(
-          `Deleted ${deleted.length} ${deleted.length === 1 ? "note" : "notes"}, but ${failed.length} failed.`,
-        );
+        setError(todayActionError("delete", deleted.length, failed.length));
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to delete notes");
     } finally {
-      setDeleting(false);
+      setActing(false);
     }
   };
 
@@ -367,17 +455,36 @@ export function DailyTasksPage() {
               {allSelected ? "Clear selection" : "Select all"}
             </Button>
             <Button
+              variant="secondary"
+              className="!w-auto gap-2 px-3 py-2 text-sm"
+              onClick={() => void dismissFromToday([...selected], "done")}
+              disabled={selectedCount === 0 || acting}
+            >
+              <Check className="h-4 w-4" />
+              {acting
+                ? "Updating…"
+                : selectedCount > 0
+                  ? `Mark done (${selectedCount})`
+                  : "Mark done"}
+            </Button>
+            <Button
+              variant="secondary"
+              className="!w-auto px-3 py-2 text-sm"
+              onClick={() => void dismissFromToday([...selected], "remove")}
+              disabled={selectedCount === 0 || acting}
+            >
+              {selectedCount > 0
+                ? `Remove from Today (${selectedCount})`
+                : "Remove from Today"}
+            </Button>
+            <Button
               variant="destructive"
               className="!w-auto gap-2 px-3 py-2 text-sm"
               onClick={() => void handleBulkDelete()}
-              disabled={selectedCount === 0 || deleting}
+              disabled={selectedCount === 0 || acting}
             >
               <Trash2 className="h-4 w-4" />
-              {deleting
-                ? "Deleting…"
-                : selectedCount > 0
-                  ? `Delete ${selectedCount}`
-                  : "Delete"}
+              {selectedCount > 0 ? `Delete ${selectedCount}` : "Delete"}
             </Button>
             {selectedCount > 0 ? (
               <span className="text-sm text-donna-muted">
@@ -385,7 +492,7 @@ export function DailyTasksPage() {
               </span>
             ) : (
               <span className="text-sm text-donna-muted">
-                Select notes to delete
+                Mark done or remove from Today — notes stay in Notes
               </span>
             )}
           </div>
@@ -416,8 +523,11 @@ export function DailyTasksPage() {
                     <TaskCard
                       task={task}
                       selected={selected.has(task.note_id)}
+                      busy={acting}
                       onToggle={toggleSelected}
                       onOpen={(id) => navigate(`/app/notes/${id}`)}
+                      onDone={(id) => void dismissFromToday([id], "done")}
+                      onRemove={(id) => void dismissFromToday([id], "remove")}
                     />
                   </li>
                 ))}
