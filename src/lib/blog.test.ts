@@ -172,4 +172,22 @@ describe("bundled posts", () => {
       "https://x.com/jackyk02/status/2089421448784023553",
     );
   });
+
+  it("includes recursive-language-models", () => {
+    const post = getPost("recursive-language-models");
+    expect(post).toBeDefined();
+    expect(post?.title).toMatch(/Recursive Language Models/i);
+    expect(post?.body).toContain("2512.24601");
+    expect(post?.body).toContain("https://alexzhang13.github.io/blog/2025/rlm/");
+    expect(post?.body).toContain("https://github.com/alexzhang13/rlm");
+    expect(post?.body).toContain("https://github.com/alexzhang13/rlm-minimal");
+    expect(post?.body).toContain("https://dspy.ai/api/modules/RLM/");
+    expect(post?.body).toContain(
+      "https://github.com/PrimeIntellect-ai/prime-agent",
+    );
+    expect(post?.body).toContain("https://www.primeintellect.ai/blog/rlm");
+    expect(post?.body).toContain(
+      "https://x.com/a1zhang/status/1978469116542337259",
+    );
+  });
 });
