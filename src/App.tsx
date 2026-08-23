@@ -31,6 +31,7 @@ import { AddMemoryPage } from "./pages/AddMemoryPage";
 import { ExtractedMemoryPage } from "./pages/ExtractedMemoryPage";
 import { ProfilePage } from "./pages/ProfilePage";
 import { SkillsPage } from "./pages/SkillsPage";
+import { EmployeesPage } from "./pages/EmployeesPage";
 import {
   AppShell,
   ConsentShell,
@@ -63,6 +64,7 @@ function PageTitle() {
       "/app/search": "Memory — Donna",
       "/app/profile": "Profile — Donna",
       "/app/skills": "Skills — Donna",
+      "/app/employees": "Employees — Donna",
       "/privacy": "Privacy — Donna",
       "/private": "Private — Donna",
       "/pitch": "Pitch — Donna",
@@ -123,6 +125,7 @@ export default function App() {
               <Route path="app/add" element={<AddMemoryPage />} />
               <Route path="app/profile" element={<ProfilePage />} />
               <Route path="app/skills" element={<SkillsPage />} />
+              <Route path="app/employees" element={<EmployeesPage />} />
               <Route path="app/notes" element={<NotesPage />} />
               <Route path="app/notes/search" element={<SearchNotesPage />} />
               <Route path="app/notes/:id" element={<NoteDetailPage />} />

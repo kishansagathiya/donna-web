@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import {
+  Briefcase,
   CalendarCheck,
   CircleHelp,
   Database,
@@ -17,6 +18,7 @@ const navItems = [
   { to: "/app", label: "Chat", icon: MessageSquare, end: true },
   { to: "/app/voice", label: "Voice", icon: Mic, end: true },
   { to: "/app/notes", label: "Notes", icon: StickyNote, end: false },
+  { to: "/app/employees", label: "Employees", icon: Briefcase, end: false },
   { to: "/app/actions", label: "Actions", icon: Inbox, end: false },
   { to: "/app/today", label: "Today", icon: CalendarCheck, end: false },
   { to: "/app/search", label: "Memory", icon: Database, end: false },

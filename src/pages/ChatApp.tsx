@@ -156,6 +156,17 @@ export function ChatApp() {
   }, [searchParams]);
 
   useEffect(() => {
+    const runId = searchParams.get("run");
+    if (!runId) return;
+    setMode("agent");
+    agent.setSelectedId(runId);
+    const next = new URLSearchParams(searchParams);
+    next.delete("run");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  useEffect(() => {
     const state = location.state as {
       ingestToast?: { message: string; isError: boolean };
       newChat?: boolean;

@@ -336,9 +336,22 @@ export function ProfilePage() {
         <IntegrationsSection />
 
         <div className="mb-8 max-w-lg">
+          <p className="mb-1 text-sm font-semibold text-donna-text">AI employees</p>
+          <p className="mb-3 text-xs leading-relaxed text-donna-muted">
+            Hire goal-driven workers that keep shifting in the background until
+            the job is done. Pause anytime; approve only irreversible steps.
+          </p>
+          <Link to="/app/employees">
+            <Button variant="secondary" fullWidth>
+              Manage employees
+            </Button>
+          </Link>
+        </div>
+
+        <div className="mb-8 max-w-lg">
           <p className="mb-1 text-sm font-semibold text-donna-text">Skills</p>
           <p className="mb-3 text-xs leading-relaxed text-donna-muted">
-            Reusable procedures Donna's agents follow — yours, saved by agents,
+            Reusable procedures Donna&apos;s agents follow — yours, saved by agents,
             or bundled. Donna picks the right one automatically; you can also
             choose.
           </p>
