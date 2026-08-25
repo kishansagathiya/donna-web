@@ -30,6 +30,7 @@ import { cn } from "../lib/cn";
 import { isComposerMode } from "../lib/composerMode";
 import {
   approvalKindLabel,
+  bookingProposalFromResult,
   isApprovalPause,
 } from "../lib/agentTurns";
 import type { PendingAttachment } from "../lib/chatAttachments";
@@ -411,6 +412,9 @@ export function ChatApp() {
                           ? {
                               kindLabel: approvalKindLabel(agent.active!.result),
                               busy: agent.busy,
+                              proposal: bookingProposalFromResult(
+                                agent.active!.result,
+                              ),
                               onApprove: () =>
                                 void agent.replyToRun(
                                   agent.active!.id,

@@ -6,13 +6,14 @@ import type { Components } from "react-markdown";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { cn } from "../../lib/cn";
-import type { AgentTurn, AskOption } from "../../lib/agentTurns";
+import type { AgentTurn, AskOption, BookingProposal } from "../../lib/agentTurns";
 import {
   shouldCollapseTurnSteps,
   shouldShowAgentThinking,
   timelineSteps,
 } from "../../lib/agentTurns";
 import { AgentStepsGroup } from "./AgentStepsGroup";
+import { BookingProposalCard } from "./BookingProposalCard";
 
 export type AskChoiceProps = {
   options: AskOption[];
@@ -27,6 +28,7 @@ export type ApprovalChoiceProps = {
   busy: boolean;
   onApprove: () => void;
   onDeny: () => void;
+  proposal?: BookingProposal | null;
 };
 
 const optionMarkdown: Components = {
@@ -168,6 +170,9 @@ export function AgentTurnView({
               <p className="mt-1 text-xs text-amber-800">
                 {approval.kindLabel}
               </p>
+            ) : null}
+            {turn.question.live && approval?.proposal ? (
+              <BookingProposalCard proposal={approval.proposal} />
             ) : null}
             <div className="mt-3 text-sm leading-relaxed text-donna-text">
               <MessageContent

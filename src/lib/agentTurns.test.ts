@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   approvalKindLabel,
+  bookingProposalFromResult,
   buildAgentTurns,
   canReply,
   isApprovalPause,
@@ -801,5 +802,20 @@ describe("helpers", () => {
         args: { kind: "book_flight" },
       }),
     ).toBe("book flight");
+    const proposal = bookingProposalFromResult({
+      kind: "request_approval",
+      args: {
+        kind: "book_flight",
+        details: {
+          itinerary: "SFO→LIS",
+          total: 842,
+          currency: "USD",
+          airline: "United",
+        },
+      },
+    });
+    expect(proposal?.itinerary).toBe("SFO→LIS");
+    expect(proposal?.total).toBe("USD 842");
+    expect(proposal?.airline).toBe("United");
   });
 });

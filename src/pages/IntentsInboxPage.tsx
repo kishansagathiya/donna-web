@@ -9,9 +9,11 @@ import {
 } from "../services/agentsApi";
 import {
   approvalKindLabel,
+  bookingProposalFromResult,
   isApprovalPause,
   resultSummary,
 } from "../lib/agentTurns";
+import { BookingProposalCard } from "../components/agents/BookingProposalCard";
 import { useIntentActions, useOpenIntents } from "../hooks/useIntents";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -170,6 +172,11 @@ function AgentApprovalCard({
           <p className="mt-1 text-sm text-donna-muted">
             {resultSummary(run.result) || "Donna needs approval to continue."}
           </p>
+          {bookingProposalFromResult(run.result) ? (
+            <BookingProposalCard
+              proposal={bookingProposalFromResult(run.result)!}
+            />
+          ) : null}
         </div>
         <div className="flex gap-2">
           <input

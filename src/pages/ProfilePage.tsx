@@ -336,6 +336,19 @@ export function ProfilePage() {
         <IntegrationsSection />
 
         <div className="mb-8 max-w-lg">
+          <p className="mb-1 text-sm font-semibold text-donna-text">Schedules</p>
+          <p className="mb-3 text-xs leading-relaxed text-donna-muted">
+            Recurring agent goals — daily briefs, price watches — that run on
+            Donna&apos;s cloud. Approve only irreversible steps.
+          </p>
+          <Link to="/app/schedules">
+            <Button variant="secondary" fullWidth>
+              Manage schedules
+            </Button>
+          </Link>
+        </div>
+
+        <div className="mb-8 max-w-lg">
           <p className="mb-1 text-sm font-semibold text-donna-text">AI employees</p>
           <p className="mb-3 text-xs leading-relaxed text-donna-muted">
             Hire goal-driven workers that keep shifting in the background until
