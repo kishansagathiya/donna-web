@@ -5,9 +5,11 @@ import {
   type ClipboardEvent,
   type FormEvent,
   type KeyboardEvent,
+  type ReactNode,
 } from "react";
 import {
   BookOpen,
+  Bot,
   Brain,
   FileText,
   Globe2,
@@ -137,6 +139,11 @@ type Props = {
   allowEmptySend?: boolean;
   mode?: ComposerMode;
   onModeChange?: (mode: ComposerMode) => void;
+  skillPicker?: ReactNode;
+  onSendToAgent?: (
+    text: string,
+    attachments: PendingAttachment[],
+  ) => void;
 };
 
 const quickActionIcons: Record<string, typeof FileText> = {
@@ -162,6 +169,8 @@ export function ChatInput({
   allowEmptySend = false,
   mode,
   onModeChange,
+  skillPicker,
+  onSendToAgent,
 }: Props) {
   const [text, setText] = useState("");
   const [attachments, setAttachments] = useState<PendingAttachment[]>([]);
@@ -342,6 +351,37 @@ export function ChatInput({
           <div className="mt-1 flex items-center gap-1">
             {mode && onModeChange ? (
               <ComposerModeToggle mode={mode} onChange={onModeChange} />
+            ) : null}
+
+            {skillPicker}
+
+            {onSendToAgent && mode !== "agent" ? (
+              <button
+                type="button"
+                disabled={disabled || isAttaching || (!hasText && !hasAttachments)}
+                aria-label="Run as cloud agent"
+                title="Run as cloud agent"
+                onClick={() => {
+                  if (disabled || isAttaching || (!hasText && !hasAttachments)) {
+                    return;
+                  }
+                  const payload = attachments.slice();
+                  const trimmed = text.trim();
+                  setText("");
+                  setAttachments([]);
+                  setWebSearch(false);
+                  onSendToAgent(trimmed, payload);
+                }}
+                className={cn(
+                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+                  "transition-colors",
+                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
+                  "disabled:cursor-not-allowed disabled:opacity-50",
+                  "text-donna-muted hover:bg-donna-surface hover:text-donna-text",
+                )}
+              >
+                <Bot className="h-5 w-5" strokeWidth={1.75} />
+              </button>
             ) : null}
 
             {showWebSearch ? (

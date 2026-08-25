@@ -237,4 +237,29 @@ describe("AgentTurnView steps collapse", () => {
     expect(screen.getByText(/Tool → search/)).toBeInTheDocument();
     expect(screen.queryByText(/show timeline/)).not.toBeInTheDocument();
   });
+
+  it("renders confirm and deny for an irreversible approval", () => {
+    render(
+      <AgentTurnView
+        turn={makeTurn({
+          question: { text: "Book this United flight?", live: true },
+        })}
+        runStatus="waiting_for_user"
+        approval={{
+          kindLabel: "book flight",
+          busy: false,
+          onApprove: () => {},
+          onDeny: () => {},
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Needs your approval")).toBeInTheDocument();
+    expect(screen.getByText("book flight")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Confirm" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Deny" })).toBeInTheDocument();
+    expect(
+      screen.getByText("Or tell Donna what to change below."),
+    ).toBeInTheDocument();
+  });
 });

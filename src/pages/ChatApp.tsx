@@ -8,6 +8,7 @@ import {
   Square,
 } from "lucide-react";
 import { AgentTurnView } from "../components/agents/AgentTurnView";
+import { SkillPicker } from "../components/agents/SkillPicker";
 import { ChatHero } from "../components/ChatHero";
 import { ChatHistorySheet } from "../components/ChatHistorySheet";
 import { ChatHistorySidebar } from "../components/ChatHistorySidebar";
@@ -27,6 +28,11 @@ import { useCreateNoteMutation } from "../hooks/useNotes";
 import { useVoiceSessionContext } from "../hooks/VoiceSessionProvider";
 import { cn } from "../lib/cn";
 import { isComposerMode } from "../lib/composerMode";
+import {
+  approvalKindLabel,
+  isApprovalPause,
+} from "../lib/agentTurns";
+import type { PendingAttachment } from "../lib/chatAttachments";
 import { DONNA_THINKING_PHASE, isDonnaThinkingPhase } from "../lib/thinkingPhrases";
 import { newNoteId } from "../services/notesApi";
 
@@ -243,6 +249,15 @@ export function ChatApp() {
     agent.setSelectedId(runId);
   }
 
+  async function sendDraftToAgent(
+    text: string,
+    attachments: PendingAttachment[],
+  ) {
+    setMode("agent");
+    agent.handleNewRun();
+    await agent.createRun(text, attachments);
+  }
+
   function dismissActiveError() {
     if (voiceError) {
       dismissVoiceError();
@@ -263,13 +278,15 @@ export function ChatApp() {
     agent.busy && !agent.active ? DONNA_THINKING_PHASE : sessionLabel;
   const agentPlaceholder = !agent.active
     ? "Describe a cloud agent goal…"
-    : agent.waitingWithOptions
-      ? agent.allowMultiple
-        ? "Optional note to add with your selection…"
-        : "Or type a different answer…"
-      : agent.needsReply
-        ? "Write your answer…"
-        : "Add a follow-up or correction…";
+    : isApprovalPause(agent.active.result)
+      ? "Tell Donna what to change…"
+      : agent.waitingWithOptions
+        ? agent.allowMultiple
+          ? "Optional note to add with your selection…"
+          : "Or type a different answer…"
+        : agent.needsReply
+          ? "Write your answer…"
+          : "Add a follow-up or correction…";
   const showAgentActions =
     isAgent &&
     agent.active &&
@@ -384,6 +401,26 @@ export function ChatApp() {
                               selected: agent.selectedOptions,
                               busy: agent.busy,
                               onToggle: agent.toggleOption,
+                            }
+                          : null
+                      }
+                      approval={
+                        turn.isLatest &&
+                        agent.needsReply &&
+                        isApprovalPause(agent.active!.result)
+                          ? {
+                              kindLabel: approvalKindLabel(agent.active!.result),
+                              busy: agent.busy,
+                              onApprove: () =>
+                                void agent.replyToRun(
+                                  agent.active!.id,
+                                  "Approved.",
+                                ),
+                              onDeny: () =>
+                                void agent.replyToRun(
+                                  agent.active!.id,
+                                  "Denied.",
+                                ),
                             }
                           : null
                       }
@@ -509,6 +546,18 @@ export function ChatApp() {
           allowEmptySend={isAgent && agent.allowEmptySend}
           mode={mode}
           onModeChange={setMode}
+          skillPicker={
+            isAgent ? (
+              <SkillPicker
+                selected={agent.selectedSkills}
+                onChange={agent.setSelectedSkills}
+                disabled={agent.busy || Boolean(agent.active)}
+              />
+            ) : null
+          }
+          onSendToAgent={(text, attachments) => {
+            void sendDraftToAgent(text, attachments);
+          }}
           quickActions={
             !isAgent && !hasChatThread && !sessionActive
               ? quickActions.map((action) => ({

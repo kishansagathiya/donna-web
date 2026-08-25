@@ -1,7 +1,17 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { Check, Inbox, RefreshCw, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Bot, Check, Inbox, RefreshCw, X } from "lucide-react";
 import type { Intent } from "../services/intentsApi";
+import {
+  listAgentRuns,
+  redirectAgentRun,
+  type AgentRun,
+} from "../services/agentsApi";
+import {
+  approvalKindLabel,
+  isApprovalPause,
+  resultSummary,
+} from "../lib/agentTurns";
 import { useIntentActions, useOpenIntents } from "../hooks/useIntents";
 import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
@@ -125,11 +135,99 @@ function IntentCard({
   );
 }
 
+function AgentApprovalCard({
+  run,
+  busy,
+  tellValue,
+  onTellChange,
+  onApprove,
+  onDeny,
+  onTell,
+  onOpen,
+}: {
+  run: AgentRun;
+  busy: boolean;
+  tellValue: string;
+  onTellChange: (v: string) => void;
+  onApprove: () => void;
+  onDeny: () => void;
+  onTell: () => void;
+  onOpen: () => void;
+}) {
+  return (
+    <Card>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-amber-800">
+            Agent approval
+          </span>
+          <span className="text-xs text-donna-muted">
+            {approvalKindLabel(run.result)}
+          </span>
+        </div>
+        <div>
+          <p className="text-base font-semibold text-donna-text">{run.goal}</p>
+          <p className="mt-1 text-sm text-donna-muted">
+            {resultSummary(run.result) || "Donna needs approval to continue."}
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <input
+            value={tellValue}
+            onChange={(e) => onTellChange(e.target.value)}
+            placeholder="Tell Donna…"
+            className="min-w-0 flex-1 rounded-lg border border-donna-border bg-white px-3 py-2 text-sm text-donna-text placeholder:text-donna-muted focus:border-donna-primary focus:outline-none"
+            disabled={busy}
+          />
+          <Button
+            variant="secondary"
+            className="!w-auto px-3 py-2 text-sm"
+            disabled={busy || !tellValue.trim()}
+            onClick={onTell}
+          >
+            Send
+          </Button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            className="!w-auto gap-2 px-4 py-2 text-sm"
+            disabled={busy}
+            onClick={onApprove}
+          >
+            <Check className="h-4 w-4" />
+            Confirm
+          </Button>
+          <Button
+            variant="secondary"
+            className="!w-auto px-4 py-2 text-sm"
+            disabled={busy}
+            onClick={onDeny}
+          >
+            Deny
+          </Button>
+          <Button
+            variant="secondary"
+            className="!w-auto gap-2 px-4 py-2 text-sm"
+            disabled={busy}
+            onClick={onOpen}
+          >
+            <Bot className="h-4 w-4" />
+            Open agent
+          </Button>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 export function IntentsInboxPage() {
+  const navigate = useNavigate();
   const { data: intents = [], isLoading, isFetching, error: queryError, refetch } = useOpenIntents();
   const { confirmMutation, cancelMutation, dismissMutation } = useIntentActions();
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [agentApprovals, setAgentApprovals] = useState<AgentRun[]>([]);
+  const [tellById, setTellById] = useState<Record<string, string>>({});
 
   const error =
     actionError ??
@@ -172,18 +270,54 @@ export function IntentsInboxPage() {
     }
   };
 
+  const refreshApprovals = async () => {
+    try {
+      const runs = await listAgentRuns("waiting_for_user");
+      setAgentApprovals(runs.filter((run) => isApprovalPause(run.result)));
+    } catch {
+      // Intents still load independently.
+    }
+  };
+
+  useEffect(() => {
+    void refreshApprovals();
+    const timer = window.setInterval(() => {
+      void refreshApprovals();
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const handleAgentReply = async (id: string, message: string) => {
+    setBusyId(id);
+    setActionError(null);
+    try {
+      await redirectAgentRun(id, message);
+      setTellById((prev) => ({ ...prev, [id]: "" }));
+      await refreshApprovals();
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : "Could not resume agent");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const empty = !isLoading && intents.length === 0 && agentApprovals.length === 0;
+
   return (
     <div className="flex h-full min-h-0 w-full flex-col bg-white">
       <header className="flex shrink-0 flex-col gap-3 border-b border-donna-border px-6 py-5 md:flex-row md:items-center md:justify-between md:px-8">
         <div>
           <h1 className="text-xl font-semibold text-donna-text">Actions</h1>
           <p className="mt-0.5 text-sm text-donna-muted">
-            Intents Donna extracted from your notes and chats
+            Confirm irreversible agent steps, plus intents from notes and chat
           </p>
         </div>
         <Button
           className="!w-auto gap-2 px-4 py-2.5 text-sm"
-          onClick={() => void refetch()}
+          onClick={() => {
+            void refetch();
+            void refreshApprovals();
+          }}
           disabled={isFetching}
         >
           <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
@@ -206,18 +340,49 @@ export function IntentsInboxPage() {
           </AlertBanner>
         ) : null}
 
-        {isLoading && intents.length === 0 ? (
+        {isLoading && intents.length === 0 && agentApprovals.length === 0 ? (
           <div className="flex flex-1 items-center justify-center py-12">
             <Spinner />
           </div>
         ) : null}
 
-        {!isLoading && intents.length === 0 ? (
+        {empty ? (
           <EmptyState
             icon={Inbox}
             title="Inbox clear"
-            description="When you write an actionable note or chat, proposals show up here to confirm or dismiss."
+            description="Agent approvals and note/chat proposals show up here to confirm or dismiss."
           />
+        ) : null}
+
+        {agentApprovals.length > 0 ? (
+          <section className="px-5 py-4 md:px-8">
+            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-donna-muted">
+              Agent approvals ({agentApprovals.length})
+            </h2>
+            <ul className="flex flex-col gap-3">
+              {agentApprovals.map((run) => (
+                <li key={run.id}>
+                  <AgentApprovalCard
+                    run={run}
+                    busy={busyId !== null}
+                    tellValue={tellById[run.id] ?? ""}
+                    onTellChange={(v) =>
+                      setTellById((prev) => ({ ...prev, [run.id]: v }))
+                    }
+                    onApprove={() => void handleAgentReply(run.id, "Approved.")}
+                    onDeny={() => void handleAgentReply(run.id, "Denied.")}
+                    onTell={() => {
+                      const note = (tellById[run.id] ?? "").trim();
+                      if (note) void handleAgentReply(run.id, note);
+                    }}
+                    onOpen={() =>
+                      navigate(`/app?mode=agent&run=${encodeURIComponent(run.id)}`)
+                    }
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
         ) : null}
 
         {intents.length > 0 ? (

@@ -22,6 +22,13 @@ export type AskChoiceProps = {
   onToggle: (id: string) => void;
 };
 
+export type ApprovalChoiceProps = {
+  kindLabel: string;
+  busy: boolean;
+  onApprove: () => void;
+  onDeny: () => void;
+};
+
 const optionMarkdown: Components = {
   p: ({ children }) => <>{children}</>,
   strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
@@ -87,6 +94,7 @@ export function AgentTurnView({
   runStatus,
   waitingExtras,
   ask,
+  approval,
 }: {
   turn: AgentTurn;
   runStatus: string;
@@ -95,6 +103,7 @@ export function AgentTurnView({
     busy: boolean;
   } | null;
   ask?: AskChoiceProps | null;
+  approval?: ApprovalChoiceProps | null;
 }) {
   // Prompt → steps → result → follow-up. Collapse this turn's timeline once
   // it has a result, even if a later follow-up is still running. `key` forces
@@ -147,8 +156,19 @@ export function AgentTurnView({
                   : "text-xs font-semibold uppercase tracking-wide text-donna-muted"
               }
             >
-              {turn.question.live ? "Donna needs your reply" : "Question"}
+              {turn.question.live
+                ? approval
+                  ? "Needs your approval"
+                  : "Donna needs your reply"
+                : approval
+                  ? "Approval"
+                  : "Question"}
             </p>
+            {turn.question.live && approval ? (
+              <p className="mt-1 text-xs text-amber-800">
+                {approval.kindLabel}
+              </p>
+            ) : null}
             <div className="mt-3 text-sm leading-relaxed text-donna-text">
               <MessageContent
                 content={turn.question.text}
@@ -156,6 +176,29 @@ export function AgentTurnView({
                 className="text-[0.95rem]"
               />
             </div>
+            {turn.question.live && approval ? (
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <Button
+                  className="!w-auto gap-1.5 px-3 py-2 text-sm"
+                  disabled={approval.busy}
+                  onClick={approval.onApprove}
+                >
+                  <Check className="h-4 w-4" />
+                  Confirm
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="!w-auto px-3 py-2 text-sm"
+                  disabled={approval.busy}
+                  onClick={approval.onDeny}
+                >
+                  Deny
+                </Button>
+                <p className="text-xs text-donna-muted">
+                  Or tell Donna what to change below.
+                </p>
+              </div>
+            ) : null}
             {turn.question.live && ask ? <AskOptions {...ask} /> : null}
             {turn.question.live && waitingExtras ? (
               <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-donna-border pt-3">
