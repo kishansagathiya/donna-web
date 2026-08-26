@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "../config";
+import { RELEASE_VERSION } from "../lib/release";
 import { getAccessToken } from "./auth";
 
 const MAX_MESSAGE_LENGTH = 1000;
@@ -58,7 +59,9 @@ export function reportError(
     reportCount += 1;
 
     const stack = errorStack(error)?.slice(0, MAX_STACK_LENGTH);
-    const appVersion = import.meta.env.VITE_APP_VERSION as string | undefined;
+    const appVersion =
+      (import.meta.env.VITE_APP_VERSION as string | undefined) ||
+      RELEASE_VERSION;
 
     void (async () => {
       const headers: Record<string, string> = {

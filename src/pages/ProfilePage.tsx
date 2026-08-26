@@ -17,6 +17,7 @@ import { ExperimentalSection } from "../components/ExperimentalSection";
 import { IntegrationsSection } from "../components/IntegrationsSection";
 import { ImportChatGPTSection } from "../components/ImportChatGPTSection";
 import { useAuth } from "../hooks/useAuth";
+import { RELEASE_NAME, RELEASE_VERSION } from "../lib/release";
 import {
   detectDeviceTimezone,
   timezoneSelectOptions,
@@ -199,6 +200,9 @@ export function ProfilePage() {
           <div>
             <p className="text-lg font-semibold text-donna-text">{name}</p>
             {email ? <p className="text-sm text-donna-muted">{email}</p> : null}
+            <p className="mt-1 text-xs text-donna-muted">
+              Donna {RELEASE_VERSION} — {RELEASE_NAME}
+            </p>
           </div>
         </div>
 

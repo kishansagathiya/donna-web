@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { DonnaLogo } from "./DonnaLogo";
 import { cn } from "../lib/cn";
+import { RELEASE_LABEL } from "../lib/release";
 
 const navItems = [
   { to: "/app", label: "Chat", icon: MessageSquare, end: true },
@@ -62,7 +63,7 @@ export function Sidebar({ onNewChat, onNavigate, className }: Props) {
         />
         <div>
           <p className="text-base font-bold text-donna-primary">Donna</p>
-          <p className="text-xs text-donna-muted">AI Assistant</p>
+          <p className="text-xs text-donna-muted">{RELEASE_LABEL}</p>
         </div>
       </div>
 

@@ -49,6 +49,7 @@ describe("reportError", () => {
     expect(body.message).toBe("boom");
     expect(body.route).toBe(window.location.pathname);
     expect(typeof body.stack).toBe("string");
+    expect(body.appVersion).toBe("1.0.0");
   });
 
   it("reports different messages separately", async () => {

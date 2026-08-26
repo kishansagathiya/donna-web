@@ -1,5 +1,6 @@
 import { Link, Navigate } from "react-router-dom";
 import { LOGO_LANDING } from "../lib/logo";
+import { RELEASE_LABEL } from "../lib/release";
 import { APP_STORE_URL } from "../config";
 import { useAuth } from "../hooks/useAuth";
 import { hasAiDataConsent } from "../services/privacyConsent";
@@ -27,7 +28,7 @@ export function Landing() {
           width={112}
           height={112}
         />
-        <p className="landing-eyebrow">Now on the App Store</p>
+        <p className="landing-eyebrow">{RELEASE_LABEL}</p>
         <h1>
           AI Personal Assistant for Founders, but the <em>BEST</em>
         </h1>
@@ -53,7 +54,7 @@ export function Landing() {
           </Link>
         </div>
         <p className="landing-footnote">
-          Free on iPhone &amp; iPad.{" "}
+          Now on the App Store. Free on iPhone &amp; iPad.{" "}
           <Link to="/login">Sign in</Link> to sync across devices.
         </p>
       </main>

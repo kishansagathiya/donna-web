@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { DonnaLogo } from "../components/DonnaLogo";
+import { RELEASE_LABEL } from "../lib/release";
 import { SignInWithAppleButton } from "../components/SignInWithAppleButton";
 import { SignInWithGoogleButton } from "../components/SignInWithGoogleButton";
 import { Spinner } from "../components/ui/Spinner";
@@ -52,7 +53,7 @@ export function Login() {
         />
         <h1 className="text-3xl font-bold tracking-tight text-donna-text">Donna</h1>
         <p className="max-w-xs text-base leading-relaxed text-donna-muted">
-          AI Assistant that remembers what matters
+          {RELEASE_LABEL} — she remembers what matters
         </p>
       </div>
 
