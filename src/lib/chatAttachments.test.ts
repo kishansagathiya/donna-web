@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  chatAttachAcceptForViewport,
+  CHAT_ATTACH_ACCEPT,
+  resolveChatMime,
   rewriteImageFilename,
   scaledImageSize,
+  takeSelectedFiles,
   urlToChatAttachment,
 } from "./chatAttachments";
 
@@ -31,5 +35,54 @@ describe("urlToChatAttachment", () => {
     const att = urlToChatAttachment("https://example.com/doc");
     expect(att.payload).toEqual({ kind: "url", url: "https://example.com/doc" });
     expect(att.filename).toBe("example.com");
+  });
+});
+
+describe("resolveChatMime", () => {
+  it("uses the browser type when present", () => {
+    expect(
+      resolveChatMime({ type: "image/jpeg", name: "IMG_1234.HEIC" }),
+    ).toBe("image/jpeg");
+  });
+
+  it("guesses HEIC from filename when iOS omits file.type", () => {
+    expect(resolveChatMime({ type: "", name: "IMG_1234.HEIC" })).toBe(
+      "image/heic",
+    );
+    expect(resolveChatMime({ type: "", name: "photo.heif" })).toBe("image/heif");
+  });
+});
+
+describe("takeSelectedFiles", () => {
+  it("snapshots files before a live FileList is cleared", () => {
+    const photo = new File(["img"], "photo.jpg", { type: "image/jpeg" });
+    let selected: File[] = [photo];
+    const input = {
+      get files() {
+        return selected as unknown as FileList;
+      },
+      set value(_next: string) {
+        selected = [];
+      },
+    } as HTMLInputElement;
+
+    expect(takeSelectedFiles(input)).toEqual([photo]);
+    expect(selected).toEqual([]);
+  });
+});
+
+describe("chatAttachAcceptForViewport", () => {
+  it("omits accept on coarse pointers so iOS can show Photo Library", () => {
+    expect(
+      chatAttachAcceptForViewport((query) => ({
+        matches: query === "(pointer: coarse)",
+      })),
+    ).toBeUndefined();
+  });
+
+  it("keeps desktop accept filtering for fine pointers", () => {
+    expect(chatAttachAcceptForViewport(() => ({ matches: false }))).toBe(
+      CHAT_ATTACH_ACCEPT,
+    );
   });
 });

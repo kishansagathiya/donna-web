@@ -25,9 +25,11 @@ import { cn } from "../lib/cn";
 import type { ComposerMode } from "../lib/composerMode";
 import {
   assertAttachmentBudget,
+  chatAttachAcceptForViewport,
   fileToChatAttachment,
   isImageMime,
   revokePendingAttachment,
+  takeSelectedFiles,
   type PendingAttachment,
 } from "../lib/chatAttachments";
 import { isDonnaThinkingPhase } from "../lib/thinkingPhrases";
@@ -177,7 +179,6 @@ export function ChatInput({
   const [staging, setStaging] = useState<StagingAttachment[]>([]);
   const [webSearch, setWebSearch] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const attachInputRef = useRef<HTMLInputElement>(null);
   const hasText = text.trim().length > 0;
   const isAttaching = staging.length > 0;
   const hasAttachments = attachments.length > 0 || isAttaching;
@@ -406,17 +407,13 @@ export function ChatInput({
               </button>
             ) : null}
 
-            <button
-              type="button"
-              onClick={() => attachInputRef.current?.click()}
-              disabled={disabled}
-              aria-label="Attach to message"
+            <label
               aria-busy={isAttaching}
               className={cn(
-                "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-donna-muted",
+                "relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg text-donna-muted",
                 "transition-colors hover:bg-donna-surface hover:text-donna-text",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
-                "disabled:cursor-not-allowed disabled:opacity-50",
+                "focus-within:outline-none focus-within:ring-2 focus-within:ring-donna-primary-ring",
+                disabled && "pointer-events-none cursor-not-allowed opacity-50",
               )}
             >
               {isAttaching ? (
@@ -427,19 +424,19 @@ export function ChatInput({
               ) : (
                 <Paperclip className="h-5 w-5" strokeWidth={1.75} />
               )}
-            </button>
-            <input
-              ref={attachInputRef}
-              type="file"
-              hidden
-              multiple
-              accept="image/*,.pdf,.txt,.md,.doc,.docx,.csv,.json,.html"
-              onChange={(e) => {
-                const files = e.target.files;
-                e.target.value = "";
-                if (files) void addFiles(files);
-              }}
-            />
+              <input
+                type="file"
+                multiple
+                disabled={disabled}
+                accept={chatAttachAcceptForViewport()}
+                aria-label="Attach to message"
+                className="absolute inset-0 h-full w-full cursor-pointer text-[100px] opacity-0"
+                onChange={(e) => {
+                  const files = takeSelectedFiles(e.currentTarget);
+                  if (files.length > 0) void addFiles(files);
+                }}
+              />
+            </label>
 
             <div className="flex-1" />
 

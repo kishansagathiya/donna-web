@@ -25,8 +25,38 @@ const MAX_CHAT_ATTACHMENTS = 10;
 export const CHAT_IMAGE_MAX_EDGE = 1568;
 export const CHAT_IMAGE_JPEG_QUALITY = 0.82;
 
+export const CHAT_ATTACH_ACCEPT =
+  "image/*,image/heic,image/heif,.heic,.heif,.pdf,.txt,.md,.doc,.docx,.csv,.json,.html";
+
 export function isImageMime(mime?: string): boolean {
   return Boolean(mime && mime.startsWith("image/"));
+}
+
+/** iOS Photos often omit `file.type` for HEIC; fall back to the filename. */
+export function resolveChatMime(file: Pick<File, "type" | "name">): string {
+  return file.type || guessMime(file.name);
+}
+
+/**
+ * Copy selected files before resetting the input.
+ * Safari's FileList is live, so clearing `input.value` empties a stored FileList.
+ */
+export function takeSelectedFiles(input: HTMLInputElement): File[] {
+  const files = Array.from(input.files ?? []);
+  input.value = "";
+  return files;
+}
+
+/** Coarse pointers (phones) get an unfiltered picker so iOS shows Photo Library. */
+export function chatAttachAcceptForViewport(
+  matchMedia: (query: string) => { matches: boolean } = (query) =>
+    typeof window !== "undefined" && typeof window.matchMedia === "function"
+      ? window.matchMedia(query)
+      : { matches: false },
+): string | undefined {
+  return matchMedia("(pointer: coarse)").matches
+    ? undefined
+    : CHAT_ATTACH_ACCEPT;
 }
 
 export function scaledImageSize(
@@ -51,7 +81,7 @@ export async function fileToChatAttachment(file: File): Promise<PendingAttachmen
   if (file.size > MAX_CHAT_ATTACHMENT_BYTES) {
     throw new Error("File is too large (max 15MB)");
   }
-  const mime = file.type || guessMime(file.name);
+  const mime = resolveChatMime(file);
   const compressed = isImageMime(mime) ? await compressImageForChat(file, mime) : null;
   const source = compressed?.blob ?? file;
   const outMime = compressed?.mime ?? mime;
@@ -194,5 +224,7 @@ function guessMime(filename: string): string {
   if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
   if (lower.endsWith(".webp")) return "image/webp";
   if (lower.endsWith(".gif")) return "image/gif";
+  if (lower.endsWith(".heic")) return "image/heic";
+  if (lower.endsWith(".heif")) return "image/heif";
   return "application/octet-stream";
 }
