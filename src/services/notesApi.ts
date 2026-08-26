@@ -15,10 +15,28 @@ export type NoteSummary = {
   keywords: string[] | null;
   category: string | null;
   has_audio: boolean;
+  has_image?: boolean;
+  image_url?: string;
+  attachments?: NoteAttachment[];
   content_version?: number;
   enrichment_status?: string;
   enrichment_version?: number;
   tags?: string[];
+};
+
+export type NoteAttachment = {
+  id: string;
+  kind: string;
+  filename: string;
+  mime?: string;
+  url?: string;
+};
+
+export type NoteAttachmentInput = {
+  kind: string;
+  filename?: string;
+  mime?: string;
+  data_base64?: string;
 };
 
 export type TagFacet = {
@@ -237,7 +255,11 @@ export async function getNote(id: string): Promise<Note> {
 
 export async function createNote(
   content: string,
-  opts?: { noteDate?: string; id?: string },
+  opts?: {
+    noteDate?: string;
+    id?: string;
+    attachments?: NoteAttachmentInput[];
+  },
 ): Promise<Note> {
   const res = await authorizedFetch("/notes", {
     method: "POST",
@@ -246,6 +268,7 @@ export async function createNote(
       id: opts?.id,
       content,
       note_date: opts?.noteDate,
+      attachments: opts?.attachments,
     }),
   });
   return parseJSON(res);
@@ -259,6 +282,8 @@ export async function updateNote(
     is_important?: boolean;
     is_urgent?: boolean;
     content_version?: number;
+    add_attachments?: NoteAttachmentInput[];
+    remove_attachment_ids?: string[];
   },
 ): Promise<Note> {
   const res = await authorizedFetch(`/notes/${id}`, {

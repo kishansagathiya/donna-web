@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Flame, Star } from "lucide-react";
+import { Flame, ImagePlus, Star, X } from "lucide-react";
 import {
   extractHashtags,
   formatNoteDate,
@@ -28,6 +28,14 @@ import {
   useUpdateNoteMutation,
 } from "../hooks/useNotes";
 import { cn } from "../lib/cn";
+import {
+  assertNoteImageBudget,
+  filesToNoteImages,
+  noteImageAcceptForViewport,
+  payloadsFromPending,
+  revokePendingAttachment,
+  takeSelectedFiles,
+} from "../lib/noteAttachments";
 
 export function NoteDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -50,6 +58,7 @@ export function NoteDetailPage() {
   const failure = failedMutations.find((f) => f.noteId === id);
   const [suggestions, setSuggestions] = useState<TagSuggestion[]>([]);
   const [derivedMemories, setDerivedMemories] = useState<MemoryItem[]>([]);
+  const [attaching, setAttaching] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -104,6 +113,52 @@ export function NoteDetailPage() {
       });
     } catch (err: unknown) {
       setActionError(err instanceof Error ? err.message : "Failed to update");
+    }
+  };
+
+  const addPhotos = async (files: File[]) => {
+    if (!item || !id || files.length === 0) {
+      return;
+    }
+    setActionError(null);
+    setAttaching(true);
+    try {
+      assertNoteImageBudget(item.attachments?.length ?? 0, files.length);
+      const pending = await filesToNoteImages(files);
+      await updateMutation.mutateAsync({
+        id,
+        patch: {
+          add_attachments: payloadsFromPending(pending),
+          content_version: item.content_version,
+        },
+      });
+      for (const att of pending) {
+        revokePendingAttachment(att);
+      }
+    } catch (err: unknown) {
+      setActionError(err instanceof Error ? err.message : "Failed to add photo");
+    } finally {
+      setAttaching(false);
+    }
+  };
+
+  const removePhoto = async (attachmentId: string) => {
+    if (!item || !id) {
+      return;
+    }
+    setActionError(null);
+    try {
+      await updateMutation.mutateAsync({
+        id,
+        patch: {
+          remove_attachment_ids: [attachmentId],
+          content_version: item.content_version,
+        },
+      });
+    } catch (err: unknown) {
+      setActionError(
+        err instanceof Error ? err.message : "Failed to remove photo",
+      );
     }
   };
 
@@ -358,6 +413,65 @@ export function NoteDetailPage() {
           >
             Your browser does not support audio playback.
           </audio>
+        ) : null}
+
+        {item.attachments && item.attachments.length > 0 ? (
+          <div className="mb-4 flex flex-wrap gap-2">
+            {item.attachments.map((att) => (
+              <div
+                key={att.id}
+                className="relative overflow-hidden rounded-donna border border-donna-border"
+              >
+                {att.url ? (
+                  <img
+                    src={att.url}
+                    alt={att.filename}
+                    className="h-32 w-32 object-cover"
+                  />
+                ) : (
+                  <div className="flex h-32 w-32 items-center justify-center bg-donna-surface text-xs text-donna-muted">
+                    {att.filename}
+                  </div>
+                )}
+                {item.source_type !== "integration" ? (
+                  <button
+                    type="button"
+                    aria-label={`Remove ${att.filename}`}
+                    className="absolute right-1 top-1 rounded-full bg-white/90 p-1 text-donna-muted hover:text-donna-destructive"
+                    onClick={() => void removePhoto(att.id)}
+                    disabled={updateMutation.isPending}
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {item.source_type !== "integration" ? (
+          <label
+            className={cn(
+              "relative mb-4 inline-flex items-center gap-1.5 overflow-hidden rounded-full border border-donna-border bg-white px-3 py-1.5",
+              "text-xs font-medium text-donna-text transition-colors hover:bg-donna-surface",
+              attaching && "pointer-events-none opacity-50",
+            )}
+          >
+            <ImagePlus className="h-3.5 w-3.5" strokeWidth={1.75} />
+            Add photo
+            <input
+              type="file"
+              multiple
+              disabled={attaching || updateMutation.isPending}
+              accept={noteImageAcceptForViewport()}
+              aria-label="Add photo to note"
+              className="absolute inset-0 h-full w-full cursor-pointer text-[100px] opacity-0"
+              onChange={(e) => {
+                const files = takeSelectedFiles(e.currentTarget);
+                if (files.length > 0) void addPhotos(files);
+              }}
+            />
+          </label>
         ) : null}
 
         <TextArea

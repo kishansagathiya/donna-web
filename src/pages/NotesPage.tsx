@@ -1,16 +1,17 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Bookmark, Flame, Link2, Pin, Search, Send, StickyNote, Star } from "lucide-react";
+import { Flame, Pin, Search, StickyNote, Star } from "lucide-react";
 import {
   formatNoteDate,
   newNoteId,
+  type NoteAttachmentInput,
   type NoteSummary,
 } from "../services/notesApi";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Spinner } from "../components/ui/Spinner";
 import { AlertBanner } from "../components/ui/AlertBanner";
 import { IngestToast } from "../components/IngestToast";
-import { MicButton, type MicState } from "../components/MicButton";
+import { NoteComposeBar } from "../components/NoteComposeBar";
 import { TagTaxonomyPanel } from "../components/TagTaxonomyPanel";
 import { useAssetIngest } from "../hooks/useAssetIngest";
 import {
@@ -26,224 +27,9 @@ import { cn } from "../lib/cn";
 import {
   enrichmentLabel,
   noteTagList,
+  noteThumbUrl,
   sourceLabel,
 } from "../lib/noteDisplay";
-
-function NoteComposeBar({
-  onSave,
-  saving,
-  onAddLink,
-  onSaveToMemory,
-  ingestBusy,
-  linkOpen,
-  linkValue,
-  onLinkValueChange,
-  onSubmitLink,
-  onCancelLink,
-  micState,
-  onMicPress,
-  micDisabled,
-  sessionLabel,
-}: {
-  onSave: (text: string) => Promise<void>;
-  saving: boolean;
-  onAddLink: () => void;
-  onSaveToMemory: () => void;
-  ingestBusy: boolean;
-  linkOpen: boolean;
-  linkValue: string;
-  onLinkValueChange: (value: string) => void;
-  onSubmitLink: () => void;
-  onCancelLink: () => void;
-  micState: MicState;
-  onMicPress: () => void;
-  micDisabled?: boolean;
-  sessionLabel?: string | null;
-}) {
-  const [draft, setDraft] = useState("");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const hasText = draft.trim().length > 0;
-  const voiceBusy =
-    micState === "listening" ||
-    micState === "processing" ||
-    micState === "requesting";
-  const showMic = !hasText && !linkOpen;
-
-  function resize() {
-    const el = textareaRef.current;
-    if (!el) return;
-    el.style.height = "auto";
-    el.style.height = `${Math.min(Math.max(el.scrollHeight, 120), 240)}px`;
-  }
-
-  useEffect(() => {
-    resize();
-  }, [draft]);
-
-  async function submit() {
-    const trimmed = draft.trim();
-    if (!trimmed || saving) return;
-    await onSave(trimmed);
-    setDraft("");
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-    }
-  }
-
-  function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    void submit();
-  }
-
-  function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      void submit();
-    }
-  }
-
-  return (
-    <div className="border-b border-donna-border px-5 py-3 md:px-8">
-      <form
-        onSubmit={handleSubmit}
-        className="overflow-hidden rounded-donna border border-donna-border bg-white"
-      >
-        <textarea
-          ref={textareaRef}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder={
-            voiceBusy ? "Listening…" : "Jot down a note… or tap the mic"
-          }
-          disabled={saving || ingestBusy || voiceBusy}
-          rows={4}
-          className={cn(
-            "min-h-[120px] w-full resize-none border-0 bg-transparent px-4 py-3",
-            "text-base leading-relaxed text-donna-text placeholder:text-donna-muted",
-            "focus:outline-none focus:ring-0",
-            "disabled:cursor-not-allowed disabled:opacity-60",
-          )}
-        />
-
-        {sessionLabel ? (
-          <p className="border-t border-donna-border px-4 py-2 text-sm text-donna-muted">
-            {sessionLabel}
-          </p>
-        ) : null}
-
-        {linkOpen ? (
-          <div className="flex gap-2 border-t border-donna-border px-3 py-2.5">
-            <input
-              value={linkValue}
-              onChange={(e) => onLinkValueChange(e.target.value)}
-              placeholder="https://…"
-              disabled={ingestBusy}
-              autoFocus
-              className={cn(
-                "min-w-0 flex-1 rounded-donna border border-donna-border bg-white px-3 py-2",
-                "text-sm text-donna-text placeholder:text-donna-muted",
-                "focus:border-donna-gold-ring focus:outline-none focus:ring-2 focus:ring-donna-gold-ring/30",
-                "disabled:cursor-not-allowed disabled:opacity-60",
-              )}
-              aria-label="URL to save"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  onSubmitLink();
-                }
-                if (e.key === "Escape") {
-                  onCancelLink();
-                }
-              }}
-            />
-            <button
-              type="button"
-              onClick={onSubmitLink}
-              disabled={ingestBusy || !linkValue.trim()}
-              className={cn(
-                "rounded-donna bg-donna-primary px-3 py-2 text-sm font-medium text-white",
-                "hover:bg-donna-primary-hover disabled:cursor-not-allowed disabled:opacity-60",
-              )}
-            >
-              Save
-            </button>
-            <button
-              type="button"
-              onClick={onCancelLink}
-              disabled={ingestBusy}
-              className="rounded-donna px-2 text-sm text-donna-muted hover:text-donna-text"
-            >
-              Cancel
-            </button>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between gap-3 border-t border-donna-border px-3 py-2">
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={onAddLink}
-                disabled={ingestBusy || voiceBusy}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border border-donna-border bg-white px-3 py-1.5",
-                  "text-xs font-medium text-donna-text transition-colors",
-                  "hover:bg-donna-surface",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
-                  "disabled:cursor-not-allowed disabled:opacity-50",
-                )}
-              >
-                <Link2 className="h-3.5 w-3.5" strokeWidth={1.75} />
-                Add link
-              </button>
-              <button
-                type="button"
-                onClick={onSaveToMemory}
-                disabled={ingestBusy || voiceBusy}
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border border-donna-border bg-white px-3 py-1.5",
-                  "text-xs font-medium text-donna-text transition-colors",
-                  "hover:bg-donna-surface",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
-                  "disabled:cursor-not-allowed disabled:opacity-50",
-                )}
-              >
-                <Bookmark className="h-3.5 w-3.5" strokeWidth={1.75} />
-                Save to memory
-              </button>
-            </div>
-            {showMic ? (
-              <MicButton
-                variant="inline"
-                state={micState}
-                onPress={onMicPress}
-                disabled={micDisabled || ingestBusy || saving}
-              />
-            ) : (
-              <button
-                type="submit"
-                disabled={!hasText || saving || ingestBusy || voiceBusy}
-                aria-label="Save note"
-                className={cn(
-                  "flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors",
-                  hasText && !saving && !ingestBusy && !voiceBusy
-                    ? "text-donna-primary hover:bg-donna-surface"
-                    : "text-donna-muted",
-                  "disabled:cursor-not-allowed disabled:opacity-40",
-                )}
-              >
-                {saving ? (
-                  <Spinner className="h-4 w-4" />
-                ) : (
-                  <Send className="h-4 w-4" strokeWidth={1.75} />
-                )}
-              </button>
-            )}
-          </div>
-        )}
-      </form>
-    </div>
-  );
-}
 
 export function NotesPage() {
   const navigate = useNavigate();
@@ -362,10 +148,17 @@ export function NotesPage() {
     }
   }, [location, navigate, showToast, feedQuery, tagsQuery]);
 
-  const handleCreateNote = async (text: string) => {
+  const handleCreateNote = async (
+    text: string,
+    attachments: NoteAttachmentInput[] = [],
+  ) => {
     setActionError(null);
     try {
-      await createMutation.mutateAsync({ content: text, id: newNoteId() });
+      await createMutation.mutateAsync({
+        content: text,
+        id: newNoteId(),
+        attachments: attachments.length ? attachments : undefined,
+      });
       if (activeTag) {
         setActiveTag(null);
       }
@@ -604,6 +397,7 @@ export function NotesPage() {
               ? { label: source, tone: "muted" as const }
               : null);
             const body = note.preview?.trim() || note.title;
+            const thumb = noteThumbUrl(note);
             return (
               <li key={note.id} className="min-w-0">
                 <div
@@ -623,6 +417,13 @@ export function NotesPage() {
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-gold-ring focus-visible:ring-offset-2",
                   )}
                 >
+                  {thumb ? (
+                    <img
+                      src={thumb}
+                      alt=""
+                      className="mb-2 h-28 w-full rounded-md object-cover"
+                    />
+                  ) : null}
                   <div className="flex min-h-0 flex-1 flex-col gap-2">
                     <div className="flex items-start justify-between gap-2">
                       <p className="line-clamp-5 whitespace-pre-wrap text-[0.9375rem] leading-relaxed text-donna-text">
