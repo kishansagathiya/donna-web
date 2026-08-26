@@ -33,6 +33,12 @@ import {
 } from "../lib/dailyTasks";
 import { patchNoteInFeeds, removeNoteFromFeeds } from "../lib/notesCache";
 import { notesQueryKeys } from "../lib/notesQueryKeys";
+import {
+  dismissReminder,
+  formatReminderWhen,
+  listReminders,
+  type Reminder,
+} from "../services/remindersApi";
 
 const PRIORITY_SECTIONS: Array<{
   key: string;
@@ -195,6 +201,7 @@ export function DailyTasksPage() {
   const queryClient = useQueryClient();
   const { userId } = useAuth();
   const [briefing, setBriefing] = useState<DailyBriefing | null>(null);
+  const [reminders, setReminders] = useState<Reminder[]>([]);
   const [checking, setChecking] = useState(false);
   const [acting, setActing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -207,8 +214,12 @@ export function DailyTasksPage() {
     setChecking(true);
     setError(null);
     try {
-      const result = await checkDailyNotes();
+      const [result, openReminders] = await Promise.all([
+        checkDailyNotes(),
+        listReminders("open").catch(() => [] as Reminder[]),
+      ]);
       setBriefing(result);
+      setReminders(openReminders);
       setSelected(new Set());
       if (withNotification) {
         await requestNotificationPermission().then((perm) => {
@@ -429,6 +440,61 @@ export function DailyTasksPage() {
       <div className="flex flex-1 flex-col overflow-y-auto">
         {error ? (
           <AlertBanner className="mx-5 mt-3">{error}</AlertBanner>
+        ) : null}
+
+        {reminders.length > 0 ? (
+          <section className="border-b border-donna-border px-5 py-4 md:px-8">
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="text-xs font-semibold uppercase tracking-wide text-donna-muted">
+                Reminders
+              </h2>
+              <button
+                type="button"
+                className="text-xs font-medium text-donna-primary"
+                onClick={() => navigate("/app/reminders")}
+              >
+                View all
+              </button>
+            </div>
+            <div className="space-y-2">
+              {reminders.slice(0, 4).map((rem) => (
+                <div
+                  key={rem.id}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-donna-border bg-white px-3 py-2"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-donna-text">
+                      {rem.title}
+                    </p>
+                    <p className="text-xs text-donna-muted">
+                      {formatReminderWhen(rem.due_at, rem.timezone)}
+                      {rem.status === "fired" ? " · due now" : ""}
+                    </p>
+                  </div>
+                  {rem.status === "fired" ? (
+                    <Button
+                      variant="secondary"
+                      className="!w-auto px-2.5 py-1 text-xs"
+                      disabled={acting}
+                      onClick={() => {
+                        setActing(true);
+                        void dismissReminder(rem.id)
+                          .then(() =>
+                            setReminders((prev) => prev.filter((r) => r.id !== rem.id)),
+                          )
+                          .catch((err: unknown) =>
+                            setError(err instanceof Error ? err.message : "Failed"),
+                          )
+                          .finally(() => setActing(false));
+                      }}
+                    >
+                      Done
+                    </Button>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </section>
         ) : null}
 
         {checking && !briefing ? (

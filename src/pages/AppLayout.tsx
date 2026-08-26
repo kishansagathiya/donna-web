@@ -5,10 +5,12 @@ import { Sidebar } from "../components/Sidebar";
 import { ChatSessionProvider } from "../hooks/ChatSessionProvider";
 import { ComposerModeProvider } from "../hooks/ComposerModeProvider";
 import { VoiceSessionProvider } from "../hooks/VoiceSessionProvider";
+import { useReminderAlerts } from "../hooks/useReminderAlerts";
 import { cn } from "../lib/cn";
 
 export function AppLayout() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  useReminderAlerts();
 
   return (
     <div className="flex h-full w-full min-h-0">
