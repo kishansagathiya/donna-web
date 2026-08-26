@@ -336,6 +336,19 @@ export function ProfilePage() {
         <IntegrationsSection />
 
         <div className="mb-8 max-w-lg">
+          <p className="mb-1 text-sm font-semibold text-donna-text">Reminders</p>
+          <p className="mb-3 text-xs leading-relaxed text-donna-muted">
+            Timed alerts from chat or the Reminders page. Keep this tab open or
+            use the iOS app so due reminders can notify you.
+          </p>
+          <Link to="/app/reminders">
+            <Button variant="secondary" fullWidth>
+              Manage reminders
+            </Button>
+          </Link>
+        </div>
+
+        <div className="mb-8 max-w-lg">
           <p className="mb-1 text-sm font-semibold text-donna-text">Schedules</p>
           <p className="mb-3 text-xs leading-relaxed text-donna-muted">
             Recurring agent goals — daily briefs, price watches — that run on

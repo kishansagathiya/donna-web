@@ -33,6 +33,7 @@ import { ProfilePage } from "./pages/ProfilePage";
 import { SkillsPage } from "./pages/SkillsPage";
 import { EmployeesPage } from "./pages/EmployeesPage";
 import { SchedulesPage } from "./pages/SchedulesPage";
+import { RemindersPage } from "./pages/RemindersPage";
 import {
   AppShell,
   ConsentShell,
@@ -67,6 +68,7 @@ function PageTitle() {
       "/app/skills": "Skills — Donna",
       "/app/employees": "Employees — Donna",
       "/app/schedules": "Schedules — Donna",
+      "/app/reminders": "Reminders — Donna",
       "/privacy": "Privacy — Donna",
       "/private": "Private — Donna",
       "/pitch": "Pitch — Donna",
@@ -129,6 +131,7 @@ export default function App() {
               <Route path="app/skills" element={<SkillsPage />} />
               <Route path="app/employees" element={<EmployeesPage />} />
               <Route path="app/schedules" element={<SchedulesPage />} />
+              <Route path="app/reminders" element={<RemindersPage />} />
               <Route path="app/notes" element={<NotesPage />} />
               <Route path="app/notes/search" element={<SearchNotesPage />} />
               <Route path="app/notes/:id" element={<NoteDetailPage />} />
