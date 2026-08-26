@@ -16,6 +16,10 @@ describe("chatPhaseLabel", () => {
       "Browsing news.ycombinator.com…",
     );
     expect(chatPhaseLabel("analyzing")).toBe("Analyzing images…");
+    expect(chatPhaseLabel("loading_image")).toBe("Loading image…");
+    expect(chatPhaseLabel("loading_image", "upload.wikimedia.org")).toBe(
+      "Loading image from upload.wikimedia.org…",
+    );
   });
 
   it("hides vague phases", () => {

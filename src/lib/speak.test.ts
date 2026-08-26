@@ -8,6 +8,14 @@ describe("prepareTextForSpeech", () => {
     );
   });
 
+  it("speaks image alt text instead of the url", () => {
+    expect(
+      prepareTextForSpeech(
+        "Here is the bridge:\n\n![Golden Gate Bridge](https://example.com/ggb.jpg)",
+      ),
+    ).toBe("Here is the bridge: Golden Gate Bridge");
+  });
+
   it("keeps markdown link labels", () => {
     expect(
       prepareTextForSpeech("Open [the guide](https://example.com/guide) when ready."),
