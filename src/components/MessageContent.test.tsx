@@ -51,6 +51,34 @@ describe("MessageContent", () => {
     expect(screen.getByText("const x = 1;")).toBeInTheDocument();
   });
 
+  it("renders markdown images for assistant messages", () => {
+    render(
+      <MessageContent
+        variant="assistant"
+        content={"See this:\n\n![Golden Gate](https://example.com/ggb.jpg)"}
+      />,
+    );
+
+    const img = screen.getByRole("img", { name: "Golden Gate" });
+    expect(img).toHaveAttribute("src", "https://example.com/ggb.jpg");
+    expect(img.closest("a")).toHaveAttribute(
+      "href",
+      "https://example.com/ggb.jpg",
+    );
+  });
+
+  it("does not render non-http image sources", () => {
+    render(
+      <MessageContent
+        variant="assistant"
+        content={"![xss](javascript:alert(1))"}
+      />,
+    );
+
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(screen.getByText("xss")).toBeInTheDocument();
+  });
+
   it("preserves line breaks for user messages", () => {
     render(<MessageContent variant="user" content={"Line one\nLine two"} />);
 

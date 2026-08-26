@@ -144,7 +144,54 @@ const assistantComponents: Components = {
     </td>
   ),
   del: ({ children }) => <del className="line-through opacity-80">{children}</del>,
+  img: ({ src, alt }) => <AssistantImage src={src} alt={alt} />,
 };
+
+function isDisplayableImageSrc(src: string): boolean {
+  return /^https?:\/\//i.test(src.trim());
+}
+
+function AssistantImage({ src, alt }: { src?: string; alt?: string }) {
+  const [failed, setFailed] = useState(false);
+  const safeSrc = typeof src === "string" && isDisplayableImageSrc(src) ? src.trim() : "";
+  const label = alt?.trim() || "";
+
+  if (!safeSrc) {
+    return label ? <span>{label}</span> : null;
+  }
+
+  if (failed) {
+    return (
+      <a
+        href={safeSrc}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-medium text-donna-gold underline underline-offset-2"
+      >
+        {label || safeSrc}
+      </a>
+    );
+  }
+
+  return (
+    <a
+      href={safeSrc}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="my-2 block max-w-full"
+    >
+      <img
+        src={safeSrc}
+        alt={label}
+        loading="lazy"
+        decoding="async"
+        referrerPolicy="no-referrer"
+        className="max-h-[28rem] w-auto max-w-full rounded-xl object-contain"
+        onError={() => setFailed(true)}
+      />
+    </a>
+  );
+}
 
 export function MessageContent({ content, variant, className }: Props) {
   if (!content) {
