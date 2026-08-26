@@ -23,7 +23,29 @@ import { AlertBanner } from "../components/ui/AlertBanner";
 import { cn } from "../lib/cn";
 
 function kindLabel(kind: string) {
+  if (kind === "agent_result") return "Agent result";
+  if (kind === "find_media") return "Find media";
+  if (kind === "research_and_act") return "Research";
+  if (kind === "book_travel") return "Travel";
   return kind.replace(/_/g, " ");
+}
+
+function sourceLabel(sourceType: string) {
+  if (sourceType === "note") return "note";
+  if (sourceType === "agent_run") return "agent";
+  return "chat";
+}
+
+function intentMeta(intent: Intent): string | null {
+  if (intent.run) {
+    const actionName = intent.run.action_name ?? intent.run.action_slug ?? "Proposed action";
+    return intent.run.status !== "proposed" ? `${actionName} · ${intent.run.status}` : actionName;
+  }
+  if (intent.kind === "agent_result") return null;
+  if (intent.kind === "find_media" || intent.kind === "research" || intent.kind === "research_and_act" || intent.kind === "book_travel") {
+    return "Donna started a background agent";
+  }
+  return "No matching action yet";
 }
 
 function riskLabel(risk?: string | null) {
@@ -65,7 +87,6 @@ function IntentCard({
   onCancel: (runId: string) => void;
 }) {
   const risk = riskLabel(intent.run?.action_risk);
-  const actionName = intent.run?.action_name ?? intent.run?.action_slug ?? "Proposed action";
 
   return (
     <Card>
@@ -85,20 +106,15 @@ function IntentCard({
             </span>
           ) : null}
           <span className="text-xs text-donna-muted">
-            from {intent.source_type === "note" ? "note" : "chat"}
+            from {sourceLabel(intent.source_type)}
           </span>
         </div>
 
         <div>
           <p className="text-base font-semibold text-donna-text">{intent.summary}</p>
-          {intent.run ? (
-            <p className="mt-1 text-sm text-donna-muted">
-              {actionName}
-              {intent.run.status !== "proposed" ? ` · ${intent.run.status}` : ""}
-            </p>
-          ) : (
-            <p className="mt-1 text-sm text-donna-muted">No matching action yet</p>
-          )}
+          {intentMeta(intent) ? (
+            <p className="mt-1 text-sm text-donna-muted">{intentMeta(intent)}</p>
+          ) : null}
         </div>
 
         <div className="flex flex-wrap gap-2">
