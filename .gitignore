@@ -19,3 +19,4 @@ dist/
 .eslintcache
 coverage/
 *.tsbuildinfo
+.gstack/
