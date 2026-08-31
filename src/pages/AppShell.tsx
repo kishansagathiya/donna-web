@@ -1,6 +1,7 @@
 import { useEffect, type ReactNode } from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
+import { rememberLoginNext, resolvePostLoginPath } from "../lib/loginNext";
 import { hasAiDataConsent } from "../services/privacyConsent";
 import "../app-shell.css";
 import { Spinner } from "../components/ui/Spinner";
@@ -96,16 +97,24 @@ export function ConsentShell() {
 
 export function LoginShell() {
   const { isAuthenticated, loading } = useAuth();
+  const [params] = useSearchParams();
+  const nextParam = params.get("next");
+
+  useEffect(() => {
+    rememberLoginNext(nextParam);
+  }, [nextParam]);
 
   if (loading) {
     return <LoadingScreen />;
   }
 
   if (isAuthenticated) {
-    if (hasAiDataConsent()) {
-      return <Navigate to="/app" replace />;
-    }
-    return <Navigate to="/consent" replace />;
+    return (
+      <Navigate
+        to={resolvePostLoginPath(nextParam, hasAiDataConsent())}
+        replace
+      />
+    );
   }
 
   return (

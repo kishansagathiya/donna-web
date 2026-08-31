@@ -3,6 +3,7 @@ import type { Components } from "react-markdown";
 import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { BlogSignupGate } from "../components/BlogSignupGate";
 import { TweetEmbed } from "../components/TweetEmbed";
 import { formatPostDate, getPost } from "../lib/blog";
 import { parseTweetUrl } from "../lib/tweet";
@@ -92,12 +93,14 @@ export function BlogPostPage() {
         </Link>
         <h1>{post.title}</h1>
         <p className="doc-updated">{formatPostDate(post.date)}</p>
-        <ReactMarkdown
-          remarkPlugins={[remarkGfm]}
-          components={markdownComponents}
-        >
-          {post.body}
-        </ReactMarkdown>
+        <BlogSignupGate>
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={markdownComponents}
+          >
+            {post.body}
+          </ReactMarkdown>
+        </BlogSignupGate>
       </article>
     </div>
   );
