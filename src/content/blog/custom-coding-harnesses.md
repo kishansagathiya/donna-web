@@ -1,20 +1,24 @@
 ---
-title: "Custom coding harnesses: the model is not the product"
+title: "Custom coding harnesses"
 date: 2026-08-31
-description: Generic coding agents are table stakes. The remaining alpha is a harness fitted to one codebase — and the companies that can afford it already built one internally.
+description: Claude Code, except the harness keeps rewriting its own source as the user's requirements change. Companies that cannot wait already build this by hand.
 ---
 
 [Stripe Minions](https://stripe.dev/blog/minions-stripes-one-shot-end-to-end-coding-agents) · [Shopify Roast](https://github.com/Shopify/roast) · [OpenAI harness engineering](https://openai.com/index/harness-engineering/) · [LangChain](https://www.langchain.com/blog/how-to-build-a-custom-agent-harness)
 
-Cursor, Claude Code, and Codex are the new compiler. Everyone has them. The remaining question is whether the agent can ship in *your* repo — the one with the homegrown libraries, the three-million-test CI suite, the Ruby that is not Rails, the payments that cannot be wrong.
+Claude Code is a coding harness. The model is not. The harness is the program around it: the loop that reads files, runs shell, applies patches, retries, stops. Tools are functions. Hooks are callbacks. The system prompt is a string in a file. LangChain writes it as `agent = model + harness`. All of that is code.
 
-That is not a model problem. It is a harness problem.
+A **custom** coding harness is that program, except it is allowed to change itself.
 
-A harness is the program around the model: tools, sandboxes, linters, CI loops, rule files, retries, and the deterministic steps you refuse to leave to a next-token guess. LangChain writes it as `agent = model + harness`. Stripe says vibe-coding a prototype is a different job from contributing to a production codebase. Anthropic, on their own Agent SDK, says even Opus 4.5 "will fall short of building a production-quality web app" if you only give it a high-level prompt and a loop.
+Picture shipping something that looks like Claude Code. The user does not only ask it to edit their app. They ask it to become the agent they actually need. "Always lint before you push." "Never touch migrations without this check." "Use our internal search, not grep." "If CI fails this way, stop and open a ticket." Stock Claude Code would stuff those into `CLAUDE.md` and hope. A custom harness treats them as product requirements for *its own source*. Next session you are not running Anthropic's loop. You are running the fork that grew in the user's repo: a new tool, a different retry, a pre-push node that cannot be skipped because it is a function, not a paragraph.
 
-The startup idea is to build **custom coding harnesses** — not another general coding agent. Fitted ones. The evidence that this is real work, not a vibe, is that the companies with the most to lose are already doing it internally, and a second wave of companies is selling the kit to everyone else.
+That is the whole distinction. Rules files are suggestions in the prompt. Custom means the TypeScript or Python of the agent itself keeps changing.
+
+The startup idea is to build that: Claude Code whose codebase is live. The companies with the most to lose already do the expensive version by hand — they fork the agent and keep rewriting it — and a second wave of companies is selling kits so you can assemble a frozen one. Frozen is not the product.
 
 ## Same model, different box
+
+Changing the harness is not a metaphor. Same weights, different program around them, different results.
 
 Princeton and Stanford's [SWE-agent](https://arxiv.org/abs/2405.15793) made this measurable in 2024. Same GPT-4 Turbo. Drop it in a raw Linux shell, or give it an agent-computer interface — a linter that rejects broken edits, a 100-line file viewer, a search command that does not dump a novel. The custom interface was worth **10.7 percentage points** on SWE-bench Lite. A 64% relative lift over shell-only. The paper's claim is the one the industry has been rediscovering since: language models are a new kind of user, and they need software built for them.
 
@@ -36,7 +40,7 @@ They had to. The codebase is hundreds of millions of lines. Backend is Ruby with
 
 So they forked Block's [goose](https://github.com/block/goose), ran it on the same pre-warmed EC2 **devboxes** humans use (up in ~10 seconds, isolated from prod), and invented **blueprints**: a state machine that interleaves agent nodes ("implement the task", "fix CI") with deterministic nodes ("run configured linters", "push"). They shift feedback left. A background daemon precomputes lint-rule heuristics so pre-push lint is usually under a second; minions loop on that node *before* they spend a CI run. At most two CI rounds against a battery of three million tests, then a human. Context comes from subdirectory-scoped Cursor rules plus **Toolshed**, an internal MCP server with nearly 500 tools, of which each minion gets a curated handful so it does not drown.
 
-The sentence that matters for a startup: Stripe already gives engineers Cursor and Claude Code. Minions exist *anyway*, because the generic harness does not know Stripe.
+They did not prompt Claude Code harder. They changed the agent's code — forked it, added blueprint nodes, wired lint into the loop. That is a custom harness, assembled by humans. The sentence that matters: Stripe already gives engineers Cursor and Claude Code. Minions exist *anyway*, because the generic loop cannot rewrite itself into Stripe.
 
 ### Shopify: Roast
 
@@ -57,7 +61,7 @@ end
 
 Obie Fernandez's version at EuRuKo: free-roaming agents accumulate entropy. Each slightly-wrong step makes the next one harder. Structured workflows keep AI in a box. [Internally](https://www.zenml.io/llmops-database/structured-workflow-orchestration-for-large-scale-code-operations-with-claude) Roast became the way Shopify runs repeatable code operations at the scale of thousands of developers — Claude Code as a step, not as the entire product.
 
-Their philosophy is the product requirement: **non-determinism is the enemy of reliability.** Guardrails are structural, not just prompt-based.
+Their philosophy is the product requirement: **non-determinism is the enemy of reliability.** Guardrails are structural, not just prompt-based. Roast is still typed by a human. The product is an agent that would write those cogs the next time the user asked for a new workflow.
 
 ### OpenAI: harness engineering
 
@@ -71,7 +75,7 @@ What they actually built is a custom coding harness:
 
 Ryan Lopopolo's closer: "building software still demands discipline, but the discipline shows up more in the scaffolding rather than the code." They also say the quiet part: this behavior "depends heavily on the specific structure and tooling of this repository and should not be assumed to generalize without similar investment."
 
-That last sentence is the market. OpenAI's harness does not transfer to your repo. You need one of your own.
+That last sentence is the market. OpenAI's harness does not transfer to your repo. And they did not get there by maintaining a prompt. Codex writes the linters, the docs, the cleanup jobs — the harness keeps changing the scaffolding it runs in. You need that loop pointed at *your* requirements, not theirs.
 
 ### Airbnb: migrations as a harness, not a chat
 
@@ -99,24 +103,21 @@ Anthropic said the same thing from the other side. In [Scaling Managed Agents](h
 
 ## What you would actually sell
 
-The off-the-shelf agents win on greenfield work and popular stacks. They lose on the codebase that is the company.
+Not another Claude Code. Claude Code, except the first repo it is allowed to edit is itself.
 
-A custom coding harness, in the sense Stripe and OpenAI mean it, is:
+The user says what they need. The harness writes a change to *its* tools, loop, hooks, or deterministic steps, then uses the new version on the next task. Requirements become PRs to the agent, written by the agent. That is how you get Stripe-shaped behavior without staffing a team to fork goose.
 
-1. **A blueprint, not a chat.** Deterministic nodes for lint, test, push, migrate, generate. Agentic nodes only where the next action is unknown. Shopify already open-sourced the DSL shape.
-2. **Feedback shifted left.** If CI will fail, the agent finds out in a second on the box, not after a 20-minute pipeline. Stripe's minions exist to spend tokens on the task, not the formatter.
-3. **The repo as the system of record.** Short map file. Versioned docs. Rules scoped to directories. Internal tools as MCP, curated per run — Stripe's Toolshed lesson, not 500 tools dumped into context.
-4. **Architecture enforced mechanically.** Custom linters whose error text is a patch recipe. Structural tests. Taste encoded once, applied everywhere. OpenAI had to invent this or the million-line agent dump would rot.
-5. **Garbage collection.** Background jobs that scan for drift and open tiny PRs. Agents copy whatever they see. If slop is in the repo, slop is the new style guide.
+Those PRs look like the internals above, because that is what "custom" turns into in a real org:
 
-The buyer is not a hobbyist who wants a better Cursor. It is the team whose generic agent opens a PR that compiles and still ships the wrong abstraction, against the wrong library, in the wrong layer, after burning a CI hour. They already pay for models. They cannot staff a three-person "harness engineering" team the way OpenAI can.
+1. **A new node in the loop, not a new paragraph in a prompt.** Lint, test, push, migrate — as code the model cannot skip. Shopify already open-sourced that shape as a DSL. The product is generating it from use, not asking a platform engineer to type it.
+2. **Feedback shifted left.** If CI will fail, the harness grows a local check so it finds out in a second, not after a 20-minute pipeline.
+3. **Tools that exist only here.** Internal search, ticketing, feature flags — added as functions when the user needs them, not 500 MCP servers dumped into context.
+4. **Architecture enforced mechanically.** Custom linters whose error text is a patch recipe. Taste encoded once in the harness source, applied everywhere.
+5. **Garbage collection of the harness too.** If a workaround rots, a background pass deletes it. Agents copy whatever they see, including their own slop.
 
-Two product shapes, same thesis:
+The buyer is the team whose generic agent opens a PR that compiles and still ships the wrong abstraction. They already pay for models. They cannot staff a three-person "harness engineering" team, and they should not have to file a ticket with Anthropic to get a lint node.
 
-- **Studio + runtime.** Sit with one org, encode their CI, conventions, and internal tools into a blueprint, then run unattended agents against it. Minions-as-a-service. The first ten customers *are* the product.
-- **Platform for fitted harnesses.** The LangChain/Factory/Copilot layer, but opinionated toward *coding on an existing production repo*: blueprint DSL, shift-left adapters for whatever CI they have, linter-to-agent error rewriting, scheduled garbage collection. Not "build any agent." Build this kind.
-
-The kit vendors make the second shape look crowded. It is not. They sell primitives. Someone still has to fit the harness to the repo — the way Stripe forked goose instead of prompting Cursor harder. That fitting is the company.
+The kit vendors make this look crowded. It is not. LangChain and Copilot SDK let a human assemble a frozen harness. Stripe forked goose and kept changing it. The company is the loop that does that fork continuously, from the user's requirements, without a platform team in the middle.
 
 ## Why this is a 2026 idea and not a 2023 wrapper
 
@@ -126,10 +127,10 @@ Three facts have to be true at once for a custom-harness company to make sense. 
 
 1. Generic agents are widely deployed and still fail on the codebases that matter.
 2. The orgs that cannot afford to fail have already built private harnesses, and they keep investing after buying Cursor.
-3. The platform layer exists, which means the category is named, budgeted, and still missing the last mile: *your* linters, *your* CI, *your* architecture, *your* unattended loop.
+3. The platform layer exists, which means the category is named and budgeted — and still ships a harness that only a human can customize.
 
 That is a classic "the incumbents built it for themselves" market. Palantir looked like that. Databricks looked like that. The internal tool leaks, then a company productizes the leak for everyone who is not Stripe.
 
-I am not claiming this is easy. Fitting a harness is slow, political, and full of repo-specific landmines — which is also why it is defensible. The model vendor cannot do it without becoming a consultancy. The IDE vendor cannot do it without picking a winner among every customer's weird CI. The gap in the middle is a product.
+I am not claiming this is easy. Letting an agent rewrite its own control loop is how you get a confused fork, or a confused production incident. That risk is also why it is defensible. The model vendor will not let Claude Code rewrite Claude Code for your CI. The IDE vendor will not pick a winner among every customer's weird pipeline. The gap is a product: a coding harness whose source stays alive.
 
-If you run agents on a real codebase and they feel flaky, try not changing the model first. Change the box it lives in.
+If the stock agent feels flaky on a real codebase, the next step is not a different model. It is an agent that is allowed to change the box it lives in.

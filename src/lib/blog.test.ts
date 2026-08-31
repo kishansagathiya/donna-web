@@ -209,5 +209,7 @@ describe("bundled posts", () => {
       "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
     );
     expect(post?.body).toContain("https://arxiv.org/abs/2405.15793");
+    expect(post?.body).toMatch(/allowed to change itself/i);
+    expect(post?.body).toContain("Claude Code");
   });
 });
