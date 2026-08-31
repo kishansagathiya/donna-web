@@ -190,4 +190,24 @@ describe("bundled posts", () => {
       "https://x.com/a1zhang/status/1978469116542337259",
     );
   });
+
+  it("includes custom-coding-harnesses", () => {
+    const post = getPost("custom-coding-harnesses");
+    expect(post).toBeDefined();
+    expect(post?.title).toMatch(/custom coding harnesses/i);
+    expect(post?.body).toContain(
+      "https://stripe.dev/blog/minions-stripes-one-shot-end-to-end-coding-agents",
+    );
+    expect(post?.body).toContain("https://github.com/Shopify/roast");
+    expect(post?.body).toContain(
+      "https://openai.com/index/harness-engineering/",
+    );
+    expect(post?.body).toContain(
+      "https://www.langchain.com/blog/how-to-build-a-custom-agent-harness",
+    );
+    expect(post?.body).toContain(
+      "https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents",
+    );
+    expect(post?.body).toContain("https://arxiv.org/abs/2405.15793");
+  });
 });
