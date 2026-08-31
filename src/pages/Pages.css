@@ -269,18 +269,6 @@
   font-size: 0.9rem;
 }
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
 .blog-post-gated {
   position: relative;
 }
@@ -327,54 +315,25 @@
   color: var(--text-muted);
 }
 
-.blog-gate-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-}
-
-.blog-gate-form input {
-  flex: 1 1 10rem;
-  min-width: 0;
-  padding: 0.8rem 1rem;
-  font-family: inherit;
-  font-size: 0.95rem;
-  color: var(--text-primary);
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 100px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.blog-gate-form input::placeholder {
-  color: var(--text-faint);
-}
-
-.blog-gate-form input:focus {
-  border-color: var(--accent);
-}
-
-.blog-gate-form button {
-  flex: 0 0 auto;
-  padding: 0.8rem 1.25rem;
+.doc a.blog-gate-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 8.5rem;
+  padding: 0.8rem 1.5rem;
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--bg-deep);
   background: var(--accent);
   border-radius: 100px;
+  text-decoration: none;
   transition: transform 0.15s, box-shadow 0.2s;
 }
 
-.blog-gate-form button:hover {
+.doc a.blog-gate-cta:hover {
+  opacity: 1;
   transform: translateY(-1px);
   box-shadow: 0 8px 24px var(--accent-glow);
-}
-
-.doc .blog-gate-error {
-  margin: 0.7rem 0 0;
-  font-size: 0.85rem;
-  color: var(--text-primary);
 }
 
 .doc .blog-gate-fineprint {
@@ -393,7 +352,7 @@ html[data-theme="eink"] .blog-gate-card {
   border-color: rgba(26, 26, 26, 0.22);
 }
 
-html[data-theme="eink"] .blog-gate-form button:hover {
+html[data-theme="eink"] .doc a.blog-gate-cta:hover {
   transform: none;
   box-shadow: none;
 }
