@@ -66,20 +66,133 @@ export async function signInWithPassword(
   }
 }
 
-/** System-browser login for Donna Desktop. Tokens return via donna://auth/callback. */
-export function isDesktopBrowserHandoff(): boolean {
-  if (typeof window === "undefined" || isDonnaDesktop()) return false;
+const DESKTOP_HANDOFF_KEY = "donna.desktop_handoff.v1";
+const DESKTOP_HANDOFF_COOKIE = "donna_desktop_handoff";
+const DESKTOP_HANDOFF_TTL_MS = 15 * 60 * 1000;
+
+type DesktopHandoffState = {
+  t: number;
+  port?: string;
+  nonce?: string;
+};
+
+function hasDesktopHandoffQuery(): boolean {
+  if (typeof window === "undefined") return false;
   const q = new URLSearchParams(window.location.search);
   return q.get("desktop") === "1" || q.get("desktop_handoff") === "1";
 }
 
-export function handoffSessionToDesktop(session: Session): void {
+function readStoredHandoff(): DesktopHandoffState | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(DESKTOP_HANDOFF_KEY);
+    if (raw) {
+      if (raw === "1") return { t: Date.now() };
+      const parsed = JSON.parse(raw) as DesktopHandoffState;
+      if (parsed && typeof parsed.t === "number") {
+        if (Date.now() - parsed.t > DESKTOP_HANDOFF_TTL_MS) {
+          clearDesktopHandoff();
+          return null;
+        }
+        return parsed;
+      }
+    }
+  } catch {
+    // ignore
+  }
+  if (typeof document === "undefined") return null;
+  for (const part of document.cookie.split(";")) {
+    const [name, ...rest] = part.trim().split("=");
+    if (name !== DESKTOP_HANDOFF_COOKIE) continue;
+    const value = decodeURIComponent(rest.join("="));
+    const [flag, port, nonce] = value.split("|");
+    if (flag === "1") {
+      return {
+        t: Date.now(),
+        port: port || undefined,
+        nonce: nonce || undefined,
+      };
+    }
+  }
+  return null;
+}
+
+function persistHandoff(state: DesktopHandoffState): void {
+  try {
+    sessionStorage.setItem(DESKTOP_HANDOFF_KEY, JSON.stringify(state));
+  } catch {
+    // private mode
+  }
+  if (typeof document === "undefined") return;
+  const maxAge = Math.floor(DESKTOP_HANDOFF_TTL_MS / 1000);
+  const secure = window.location.protocol === "https:" ? "; Secure" : "";
+  const cookieVal = encodeURIComponent(
+    `1|${state.port ?? ""}|${state.nonce ?? ""}`,
+  );
+  document.cookie = `${DESKTOP_HANDOFF_COOKIE}=${cookieVal}; Max-Age=${maxAge}; Path=/; SameSite=Lax${secure}`;
+}
+
+/** System-browser login for Donna Desktop. Tokens return via loopback or donna://. */
+export function rememberDesktopHandoff(): void {
+  if (typeof window === "undefined") return;
+  const q = new URLSearchParams(window.location.search);
+  const existing = readStoredHandoff();
+  const fromQuery = hasDesktopHandoffQuery();
+  const port = q.get("handoff_port") || existing?.port;
+  const nonce = q.get("handoff_nonce") || existing?.nonce;
+  if (!fromQuery && !port && !existing) return;
+  persistHandoff({
+    t: existing?.t ?? Date.now(),
+    port,
+    nonce,
+  });
+}
+
+export function clearDesktopHandoff(): void {
+  if (typeof window === "undefined") return;
+  try {
+    sessionStorage.removeItem(DESKTOP_HANDOFF_KEY);
+  } catch {
+    // ignore
+  }
+  if (typeof document !== "undefined") {
+    const secure = window.location.protocol === "https:" ? "; Secure" : "";
+    document.cookie = `${DESKTOP_HANDOFF_COOKIE}=; Max-Age=0; Path=/; SameSite=Lax${secure}`;
+  }
+}
+
+export function isDesktopBrowserHandoff(): boolean {
+  if (typeof window === "undefined" || isDonnaDesktop()) return false;
+  rememberDesktopHandoff();
+  if (hasDesktopHandoffQuery()) return true;
+  return readStoredHandoff() != null;
+}
+
+export function desktopHandoffLoopback(): { port: string; nonce: string } | null {
+  const stored = readStoredHandoff();
+  const q =
+    typeof window === "undefined"
+      ? null
+      : new URLSearchParams(window.location.search);
+  const port = q?.get("handoff_port") || stored?.port;
+  const nonce = q?.get("handoff_nonce") || stored?.nonce;
+  if (!port || !nonce) return null;
+  if (!/^\d{1,5}$/.test(port)) return null;
+  const n = Number(port);
+  if (n < 1 || n > 65535) return null;
+  return { port, nonce };
+}
+
+export function desktopHandoffUrl(session: Session): string {
   const params = new URLSearchParams({
     access_token: session.access_token,
     refresh_token: session.refresh_token,
   });
-  // Query, not hash: macOS drops URL fragments when opening custom schemes.
-  window.location.assign(`donna://auth/callback?${params.toString()}`);
+  return `donna://auth/callback?${params.toString()}`;
+}
+
+export function handoffSessionToDesktop(session: Session): void {
+  window.location.assign(desktopHandoffUrl(session));
 }
 
 async function persistDesktopSession(session: Session): Promise<void> {

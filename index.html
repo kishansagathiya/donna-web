@@ -24,6 +24,29 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      (function () {
+        try {
+          var q = new URLSearchParams(location.search);
+          if (q.get("desktop") === "1" || q.get("desktop_handoff") === "1") {
+            var port = q.get("handoff_port") || "";
+            var nonce = q.get("handoff_nonce") || "";
+            var payload = JSON.stringify({
+              t: Date.now(),
+              port: port || undefined,
+              nonce: nonce || undefined,
+            });
+            var secure = location.protocol === "https:" ? "; Secure" : "";
+            document.cookie =
+              "donna_desktop_handoff=" +
+              encodeURIComponent("1|" + port + "|" + nonce) +
+              "; Max-Age=900; Path=/; SameSite=Lax" +
+              secure;
+            sessionStorage.setItem("donna.desktop_handoff.v1", payload);
+          }
+        } catch (e) {}
+      })();
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

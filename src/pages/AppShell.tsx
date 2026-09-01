@@ -3,7 +3,10 @@ import { Navigate, Outlet, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { rememberLoginNext, resolvePostLoginPath } from "../lib/loginNext";
 import { hasAiDataConsent } from "../services/privacyConsent";
-import { isDesktopBrowserHandoff } from "../services/auth";
+import {
+  isDesktopBrowserHandoff,
+  rememberDesktopHandoff,
+} from "../services/auth";
 import { DesktopAuthHandoff } from "../components/DesktopAuthHandoff";
 import "../app-shell.css";
 import { Spinner } from "../components/ui/Spinner";
@@ -54,7 +57,7 @@ function LoadingScreen() {
 }
 
 export function AppShell() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, session } = useAuth();
 
   if (loading) {
     return <LoadingScreen />;
@@ -62,6 +65,14 @@ export function AppShell() {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (isDesktopBrowserHandoff() && session) {
+    return (
+      <AuthShellFrame>
+        <DesktopAuthHandoff session={session} />
+      </AuthShellFrame>
+    );
   }
 
   if (!hasAiDataConsent()) {
@@ -76,7 +87,7 @@ export function AppShell() {
 }
 
 export function ConsentShell() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, session } = useAuth();
 
   if (loading) {
     return <LoadingScreen />;
@@ -84,6 +95,14 @@ export function ConsentShell() {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (isDesktopBrowserHandoff() && session) {
+    return (
+      <AuthShellFrame>
+        <DesktopAuthHandoff session={session} />
+      </AuthShellFrame>
+    );
   }
 
   if (hasAiDataConsent()) {
@@ -104,6 +123,7 @@ export function LoginShell() {
   const desktopHandoff = isDesktopBrowserHandoff();
 
   useEffect(() => {
+    rememberDesktopHandoff();
     rememberLoginNext(nextParam);
   }, [nextParam]);
 

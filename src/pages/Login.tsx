@@ -9,10 +9,8 @@ import { PRIVACY_POLICY_URL } from "../config";
 import { isDonnaDesktop } from "../lib/desktop";
 import { cn } from "../lib/cn";
 import {
-  getSession,
-  handoffSessionToDesktop,
   isDesktopBrowserHandoff,
-  onAuthStateChange,
+  rememberDesktopHandoff,
   signInWithPassword,
 } from "../services/auth";
 
@@ -23,6 +21,8 @@ export function Login() {
   const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
+    rememberDesktopHandoff();
+
     const hashParams = new URLSearchParams(window.location.hash.slice(1));
     const queryParams = new URLSearchParams(window.location.search);
     const errorDescription =
@@ -30,19 +30,12 @@ export function Login() {
 
     if (errorDescription) {
       setError(decodeURIComponent(errorDescription.replace(/\+/g, " ")));
-      window.history.replaceState({}, "", window.location.pathname);
-      return;
+      window.history.replaceState(
+        {},
+        "",
+        window.location.pathname + window.location.search,
+      );
     }
-
-    if (!isDesktopBrowserHandoff()) return undefined;
-
-    const bounce = (
-      session: Parameters<typeof handoffSessionToDesktop>[0] | null,
-    ) => {
-      if (session?.access_token) handoffSessionToDesktop(session);
-    };
-    void getSession().then(bounce);
-    return onAuthStateChange(bounce);
   }, []);
 
   async function handlePasswordSubmit(event: FormEvent<HTMLFormElement>) {
