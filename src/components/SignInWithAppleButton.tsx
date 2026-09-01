@@ -15,10 +15,11 @@ export function SignInWithAppleButton({ onError }: Props) {
     try {
       await signInWithApple();
     } catch (err) {
-      setLoading(false);
       const message =
         err instanceof Error ? err.message : "Sign in failed. Please try again.";
       onError?.(message);
+    } finally {
+      setLoading(false);
     }
   }
 

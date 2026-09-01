@@ -5,6 +5,7 @@ import {
   SUPABASE_ANON_KEY,
   SUPABASE_URL,
 } from "../config";
+import { desktopInvoke, isDonnaDesktop } from "../lib/desktop";
 
 const APPLE_SCRIPT_SRC =
   "https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js";
@@ -13,11 +14,13 @@ const GOOGLE_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
 let appleScriptPromise: Promise<void> | null = null;
 let googleScriptPromise: Promise<void> | null = null;
 
+const desktopClient = typeof window !== "undefined" && isDonnaDesktop();
+
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
+    autoRefreshToken: !desktopClient,
+    persistSession: !desktopClient,
+    detectSessionInUrl: !desktopClient,
   },
 });
 
@@ -29,6 +32,14 @@ export async function getSession(): Promise<Session | null> {
 }
 
 export async function getAccessToken(): Promise<string | null> {
+  if (isDonnaDesktop()) {
+    try {
+      const token = await desktopInvoke<string | null>("get_access_token");
+      if (token) return token;
+    } catch {
+      // fall through to in-memory session
+    }
+  }
   const session = await getSession();
   return session?.access_token ?? null;
 }
@@ -43,16 +54,52 @@ export async function signInWithPassword(
     throw new Error("Enter an email and password.");
   }
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: trimmedEmail,
     password,
   });
   if (error) {
     throw new Error(error.message);
   }
+  if (isDonnaDesktop() && data.session) {
+    await persistDesktopSession(data.session);
+  }
+}
+
+/** System-browser login for Donna Desktop. Tokens return via donna://auth/callback. */
+export function isDesktopBrowserHandoff(): boolean {
+  if (typeof window === "undefined" || isDonnaDesktop()) return false;
+  const q = new URLSearchParams(window.location.search);
+  return q.get("desktop") === "1" || q.get("desktop_handoff") === "1";
+}
+
+export function handoffSessionToDesktop(session: Session): void {
+  const params = new URLSearchParams({
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
+  });
+  // Query, not hash: macOS drops URL fragments when opening custom schemes.
+  window.location.assign(`donna://auth/callback?${params.toString()}`);
+}
+
+async function persistDesktopSession(session: Session): Promise<void> {
+  if (!isDonnaDesktop()) return;
+  await desktopInvoke("set_session", {
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
+  });
+}
+
+async function tryDesktopAuthStart(provider: "apple" | "google"): Promise<boolean> {
+  if (!isDonnaDesktop()) return false;
+  await desktopInvoke("auth_start", { provider });
+  return true;
 }
 
 export async function signInWithApple(): Promise<void> {
+  if (await tryDesktopAuthStart("apple")) {
+    return;
+  }
   if (!APPLE_CLIENT_ID) {
     throw new Error(
       "Apple Sign In is not configured. Set VITE_APPLE_CLIENT_ID to your Apple Services ID.",
@@ -90,7 +137,7 @@ export async function signInWithApple(): Promise<void> {
     throw new Error("No identity token received from Apple.");
   }
 
-  const { error } = await supabase.auth.signInWithIdToken({
+  const { data, error } = await supabase.auth.signInWithIdToken({
     provider: "apple",
     token: idToken,
     nonce: rawNonce,
@@ -115,6 +162,10 @@ export async function signInWithApple(): Promise<void> {
     throw new Error(error.message);
   }
 
+  if (data.session) {
+    await persistDesktopSession(data.session);
+  }
+
   const name = response.user?.name;
   if (name) {
     const fullName = [name.firstName, name.middleName, name.lastName]
@@ -135,6 +186,9 @@ export async function signInWithApple(): Promise<void> {
 
 /** Google Identity Services → Supabase ID token (falls back to OAuth redirect). */
 export async function signInWithGoogle(): Promise<void> {
+  if (await tryDesktopAuthStart("google")) {
+    return;
+  }
   if (!GOOGLE_CLIENT_ID) {
     throw new Error(
       "Google Sign In is not configured. Set VITE_GOOGLE_CLIENT_ID to your Google Web Client ID.",
@@ -167,7 +221,7 @@ export async function signInWithGoogle(): Promise<void> {
               return;
             }
 
-            const { error } = await supabase.auth.signInWithIdToken({
+            const { data, error } = await supabase.auth.signInWithIdToken({
               provider: "google",
               token: response.credential,
               nonce: rawNonce,
@@ -209,6 +263,9 @@ export async function signInWithGoogle(): Promise<void> {
               return;
             }
 
+            if (data.session) {
+              await persistDesktopSession(data.session);
+            }
             settle(() => resolve());
           } catch (err) {
             settle(() =>
@@ -231,6 +288,16 @@ export async function signInWithGoogle(): Promise<void> {
 
     window.google!.accounts.id.prompt((notification) => {
       if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        if (isDonnaDesktop()) {
+          settle(() =>
+            reject(
+              new Error(
+                "Google sign-in isn’t available in this window. Use Apple or email, or sign in at localhost:5173 in your browser.",
+              ),
+            ),
+          );
+          return;
+        }
         void supabase.auth
           .signInWithOAuth({
             provider: "google",
@@ -351,6 +418,13 @@ function isAppleSignInCancellation(error: unknown): boolean {
 }
 
 export async function signOut(): Promise<void> {
+  if (isDonnaDesktop()) {
+    try {
+      await desktopInvoke("auth_sign_out");
+    } catch {
+      // still clear the webview session
+    }
+  }
   const {
     data: { session },
   } = await supabase.auth.getSession();

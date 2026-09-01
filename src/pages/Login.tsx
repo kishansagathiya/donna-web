@@ -6,8 +6,15 @@ import { SignInWithGoogleButton } from "../components/SignInWithGoogleButton";
 import { Spinner } from "../components/ui/Spinner";
 import { TextInput } from "../components/ui/TextInput";
 import { PRIVACY_POLICY_URL } from "../config";
+import { isDonnaDesktop } from "../lib/desktop";
 import { cn } from "../lib/cn";
-import { signInWithPassword } from "../services/auth";
+import {
+  getSession,
+  handoffSessionToDesktop,
+  isDesktopBrowserHandoff,
+  onAuthStateChange,
+  signInWithPassword,
+} from "../services/auth";
 
 export function Login() {
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +31,18 @@ export function Login() {
     if (errorDescription) {
       setError(decodeURIComponent(errorDescription.replace(/\+/g, " ")));
       window.history.replaceState({}, "", window.location.pathname);
+      return;
     }
+
+    if (!isDesktopBrowserHandoff()) return undefined;
+
+    const bounce = (
+      session: Parameters<typeof handoffSessionToDesktop>[0] | null,
+    ) => {
+      if (session?.access_token) handoffSessionToDesktop(session);
+    };
+    void getSession().then(bounce);
+    return onAuthStateChange(bounce);
   }, []);
 
   async function handlePasswordSubmit(event: FormEvent<HTMLFormElement>) {
@@ -54,6 +72,17 @@ export function Login() {
         <p className="max-w-xs text-base leading-relaxed text-donna-muted">
           AI Assistant that remembers what matters
         </p>
+        {isDonnaDesktop() ? (
+          <p className="max-w-xs text-sm text-donna-muted">
+            Apple and Google open in your browser, then return here. Email
+            sign-in stays in this window.
+          </p>
+        ) : isDesktopBrowserHandoff() ? (
+          <p className="max-w-xs text-sm text-donna-muted">
+            After sign-in, click Open Donna Desktop if the app does not come
+            forward on its own.
+          </p>
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-4">

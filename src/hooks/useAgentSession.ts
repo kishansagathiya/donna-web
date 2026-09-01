@@ -49,6 +49,7 @@ export function useAgentSession(enabled = true) {
   const [refreshKey, setRefreshKey] = useState(0);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
 
   const selectedIdRef = useRef(selectedId);
   selectedIdRef.current = selectedId;
@@ -161,6 +162,7 @@ export function useAgentSession(enabled = true) {
         goalText,
         attachments.length > 0 ? attachmentPayloads(attachments) : undefined,
         skills.length > 0 ? skills : undefined,
+        workspaceId ?? undefined,
       );
       listFetchGen.current += 1;
       setRuns((prev) =>
@@ -304,6 +306,8 @@ export function useAgentSession(enabled = true) {
     selectedOptions,
     selectedSkills,
     setSelectedSkills,
+    workspaceId,
+    setWorkspaceId,
     active,
     turns,
     needsReply,

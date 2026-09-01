@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { Sidebar } from "../components/Sidebar";
+import { DesktopStatusBar } from "../components/DesktopStatusBar";
 import { ChatSessionProvider } from "../hooks/ChatSessionProvider";
 import { ComposerModeProvider } from "../hooks/ComposerModeProvider";
 import { VoiceSessionProvider } from "../hooks/VoiceSessionProvider";
@@ -33,6 +34,7 @@ export function AppLayout() {
       ) : null}
 
       <main className="flex min-w-0 flex-1 flex-col overflow-hidden bg-white">
+        <DesktopStatusBar />
         <div className="flex shrink-0 items-center border-b border-donna-border px-4 py-3 md:hidden">
           <button
             type="button"

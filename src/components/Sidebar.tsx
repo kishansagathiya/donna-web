@@ -7,6 +7,7 @@ import {
   Clock,
   Database,
   Inbox,
+  Laptop,
   MessageSquare,
   Mic,
   Plus,
@@ -27,6 +28,7 @@ const navItems = [
   { to: "/app/today", label: "Today", icon: CalendarCheck, end: false },
   { to: "/app/search", label: "Memory", icon: Database, end: false },
   { to: "/app/profile", label: "Profile", icon: User, end: false },
+  { to: "/app/desktop", label: "Desktop", icon: Laptop, end: false },
 ] as const;
 
 type Props = {

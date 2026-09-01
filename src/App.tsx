@@ -43,6 +43,7 @@ import {
 import { AppLayout } from "./pages/AppLayout";
 import { SharedConversationPage } from "./pages/SharedConversationPage";
 import { SharedAgentRunPage } from "./pages/SharedAgentRunPage";
+import { DesktopDiagnosticsPage } from "./pages/DesktopDiagnosticsPage";
 
 function RedirectContextToNote() {
   const { id } = useParams<{ id: string }>();
@@ -65,6 +66,7 @@ function PageTitle() {
       "/app/today": "Today — Donna",
       "/app/search": "Memory — Donna",
       "/app/profile": "Profile — Donna",
+      "/app/desktop": "Desktop — Donna",
       "/app/skills": "Skills — Donna",
       "/app/employees": "Employees — Donna",
       "/app/schedules": "Schedules — Donna",
@@ -128,6 +130,7 @@ export default function App() {
               <Route path="app/search" element={<ExtractedMemoryPage />} />
               <Route path="app/add" element={<AddMemoryPage />} />
               <Route path="app/profile" element={<ProfilePage />} />
+              <Route path="app/desktop" element={<DesktopDiagnosticsPage />} />
               <Route path="app/skills" element={<SkillsPage />} />
               <Route path="app/employees" element={<EmployeesPage />} />
               <Route path="app/schedules" element={<SchedulesPage />} />

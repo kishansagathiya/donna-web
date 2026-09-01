@@ -3,6 +3,8 @@ import { Navigate, Outlet, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { rememberLoginNext, resolvePostLoginPath } from "../lib/loginNext";
 import { hasAiDataConsent } from "../services/privacyConsent";
+import { isDesktopBrowserHandoff } from "../services/auth";
+import { DesktopAuthHandoff } from "../components/DesktopAuthHandoff";
 import "../app-shell.css";
 import { Spinner } from "../components/ui/Spinner";
 
@@ -96,9 +98,10 @@ export function ConsentShell() {
 }
 
 export function LoginShell() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, session } = useAuth();
   const [params] = useSearchParams();
   const nextParam = params.get("next");
+  const desktopHandoff = isDesktopBrowserHandoff();
 
   useEffect(() => {
     rememberLoginNext(nextParam);
@@ -106,6 +109,14 @@ export function LoginShell() {
 
   if (loading) {
     return <LoadingScreen />;
+  }
+
+  if (isAuthenticated && desktopHandoff && session) {
+    return (
+      <AuthShellFrame>
+        <DesktopAuthHandoff session={session} />
+      </AuthShellFrame>
+    );
   }
 
   if (isAuthenticated) {

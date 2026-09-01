@@ -43,6 +43,13 @@ export type AccountPreferences = {
   persona_custom: string;
   available_personas: string[] | null;
   timezone: string;
+  experimental?: {
+    notesFeed?: boolean;
+    smartTagging?: boolean;
+    memoryExtraction?: boolean;
+    memoryRetrieval?: boolean;
+    localAgentsV1?: boolean;
+  };
 };
 
 export async function getAccountPreferences(): Promise<AccountPreferences> {
@@ -109,6 +116,23 @@ export async function updateTimezone(timezone: string): Promise<string> {
     throw new Error("Timezone was not saved. Refresh and try again.");
   }
   return body.timezone;
+}
+
+export async function updateLocalAgentsV1(enabled: boolean): Promise<boolean> {
+  const res = await authorizedFetch("/account", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ experimental: { localAgentsV1: enabled } }),
+  });
+  const body = (await res.json()) as {
+    experimental?: { localAgentsV1?: boolean };
+    error?: string;
+    message?: string;
+  };
+  if (!res.ok) {
+    throw new Error(body.message ?? body.error ?? `Save failed (${res.status})`);
+  }
+  return Boolean(body.experimental?.localAgentsV1);
 }
 
 export async function downloadAccountExport(): Promise<void> {

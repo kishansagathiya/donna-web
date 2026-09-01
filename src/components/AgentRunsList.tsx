@@ -17,8 +17,14 @@ export type AgentRunsListProps = {
   runs?: AgentRun[];
 };
 
-function statusLabel(status: string) {
-  return status === "waiting_for_user" ? "needs reply" : status;
+function statusLabel(status: string, waitingReason?: string | null) {
+  if (status === "waiting_for_user") return "needs reply";
+  if (status === "queued" && waitingReason === "device_offline") return "waiting for Mac";
+  if (status === "queued" && waitingReason === "device_busy") return "Mac busy";
+  if (status === "queued" && waitingReason === "workspace_unavailable") {
+    return "workspace unavailable";
+  }
+  return status;
 }
 
 function statusClass(status: string) {
@@ -85,7 +91,7 @@ export function AgentRunsList({
       (r) =>
         r.goal.toLowerCase().includes(q) ||
         r.status.toLowerCase().includes(q) ||
-        statusLabel(r.status).includes(q),
+        statusLabel(r.status, r.waiting_reason).includes(q),
     );
   }, [runs, query]);
 
@@ -149,7 +155,7 @@ export function AgentRunsList({
                           statusClass(run.status),
                         )}
                       >
-                        {statusLabel(run.status)}
+                        {statusLabel(run.status, run.waiting_reason)}
                       </span>
                       <span className="text-[11px] text-donna-muted">
                         {run.step_count} steps

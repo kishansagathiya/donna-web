@@ -14,6 +14,8 @@ import { ChatHistorySheet } from "../components/ChatHistorySheet";
 import { ChatHistorySidebar } from "../components/ChatHistorySidebar";
 import { ChatInput } from "../components/ChatInput";
 import { ChatMessages } from "../components/ChatMessages";
+import { DesktopRequiredBanner, WaitingForMacBanner } from "../components/DesktopBanners";
+import { WorkspacePicker } from "../components/WorkspacePicker";
 import { IngestToast } from "../components/IngestToast";
 import { ShareAgentRunSheet } from "../components/ShareAgentRunSheet";
 import { AlertBanner } from "../components/ui/AlertBanner";
@@ -485,6 +487,18 @@ export function ChatApp() {
           />
         )}
 
+        {isAgent ? (
+          <WaitingForMacBanner
+            status={agent.active?.status}
+            waitingReason={agent.active?.waiting_reason}
+          />
+        ) : null}
+        {isAgent && agent.error ? (
+          <DesktopRequiredBanner
+            message={agent.error}
+            onDismiss={() => agent.setError(null)}
+          />
+        ) : null}
         {activeError ? (
           <AlertBanner
             onDismiss={dismissActiveError}
@@ -519,6 +533,16 @@ export function ChatApp() {
                 </span>
               ))}
             </div>
+          </div>
+        ) : null}
+
+        {isAgent ? (
+          <div className="shrink-0 px-5 pb-1">
+            <WorkspacePicker
+              value={agent.workspaceId}
+              onChange={agent.setWorkspaceId}
+              disabled={agent.busy || Boolean(agent.active)}
+            />
           </div>
         ) : null}
 

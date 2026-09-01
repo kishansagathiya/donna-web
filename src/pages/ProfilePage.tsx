@@ -207,6 +207,19 @@ export function ProfilePage() {
         ) : null}
 
         <div className="mb-8 max-w-lg">
+          <p className="mb-1 text-sm font-semibold text-donna-text">Desktop</p>
+          <p className="mb-2 text-xs text-donna-muted">
+            Local agent runtime, workspaces, and worker diagnostics.
+          </p>
+          <Link
+            to="/app/desktop"
+            className="text-sm font-medium text-donna-primary hover:underline"
+          >
+            Open Donna Desktop settings
+          </Link>
+        </div>
+
+        <div className="mb-8 max-w-lg">
           <label
             htmlFor="llm-model"
             className="mb-1 block text-sm font-semibold text-donna-text"

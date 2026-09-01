@@ -17,6 +17,10 @@ export type AgentRun = {
   redirect_pending?: string | null;
   error?: string | null;
   result?: Record<string, unknown> | null;
+  execution_target?: string;
+  assigned_device_id?: string | null;
+  workspace_id?: string | null;
+  waiting_reason?: string | null;
   created_at: string;
   updated_at: string;
   finished_at?: string | null;
@@ -115,6 +119,7 @@ export async function createAgentRun(
   goal: string,
   attachments?: AgentAttachment[],
   skills?: string[],
+  workspaceId?: string,
 ): Promise<AgentRun> {
   const res = await authorizedFetch("/agent-runs", {
     method: "POST",
@@ -122,6 +127,7 @@ export async function createAgentRun(
       goal,
       attachments: attachments && attachments.length > 0 ? attachments : undefined,
       skills: skills && skills.length > 0 ? skills : undefined,
+      workspace_id: workspaceId || undefined,
     }),
   });
   if (!res.ok) throw new Error(await readError(res));
