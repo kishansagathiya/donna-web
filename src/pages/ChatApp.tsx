@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
   Check,
   History,
@@ -30,6 +30,7 @@ import { useCreateNoteMutation } from "../hooks/useNotes";
 import { useVoiceSessionContext } from "../hooks/VoiceSessionProvider";
 import { cn } from "../lib/cn";
 import { isComposerMode } from "../lib/composerMode";
+import { agentRunGraphPath } from "../lib/agentGraph";
 import {
   approvalKindLabel,
   bookingProposalFromResult,
@@ -359,13 +360,21 @@ export function ChatApp() {
                     {agent.active.error ? ` · ${agent.active.error}` : ""}
                   </p>
                   {!agent.isPending ? (
-                    <button
-                      type="button"
-                      onClick={() => setShareOpen(true)}
-                      className="shrink-0 text-sm font-medium text-donna-primary hover:underline"
-                    >
-                      Share
-                    </button>
+                    <div className="flex shrink-0 items-center gap-3">
+                      <Link
+                        to={agentRunGraphPath(agent.active.id)}
+                        className="text-sm font-medium text-donna-primary hover:underline"
+                      >
+                        View flow
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => setShareOpen(true)}
+                        className="text-sm font-medium text-donna-primary hover:underline"
+                      >
+                        Share
+                      </button>
+                    </div>
                   ) : null}
                 </div>
                 {showAgentActions && agent.active ? (

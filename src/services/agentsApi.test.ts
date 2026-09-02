@@ -95,3 +95,56 @@ describe("listAgentRuns", () => {
     await expect(fresh).resolves.toEqual([run("run-fresh")]);
   });
 });
+
+function makeStep(seq: number) {
+  return {
+    id: `step-${seq}`,
+    agent_run_id: "run-1",
+    user_id: "user-1",
+    seq,
+    kind: "status",
+    payload: { text: `n${seq}` },
+    created_at: "2026-09-02T00:00:00Z",
+  };
+}
+
+describe("listAgentSteps pagination", () => {
+  beforeEach(async () => {
+    vi.resetModules();
+    vi.unstubAllGlobals();
+    vi.clearAllMocks();
+    const { getAccessToken } = await import("./auth");
+    vi.mocked(getAccessToken).mockResolvedValue("test-token");
+  });
+
+  it("requests after_seq and limit", async () => {
+    const { listAgentSteps } = await import("./agentsApi");
+    const fetchMock = vi.fn().mockResolvedValue(Response.json([makeStep(3)]));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(listAgentSteps("run-1", 2, 200)).resolves.toEqual([makeStep(3)]);
+    const [url] = fetchMock.mock.calls[0] as [string];
+    expect(url).toBe("/agent-runs/run-1/steps?after_seq=2&limit=200");
+  });
+
+  it("pages through histories longer than 200 events", async () => {
+    const { listAllAgentSteps } = await import("./agentsApi");
+    const first = Array.from({ length: 200 }, (_, i) => makeStep(i + 1));
+    const second = Array.from({ length: 15 }, (_, i) => makeStep(201 + i));
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(Response.json(first))
+      .mockResolvedValueOnce(Response.json(second));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const steps = await listAllAgentSteps("run-long", 0, 200);
+    expect(steps).toHaveLength(215);
+    expect(steps[0]?.seq).toBe(1);
+    expect(steps.at(-1)?.seq).toBe(215);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const urls = fetchMock.mock.calls.map((call) => call[0] as string);
+    expect(urls[0]).toBe("/agent-runs/run-long/steps?limit=200");
+    expect(urls[1]).toBe("/agent-runs/run-long/steps?after_seq=200&limit=200");
+  });
+});
+

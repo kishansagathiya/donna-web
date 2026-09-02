@@ -44,6 +44,7 @@ import { AppLayout } from "./pages/AppLayout";
 import { SharedConversationPage } from "./pages/SharedConversationPage";
 import { SharedAgentRunPage } from "./pages/SharedAgentRunPage";
 import { DesktopDiagnosticsPage } from "./pages/DesktopDiagnosticsPage";
+import { AgentRunGraphPage } from "./pages/AgentRunGraphPage";
 
 function RedirectContextToNote() {
   const { id } = useParams<{ id: string }>();
@@ -78,6 +79,10 @@ function PageTitle() {
       "/blog": "Blog — Donna",
     };
     if (pathname.startsWith("/blog/") && pathname.length > "/blog/".length) {
+      return;
+    }
+    if (/^\/app\/agents\/[^/]+\/graph$/.test(pathname)) {
+      document.title = "Agent flow — Donna";
       return;
     }
     document.title = titles[pathname] ?? "Donna";
@@ -122,6 +127,10 @@ export default function App() {
               <Route path="app" element={<ChatApp />} />
               <Route path="app/voice" element={<VoicePage />} />
               <Route path="app/actions" element={<IntentsInboxPage />} />
+              <Route
+                path="app/agents/:runId/graph"
+                element={<AgentRunGraphPage />}
+              />
               <Route
                 path="app/agents"
                 element={<Navigate to="/app?mode=agent" replace />}

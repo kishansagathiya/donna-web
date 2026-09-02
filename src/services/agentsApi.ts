@@ -26,15 +26,26 @@ export type AgentRun = {
   finished_at?: string | null;
 };
 
+export type AgentStepPayload = Record<string, unknown> & {
+  outcome?: "succeeded" | "failed" | "blocked";
+  duration_ms?: number;
+  error?: string;
+  call_id?: string;
+  recovery_from?: string[];
+};
+
 export type AgentStep = {
   id: string;
   agent_run_id: string;
   user_id: string;
   seq: number;
   kind: string;
-  payload: Record<string, unknown>;
+  /** New outcome/duration/call_id/recovery_from fields are optional. */
+  payload: AgentStepPayload;
   created_at: string;
 };
+
+export const AGENT_STEP_PAGE_SIZE = 200;
 
 export type AgentAttachment = ChatAttachmentPayload;
 
@@ -136,15 +147,45 @@ export async function createAgentRun(
 
 export async function getAgentRun(id: string): Promise<AgentRun> {
   const res = await authorizedFetch(`/agent-runs/${id}`);
-  if (!res.ok) throw new Error(await readError(res));
+  if (!res.ok) {
+    if (res.status === 404) throw new Error("not_found");
+    throw new Error(await readError(res));
+  }
   return (await res.json()) as AgentRun;
 }
 
-export async function listAgentSteps(id: string, afterSeq = 0): Promise<AgentStep[]> {
-  const q = afterSeq > 0 ? `?after_seq=${afterSeq}` : "";
+export async function listAgentSteps(
+  id: string,
+  afterSeq = 0,
+  limit?: number,
+): Promise<AgentStep[]> {
+  const params = new URLSearchParams();
+  if (afterSeq > 0) params.set("after_seq", String(afterSeq));
+  if (limit && limit > 0) params.set("limit", String(limit));
+  const q = params.toString() ? `?${params.toString()}` : "";
   const res = await authorizedFetch(`/agent-runs/${id}/steps${q}`);
-  if (!res.ok) throw new Error(await readError(res));
+  if (!res.ok) {
+    if (res.status === 404) throw new Error("not_found");
+    throw new Error(await readError(res));
+  }
   return (await res.json()) as AgentStep[];
+}
+
+export async function listAllAgentSteps(
+  id: string,
+  afterSeq = 0,
+  pageSize = AGENT_STEP_PAGE_SIZE,
+): Promise<AgentStep[]> {
+  const all: AgentStep[] = [];
+  let after = afterSeq;
+  for (;;) {
+    const page = await listAgentSteps(id, after, pageSize);
+    if (page.length === 0) break;
+    all.push(...page);
+    after = page[page.length - 1]!.seq;
+    if (page.length < pageSize) break;
+  }
+  return all;
 }
 
 export async function cancelAgentRun(id: string): Promise<AgentRun> {
