@@ -21,6 +21,12 @@ export const APP_STORE_URL =
   import.meta.env.VITE_APP_STORE_URL ??
   "https://apps.apple.com/us/app/donna-best-ai-second-brain/id6776987368";
 
+/** Razorpay public key — never the secret. */
+export const RAZORPAY_KEY_ID = import.meta.env.VITE_RAZORPAY_KEY_ID ?? "";
+
+/** Hardware reservation: ₹4,900 (~$49), in paise. */
+export const PREORDER_AMOUNT_PAISE = 490_000;
+
 /** Apple Services ID for Sign in with Apple JS (web). */
 export const APPLE_CLIENT_ID =
   import.meta.env.VITE_APPLE_CLIENT_ID ?? "com.kishansagathiya.donna.web";

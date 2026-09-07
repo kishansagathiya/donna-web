@@ -1,12 +1,18 @@
+import { useState } from "react";
 import { Link, Navigate } from "react-router-dom";
 import { LOGO_LANDING } from "../lib/logo";
-import { APP_STORE_URL } from "../config";
+import { APP_STORE_URL, RAZORPAY_KEY_ID, PREORDER_AMOUNT_PAISE } from "../config";
+import { openRazorpayCheckout } from "../lib/razorpay";
 import { useAuth } from "../hooks/useAuth";
 import { hasAiDataConsent } from "../services/privacyConsent";
 import "../App.css";
 
 export function Landing() {
   const { isAuthenticated, loading } = useAuth();
+  const [preorderState, setPreorderState] = useState<
+    "idle" | "busy" | "paid" | "error"
+  >("idle");
+  const [preorderError, setPreorderError] = useState("");
 
   if (!loading && isAuthenticated) {
     return (
@@ -15,6 +21,74 @@ export function Landing() {
         replace
       />
     );
+  }
+
+  async function startPreorder() {
+    setPreorderError("");
+    setPreorderState("busy");
+    try {
+      const orderRes = await fetch("/api/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: PREORDER_AMOUNT_PAISE,
+          currency: "INR",
+          receipt: `donna-hw-${Date.now()}`,
+        }),
+      });
+      const orderBody = (await orderRes.json()) as {
+        order_id?: string;
+        amount?: number;
+        currency?: string;
+        key_id?: string;
+        error?: string;
+      };
+      if (!orderRes.ok || !orderBody.order_id) {
+        throw new Error(orderBody.error || "Could not start checkout");
+      }
+
+      const key = RAZORPAY_KEY_ID || orderBody.key_id;
+      if (!key) {
+        throw new Error("Razorpay is not configured");
+      }
+
+      await openRazorpayCheckout({
+        key,
+        orderId: orderBody.order_id,
+        amount: Number(orderBody.amount ?? PREORDER_AMOUNT_PAISE),
+        currency: orderBody.currency || "INR",
+        onDismiss: () => setPreorderState("idle"),
+        onFailed: (message) => {
+          setPreorderError(message);
+          setPreorderState("error");
+        },
+        onSuccess: async (response) => {
+          try {
+            const verifyRes = await fetch("/api/verify-payment", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(response),
+            });
+            const verifyBody = (await verifyRes.json()) as {
+              success?: boolean;
+              error?: string;
+            };
+            if (!verifyRes.ok || !verifyBody.success) {
+              throw new Error(verifyBody.error || "Payment verification failed");
+            }
+            setPreorderState("paid");
+          } catch (err) {
+            setPreorderError(
+              err instanceof Error ? err.message : "Payment verification failed",
+            );
+            setPreorderState("error");
+          }
+        },
+      });
+    } catch (err) {
+      setPreorderError(err instanceof Error ? err.message : "Could not start checkout");
+      setPreorderState("error");
+    }
   }
 
   return (
@@ -51,11 +125,30 @@ export function Landing() {
           <Link to="/app" className="landing-secondary">
             Open on the web
           </Link>
+          <button
+            type="button"
+            className="landing-secondary"
+            onClick={() => void startPreorder()}
+            disabled={preorderState === "busy" || preorderState === "paid"}
+          >
+            {preorderState === "busy"
+              ? "Opening checkout…"
+              : preorderState === "paid"
+                ? "Reservation received"
+                : "Pre-order hardware"}
+          </button>
         </div>
         <p className="landing-footnote">
           Free on iPhone &amp; iPad.{" "}
           <Link to="/login">Sign in</Link> to sync across devices.
+          {" "}
+          ₹4,900 reservation. We will email you when it is ready to ship.
         </p>
+        {preorderError ? (
+          <p className="landing-footnote" role="alert">
+            {preorderError}
+          </p>
+        ) : null}
       </main>
     </div>
   );

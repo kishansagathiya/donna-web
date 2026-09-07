@@ -97,6 +97,17 @@
   color: var(--accent);
 }
 
+button.landing-secondary {
+  font: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+button.landing-secondary:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .landing-footnote {
   margin-top: 1.5rem;
   font-size: 0.85rem;

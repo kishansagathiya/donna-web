@@ -10,7 +10,7 @@ export function Privacy() {
     <div className="doc-page">
       <article className="doc">
         <h1>Privacy Policy</h1>
-        <p className="doc-updated">Last updated: June 12, 2026</p>
+        <p className="doc-updated">Last updated: September 7, 2026</p>
 
         <p>
           Donna (&ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) is a
@@ -42,9 +42,10 @@ export function Privacy() {
           them in future conversations.
         </p>
         <p>
-          <strong>Website waitlist.</strong> If you join the waitlist on this
-          site, we collect the email address you submit so we can notify you
-          about Donna.
+          <strong>Hardware pre-order.</strong> If you pre-order Donna hardware
+          on this site, Razorpay collects the email address and billing details
+          you submit so we can process the reservation and contact you when the
+          device is ready.
         </p>
         <p>
           We do not collect your contacts or precise location.
@@ -56,7 +57,10 @@ export function Privacy() {
           <li>To transcribe your speech and generate AI responses</li>
           <li>To deliver spoken replies through the app</li>
           <li>To store and recall content you add to memory</li>
-          <li>To send waitlist updates, if you signed up on this site</li>
+          <li>
+            To process hardware reservations and email you when the device is
+            ready
+          </li>
           <li>To maintain, secure, and improve Donna</li>
         </ul>
         <p>
@@ -82,6 +86,10 @@ export function Privacy() {
           <li>
             <strong>Supabase</strong> — authentication, database, and file
             storage
+          </li>
+          <li>
+            <strong>Razorpay</strong> — payment processing for hardware
+            reservations
           </li>
         </ul>
         <p>

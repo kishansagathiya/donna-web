@@ -14,6 +14,7 @@ import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
 import { join, extname, normalize, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { handleRazorpayApi } from "./razorpay-api.mjs";
 
 const distRoot = join(fileURLToPath(new URL("..", import.meta.url)), "dist");
 const port = Number(process.env.PORT || 3000);
@@ -90,6 +91,10 @@ function sendNotFound(res) {
 
 const server = createServer(async (req, res) => {
   try {
+    if (await handleRazorpayApi(req, res)) {
+      return;
+    }
+
     const urlPath = req.url || "/";
     let rel = decodeURIComponent(urlPath.split("?")[0] || "/");
     if (rel === "/") rel = "/index.html";
