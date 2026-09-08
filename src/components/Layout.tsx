@@ -5,13 +5,13 @@ import "./Layout.css";
 
 export function Layout() {
   const { pathname } = useLocation();
-  const isLanding = pathname === "/";
+  const isEink = pathname === "/" || pathname === "/hardware";
 
   return (
-    <div className={isLanding ? "layout layout--eink" : "layout"}>
+    <div className={isEink ? "layout layout--eink" : "layout"}>
       <header className="layout-header">
         <Link to="/" className="layout-brand">
-          {isLanding ? (
+          {isEink ? (
             <img
               className="layout-brand-logo"
               src={LOGO_LANDING}
@@ -34,6 +34,10 @@ export function Layout() {
       <footer className="layout-footer">
         <nav aria-label="Footer">
           <Link to="/privacy">Privacy</Link>
+          <span className="layout-footer-sep" aria-hidden="true">
+            ·
+          </span>
+          <Link to="/hardware">Hardware</Link>
           <span className="layout-footer-sep" aria-hidden="true">
             ·
           </span>

@@ -146,6 +146,62 @@
   font-weight: 500;
 }
 
+.hardware-buy {
+  margin: 0 0 1.5rem;
+  padding: 1.25rem 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+}
+
+.hardware-price {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 0.25rem;
+}
+
+.hardware-price-note {
+  margin-bottom: 1rem;
+}
+
+.hardware-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 1.5rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--bg-deep);
+  background: var(--accent);
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.2s;
+}
+
+.hardware-cta:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px var(--accent-glow);
+}
+
+.hardware-cta:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.hardware-error {
+  margin-top: 0.85rem;
+  margin-bottom: 0;
+  color: var(--text-primary);
+}
+
+.support-card .hardware-cta {
+  margin-top: 0.35rem;
+}
+
 .blog-index {
   padding-bottom: 3rem;
 }

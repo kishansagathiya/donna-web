@@ -1,0 +1,264 @@
+import { Link } from "react-router-dom";
+import { APP_STORE_URL } from "../config";
+import { useHardwarePreorder } from "../hooks/useHardwarePreorder";
+import "./Pages.css";
+
+function ReserveButton({
+  state,
+  onClick,
+}: {
+  state: ReturnType<typeof useHardwarePreorder>["state"];
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className="hardware-cta"
+      onClick={onClick}
+      disabled={state === "busy" || state === "paid"}
+    >
+      {state === "busy"
+        ? "Opening checkout…"
+        : state === "paid"
+          ? "Reservation received"
+          : "Reserve for ₹4,900"}
+    </button>
+  );
+}
+
+export function Hardware() {
+  const { state, error, start } = useHardwarePreorder();
+
+  return (
+    <div className="doc-page">
+      <article className="doc">
+        <p className="doc-updated">First batch · Limited reservation</p>
+        <h1>Donna Device</h1>
+        <p>
+          A one-button voice capture device for Donna. Hold REC, speak, release.
+          It stores the recording on the device and syncs to the Donna iOS app
+          when your phone is nearby — so you can capture thoughts, meetings, and
+          follow-ups without unlocking a screen.
+        </p>
+
+        <div className="hardware-buy">
+          <p className="hardware-price">₹4,900</p>
+          <p className="hardware-price-note">
+            Reservation for one device from the first batch. Not a ship date.
+          </p>
+          <ReserveButton state={state} onClick={() => void start()} />
+          {error ? (
+            <p className="hardware-error" role="alert">
+              {error}
+            </p>
+          ) : null}
+          {state === "paid" ? (
+            <p>
+              Thank you. We&apos;ll email you when the first batch is ready to
+              ship, and again to collect your address.
+            </p>
+          ) : null}
+        </div>
+
+        <h2>What it does</h2>
+        <p>
+          Donna Device is not a speaker, not a chat gadget, and not an always-on
+          microphone. It is a capture button:
+        </p>
+        <ul>
+          <li>
+            <strong>Hold REC to record.</strong> Release to stop. Recording
+            auto-stops at 5 minutes.
+          </li>
+          <li>
+            <strong>The clip stays on the device</strong> until the Donna iOS
+            app can sync it.
+          </li>
+          <li>
+            <strong>Donna transcribes and remembers</strong> in the app — not on
+            the hardware. The device does not reply, transcribe, or run models
+            itself.
+          </li>
+          <li>
+            <strong>E-paper screen</strong> shows idle, recording, saved,
+            battery, and pairing status.
+          </li>
+        </ul>
+
+        <h2>How sync works</h2>
+        <p>
+          Pair once from Donna on iPhone: Profile → Pair Device, then choose
+          &ldquo;Donna Device&rdquo;. After that:
+        </p>
+        <ul>
+          <li>
+            <strong>Phone unlocked, app in foreground:</strong> a short-lived
+            Wi-Fi path pulls captures in seconds.
+          </li>
+          <li>
+            <strong>Phone locked or Wi-Fi unavailable:</strong> Bluetooth
+            fallback sends the clip when you&apos;re in range.
+          </li>
+        </ul>
+        <p>
+          You need the{" "}
+          <a href={APP_STORE_URL} target="_blank" rel="noopener noreferrer">
+            Donna iOS app
+          </a>
+          . Android and web cannot pair the device today.
+        </p>
+
+        <h2>Specs</h2>
+        <table>
+          <tbody>
+            <tr>
+              <th>Capture</th>
+              <td>Hold-to-record, release to stop; 5 minute auto-stop</td>
+            </tr>
+            <tr>
+              <th>Storage</th>
+              <td>On-device SD card until synced</td>
+            </tr>
+            <tr>
+              <th>Display</th>
+              <td>1.54&quot; e-paper</td>
+            </tr>
+            <tr>
+              <th>Processor</th>
+              <td>ESP32-S3 (8 MB flash, 8 MB PSRAM)</td>
+            </tr>
+            <tr>
+              <th>Wireless</th>
+              <td>Bluetooth LE pairing and sync; Wi-Fi fast path via the iOS app</td>
+            </tr>
+            <tr>
+              <th>Power</th>
+              <td>Rechargeable battery; USB charging; on-screen battery status</td>
+            </tr>
+            <tr>
+              <th>Enclosure</th>
+              <td>First-batch printed case (desk / handheld)</td>
+            </tr>
+            <tr>
+              <th>Software</th>
+              <td>Donna iOS app required for pairing, sync, and transcription</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h2>What&apos;s in the box</h2>
+        <ul>
+          <li>One Donna Device (assembled first-batch unit)</li>
+          <li>USB charging cable</li>
+          <li>Pairing instructions for the Donna iOS app</li>
+        </ul>
+        <p>
+          The Donna app stays free to download. This reservation is for the
+          hardware only.
+        </p>
+
+        <h2>Expected delivery</h2>
+        <p>
+          This is a <strong>reservation</strong>, not a guaranteed ship date.
+          The device exists as a working prototype. First-batch units ship after
+          we lock the enclosure, battery, and pairing flow for a small run.
+        </p>
+        <ul>
+          <li>
+            We will email you before shipping to confirm your address and that
+            we can deliver to your country.
+          </li>
+          <li>
+            We are aiming for the first batch in late 2026. That is a target,
+            not a promise.
+          </li>
+          <li>
+            If your unit has not shipped within <strong>12 months</strong> of
+            payment, you get a full refund.
+          </li>
+          <li>
+            If we cannot ship to your region, you get a full refund — we do not
+            collect a shipping address at checkout.
+          </li>
+        </ul>
+
+        <h2>Terms of purchase</h2>
+        <ol>
+          <li>
+            <strong>Price.</strong> ₹4,900 INR today reserves one first-batch
+            Donna Device. Payment is processed by Razorpay.
+          </li>
+          <li>
+            <strong>What you are buying.</strong> A hardware reservation, not
+            software, not a subscription, and not a guaranteed delivery date.
+          </li>
+          <li>
+            <strong>Cancellation.</strong> Email{" "}
+            <a href="mailto:kishansagathiya@gmail.com">
+              kishansagathiya@gmail.com
+            </a>{" "}
+            before we ship and we will refund the ₹4,900 in full.
+          </li>
+          <li>
+            <strong>If we cannot deliver.</strong> If we cancel the batch, cannot
+            ship to you, or miss the 12-month window, you get a full refund.
+          </li>
+          <li>
+            <strong>After shipping.</strong> Once a unit has shipped, refunds
+            follow standard defective-on-arrival handling. Contact us within 14
+            days of delivery if the device does not power on or cannot pair.
+          </li>
+          <li>
+            <strong>Early hardware.</strong> This is a first batch. Finish,
+            battery life, and enclosure may change slightly from the prototype
+            as we assemble units. Core behavior stays the same: hold to record,
+            sync to Donna on iPhone.
+          </li>
+          <li>
+            <strong>Requirements.</strong> An iPhone or iPad with the Donna app.
+            You are responsible for your own Apple account, network, and app
+            use.
+          </li>
+          <li>
+            <strong>Privacy.</strong> Recordings live on the device until they
+            sync through the Donna app. After sync, they follow the{" "}
+            <Link to="/privacy">Donna privacy policy</Link>. Razorpay processes
+            payment details; we do not store your card number.
+          </li>
+        </ol>
+
+        <h2>FAQ</h2>
+        <h3>Does the device listen all the time?</h3>
+        <p>
+          No. It records only while you hold REC (or until the 5-minute cap).
+        </p>
+        <h3>Will it work without my phone?</h3>
+        <p>
+          It will record and store clips on its own. Transcription, memory, and
+          tasks happen after it syncs to the Donna iOS app.
+        </p>
+        <h3>Is Android supported?</h3>
+        <p>Not for pairing. iOS only for this batch.</p>
+        <h3>Is this the final retail price?</h3>
+        <p>
+          ₹4,900 is the first-batch reservation price. Later batches may cost
+          more. Your reservation price will not increase for this unit.
+        </p>
+
+        <div className="support-card">
+          <h2>Reserve a first-batch unit</h2>
+          <p>
+            ₹4,900 today. We email you when it&apos;s ready to ship. Full refund
+            if we don&apos;t.
+          </p>
+          <ReserveButton state={state} onClick={() => void start()} />
+          {error ? (
+            <p className="hardware-error" role="alert">
+              {error}
+            </p>
+          ) : null}
+        </div>
+      </article>
+    </div>
+  );
+}

@@ -13,6 +13,7 @@ import { ThemeProvider } from "./hooks/useTheme";
 import { Layout } from "./components/Layout";
 import { Landing } from "./pages/Landing";
 import { Privacy } from "./pages/Privacy";
+import { Hardware } from "./pages/Hardware";
 import { PrivateHosting } from "./pages/PrivateHosting";
 import { Pitch } from "./pages/Pitch";
 import { BlogPage } from "./pages/BlogPage";
@@ -73,6 +74,7 @@ function PageTitle() {
       "/app/schedules": "Schedules — Donna",
       "/app/reminders": "Reminders — Donna",
       "/privacy": "Privacy — Donna",
+      "/hardware": "Donna Device — pre-order",
       "/private": "Private — Donna",
       "/pitch": "Pitch — Donna",
       "/support": "Support — Donna",
@@ -102,6 +104,7 @@ export default function App() {
           <Route element={<Layout />}>
             <Route index element={<Landing />} />
             <Route path="privacy" element={<Privacy />} />
+            <Route path="hardware" element={<Hardware />} />
             <Route path="private" element={<PrivateHosting />} />
             <Route path="pitch" element={<Pitch />} />
             <Route path="blog" element={<BlogPage />} />
