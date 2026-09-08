@@ -132,7 +132,8 @@ export function Hardware() {
           <p className="hardware-price">₹4,900</p>
           <p className="hardware-price-note">
             Reservation for one device from the first batch. Not a ship date.
-            Pay on Razorpay after you enter your details.
+            Pay on Razorpay after you enter your details. You&apos;ll come back
+            here when it succeeds.
           </p>
           <ReserveForm
             state={state}

@@ -127,15 +127,23 @@ export function expectedPaymentLinkSignature(
     .digest("hex");
 }
 
-function noteChunks(address) {
+export function expectedOrderSignature(orderId, paymentId, keySecret) {
+  return createHmac("sha256", keySecret)
+    .update(`${orderId}|${paymentId}`)
+    .digest("hex");
+}
+
+function noteChunks(parsed) {
   const notes = {
     product: "donna-device",
     kind: "first-batch-reservation",
+    name: parsed.name.slice(0, 256),
+    email: parsed.email.slice(0, 256),
+    phone: String(parsed.phone).slice(0, 256),
   };
-  const part1 = address.slice(0, 256);
-  notes.address = part1;
-  if (address.length > 256) {
-    notes.address_2 = address.slice(256, 512);
+  notes.address = parsed.address.slice(0, 256);
+  if (parsed.address.length > 256) {
+    notes.address_2 = parsed.address.slice(256, 512);
   }
   return notes;
 }
@@ -243,31 +251,20 @@ async function createPreorder(req, res) {
   }
 
   const referenceId = `dhw-${Date.now()}`.slice(0, 40);
-  const { status, json: link } = await razorpayFetch("/v1/payment_links", {
+  const callbackUrl = resolvePreorderCallbackUrl(req, body.origin);
+  const { status, json: order } = await razorpayFetch("/v1/orders", {
     method: "POST",
     keyId,
     keySecret,
     body: {
       amount,
       currency,
-      accept_partial: false,
-      reference_id: referenceId,
-      description:
-        "Donna Device first-batch reservation. Not a ship date. One unit, ₹4,900.",
-      customer: {
-        name: parsed.name,
-        email: parsed.email,
-        contact: parsed.phone,
-      },
-      notify: { sms: false, email: true },
-      reminder_enable: false,
-      notes: noteChunks(parsed.address),
-      callback_url: resolvePreorderCallbackUrl(req, body.origin),
-      callback_method: "get",
+      receipt: referenceId,
+      notes: noteChunks(parsed),
     },
   });
 
-  if (status >= 400 || !link.short_url) {
+  if (status >= 400 || !order.id) {
     json(res, razorpayStatus(status), {
       error:
         status === 401
@@ -277,7 +274,13 @@ async function createPreorder(req, res) {
     return;
   }
 
-  json(res, 200, { checkout_url: link.short_url });
+  json(res, 200, {
+    key_id: keyId,
+    order_id: order.id,
+    amount: order.amount,
+    currency: order.currency,
+    callback_url: callbackUrl,
+  });
 }
 
 async function verifyPreorder(req, res) {
@@ -294,10 +297,11 @@ async function verifyPreorder(req, res) {
   const linkStatus = String(body.razorpay_payment_link_status || "");
   const paymentId = String(body.razorpay_payment_id || "");
   const signature = String(body.razorpay_signature || "");
+  const orderId = String(body.razorpay_order_id || "");
 
-  if (!paymentLinkId || !linkStatus || !paymentId || !signature) {
+  if (!paymentId || !signature) {
     json(res, 400, {
-      error: "Missing Razorpay payment-link callback fields",
+      error: "Missing Razorpay callback fields",
     });
     return;
   }
@@ -307,6 +311,23 @@ async function verifyPreorder(req, res) {
     ({ keySecret } = credentials());
   } catch (err) {
     json(res, 500, { error: err.message });
+    return;
+  }
+
+  if (orderId) {
+    const expected = expectedOrderSignature(orderId, paymentId, keySecret);
+    if (expected !== signature) {
+      json(res, 400, { error: "Payment was not verified", paid: false });
+      return;
+    }
+    json(res, 200, { success: true, paid: true });
+    return;
+  }
+
+  if (!paymentLinkId || !linkStatus) {
+    json(res, 400, {
+      error: "Missing Razorpay callback fields",
+    });
     return;
   }
 

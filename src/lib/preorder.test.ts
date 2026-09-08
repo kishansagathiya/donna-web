@@ -1,6 +1,7 @@
 import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import {
+  expectedOrderSignature,
   expectedPaymentLinkSignature,
   normalizePreorder,
   parseAllowedOrigin,
@@ -45,6 +46,17 @@ describe("Razorpay payment-link signature", () => {
         "test_secret",
       ),
     ).toBe(expected);
+  });
+});
+
+describe("Razorpay order signature", () => {
+  it("matches HMAC-SHA256 of order_id|payment_id", () => {
+    const expected = createHmac("sha256", "test_secret")
+      .update("order_1|pay_1")
+      .digest("hex");
+    expect(expectedOrderSignature("order_1", "pay_1", "test_secret")).toBe(
+      expected,
+    );
   });
 });
 

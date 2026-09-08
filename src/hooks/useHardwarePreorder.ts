@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { openRazorpayRedirectCheckout } from "../lib/razorpay";
 
 export type PreorderState = "idle" | "busy" | "paid" | "error";
 
@@ -24,13 +25,32 @@ export function useHardwarePreorder() {
         }),
       });
       const body = (await res.json()) as {
-        checkout_url?: string;
+        key_id?: string;
+        order_id?: string;
+        amount?: number;
+        currency?: string;
+        callback_url?: string;
         error?: string;
       };
-      if (!res.ok || !body.checkout_url) {
+      if (!res.ok || !body.order_id || !body.key_id || !body.callback_url) {
         throw new Error(body.error || "Could not start reservation");
       }
-      window.location.assign(body.checkout_url);
+
+      await openRazorpayRedirectCheckout({
+        key: body.key_id,
+        orderId: body.order_id,
+        amount: Number(body.amount),
+        currency: body.currency || "INR",
+        name: fields.name,
+        email: fields.email,
+        phone: fields.phone,
+        callbackUrl: body.callback_url,
+        onDismiss: () => setState("idle"),
+        onFailed: (message) => {
+          setError(message);
+          setState("error");
+        },
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not start reservation");
       setState("error");
@@ -46,12 +66,13 @@ export function useHardwareReservationReturn() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    const paymentLinkId = params.get("razorpay_payment_link_id");
     const paymentId = params.get("razorpay_payment_id");
     const signature = params.get("razorpay_signature");
+    const orderId = params.get("razorpay_order_id");
+    const paymentLinkId = params.get("razorpay_payment_link_id");
     const linkStatus = params.get("razorpay_payment_link_status");
 
-    if (!paymentLinkId || !paymentId || !signature) {
+    if (!paymentId || !signature || (!orderId && !paymentLinkId)) {
       setState("error");
       setError(
         "Razorpay did not send payment details back. If you were charged, check your email for a receipt.",
@@ -64,12 +85,13 @@ export function useHardwareReservationReturn() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        razorpay_payment_link_id: paymentLinkId,
+        razorpay_payment_id: paymentId,
+        razorpay_signature: signature,
+        razorpay_order_id: orderId || "",
+        razorpay_payment_link_id: paymentLinkId || "",
         razorpay_payment_link_reference_id:
           params.get("razorpay_payment_link_reference_id") || "",
         razorpay_payment_link_status: linkStatus || "",
-        razorpay_payment_id: paymentId,
-        razorpay_signature: signature,
       }),
     })
       .then(async (res) => {
