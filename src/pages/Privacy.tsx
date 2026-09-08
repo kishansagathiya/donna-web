@@ -10,7 +10,7 @@ export function Privacy() {
     <div className="doc-page">
       <article className="doc">
         <h1>Privacy Policy</h1>
-        <p className="doc-updated">Last updated: September 7, 2026</p>
+        <p className="doc-updated">Last updated: September 8, 2026</p>
 
         <p>
           Donna (&ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) is a
@@ -43,9 +43,9 @@ export function Privacy() {
         </p>
         <p>
           <strong>Hardware pre-order.</strong> If you pre-order Donna hardware
-          on this site, Razorpay collects the email address and billing details
-          you submit so we can process the reservation and contact you when the
-          device is ready.
+          on this site, you submit your name, email, phone, and shipping
+          address. Those details are sent to Razorpay with your payment so we
+          can process the reservation and ship when the first batch is ready.
         </p>
         <p>
           We do not collect your contacts or precise location.

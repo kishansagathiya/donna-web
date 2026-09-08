@@ -188,6 +188,43 @@
   margin-bottom: 1rem;
 }
 
+.hardware-form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.hardware-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.hardware-form input,
+.hardware-form textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: var(--text-primary);
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  outline: none;
+}
+
+.hardware-form textarea {
+  resize: vertical;
+  min-height: 4.5rem;
+}
+
+.hardware-form input:focus,
+.hardware-form textarea:focus {
+  border-color: var(--accent);
+}
+
 .hardware-cta {
   display: inline-flex;
   align-items: center;
@@ -201,7 +238,13 @@
   border: none;
   border-radius: 100px;
   cursor: pointer;
+  text-decoration: none;
   transition: transform 0.15s, box-shadow 0.2s;
+}
+
+a.hardware-cta {
+  color: var(--bg-deep);
+  text-decoration: none;
 }
 
 .hardware-cta:hover:not(:disabled) {
@@ -215,13 +258,19 @@
 }
 
 .hardware-error {
-  margin-top: 0.85rem;
+  margin-top: 0;
   margin-bottom: 0;
   color: var(--text-primary);
 }
 
 .support-card .hardware-cta {
   margin-top: 0.35rem;
+}
+
+.layout--eink .hardware-cta:hover:not(:disabled),
+html[data-theme="eink"] .hardware-cta:hover:not(:disabled) {
+  transform: none;
+  box-shadow: none;
 }
 
 .blog-index {

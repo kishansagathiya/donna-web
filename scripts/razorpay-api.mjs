@@ -1,5 +1,5 @@
 /**
- * Razorpay Standard Checkout API for donna-web.
+ * Razorpay Payment Link API for Donna Device reservations.
  * Used by Vite (dev) and scripts/serve.mjs (production).
  * KEY_SECRET stays server-side only.
  */
@@ -7,10 +7,10 @@ import { createHmac } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import Razorpay from "razorpay";
 
 const MIN_AMOUNT_PAISE = 100;
-const API_PATHS = new Set(["/api/create-order", "/api/verify-payment"]);
+const API_PATHS = new Set(["/api/create-preorder", "/api/verify-preorder"]);
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 loadDotEnv();
 
@@ -85,20 +85,97 @@ function configuredCurrency() {
   return (process.env.RAZORPAY_PREORDER_CURRENCY || "INR").toUpperCase();
 }
 
-export function expectedSignature(orderId, paymentId, keySecret) {
+export function normalizePreorder(input) {
+  const name = String(input?.name || "").trim();
+  const email = String(input?.email || "").trim().toLowerCase();
+  const phone = String(input?.phone || "").replace(/[^\d+]/g, "");
+  const address = String(input?.address || "").replace(/\s+/g, " ").trim();
+  const digits = phone.replace(/\D/g, "");
+
+  if (name.length < 2) {
+    return { error: "Name is required" };
+  }
+  if (!EMAIL_RE.test(email)) {
+    return { error: "A valid email is required" };
+  }
+  if (digits.length < 8 || digits.length > 15) {
+    return { error: "A valid phone number is required" };
+  }
+  if (address.length < 10) {
+    return { error: "Shipping address is required" };
+  }
+
+  return {
+    name: name.slice(0, 120),
+    email: email.slice(0, 120),
+    phone: phone.startsWith("+") ? phone.slice(0, 16) : digits.slice(0, 15),
+    address: address.slice(0, 500),
+  };
+}
+
+export function expectedPaymentLinkSignature(
+  paymentLinkId,
+  paymentLinkReferenceId,
+  paymentLinkStatus,
+  paymentId,
+  keySecret,
+) {
   return createHmac("sha256", keySecret)
-    .update(`${orderId}|${paymentId}`)
+    .update(
+      `${paymentLinkId}|${paymentLinkReferenceId}|${paymentLinkStatus}|${paymentId}`,
+    )
     .digest("hex");
 }
 
-function razorpayStatus(err) {
-  const code = err?.statusCode ?? err?.status;
-  if (code === 401 || code === 403) return 401;
-  if (code === 400) return 400;
+function noteChunks(address) {
+  const notes = {
+    product: "donna-device",
+    kind: "first-batch-reservation",
+  };
+  const part1 = address.slice(0, 256);
+  notes.address = part1;
+  if (address.length > 256) {
+    notes.address_2 = address.slice(256, 512);
+  }
+  return notes;
+}
+
+function callbackOrigin(req) {
+  const configured = process.env.PREORDER_CALLBACK_ORIGIN?.trim();
+  if (configured) return configured.replace(/\/$/, "");
+  const origin = req.headers.origin;
+  if (typeof origin === "string" && /^https?:\/\//.test(origin)) {
+    return origin.replace(/\/$/, "");
+  }
+  const host = req.headers.host;
+  const protoHeader = req.headers["x-forwarded-proto"];
+  const proto = typeof protoHeader === "string" ? protoHeader.split(",")[0] : "https";
+  if (typeof host === "string" && host) {
+    return `${proto}://${host}`;
+  }
+  return "https://donnadoesit.com";
+}
+
+function razorpayStatus(status) {
+  if (status === 401 || status === 403) return 401;
+  if (status === 400) return 400;
   return 500;
 }
 
-async function createOrder(req, res) {
+async function razorpayFetch(path, { method, keyId, keySecret, body }) {
+  const res = await fetch(`https://api.razorpay.com${path}`, {
+    method,
+    headers: {
+      Authorization: `Basic ${Buffer.from(`${keyId}:${keySecret}`).toString("base64")}`,
+      "Content-Type": "application/json",
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const jsonBody = await res.json().catch(() => ({}));
+  return { status: res.status, json: jsonBody };
+}
+
+async function createPreorder(req, res) {
   let body;
   try {
     body = await readBody(req);
@@ -107,14 +184,9 @@ async function createOrder(req, res) {
     return;
   }
 
-  const fallbackAmount = configuredAmount();
-  const fallbackCurrency = configuredCurrency();
-  const amount = Number(body.amount ?? fallbackAmount);
-  const currency = String(body.currency || fallbackCurrency).toUpperCase();
-  const receipt = String(body.receipt || `donna-hw-${Date.now()}`).slice(0, 40);
-
-  if (!Number.isInteger(amount) || amount < MIN_AMOUNT_PAISE) {
-    json(res, 400, { error: "amount must be an integer of at least 100 paise" });
+  const parsed = normalizePreorder(body);
+  if (parsed.error) {
+    json(res, 400, { error: parsed.error });
     return;
   }
 
@@ -127,28 +199,52 @@ async function createOrder(req, res) {
     return;
   }
 
-  try {
-    const instance = new Razorpay({ key_id: keyId, key_secret: keySecret });
-    const order = await instance.orders.create({
+  const amount = configuredAmount();
+  const currency = configuredCurrency();
+  if (!Number.isInteger(amount) || amount < MIN_AMOUNT_PAISE) {
+    json(res, 500, { error: "Reservation amount is not configured" });
+    return;
+  }
+
+  const referenceId = `dhw-${Date.now()}`.slice(0, 40);
+  const { status, json: link } = await razorpayFetch("/v1/payment_links", {
+    method: "POST",
+    keyId,
+    keySecret,
+    body: {
       amount,
       currency,
-      receipt,
+      accept_partial: false,
+      reference_id: referenceId,
+      description:
+        "Donna Device first-batch reservation. Not a ship date. One unit, ₹4,900.",
+      customer: {
+        name: parsed.name,
+        email: parsed.email,
+        contact: parsed.phone,
+      },
+      notify: { sms: false, email: true },
+      reminder_enable: false,
+      notes: noteChunks(parsed.address),
+      callback_url: `${callbackOrigin(req)}/hardware`,
+      callback_method: "get",
+    },
+  });
+
+  if (status >= 400 || !link.short_url) {
+    json(res, razorpayStatus(status), {
+      error:
+        status === 401
+          ? "Razorpay authentication failed"
+          : "Could not start reservation",
     });
-    json(res, 200, {
-      order_id: order.id,
-      amount: order.amount,
-      currency: order.currency,
-      key_id: keyId,
-    });
-  } catch (err) {
-    const status = razorpayStatus(err);
-    json(res, status, {
-      error: status === 401 ? "Razorpay authentication failed" : "Failed to create order",
-    });
+    return;
   }
+
+  json(res, 200, { checkout_url: link.short_url });
 }
 
-async function verifyPayment(req, res) {
+async function verifyPreorder(req, res) {
   let body;
   try {
     body = await readBody(req);
@@ -157,12 +253,15 @@ async function verifyPayment(req, res) {
     return;
   }
 
-  const orderId = body.razorpay_order_id;
-  const paymentId = body.razorpay_payment_id;
-  const signature = body.razorpay_signature;
-  if (!orderId || !paymentId || !signature) {
+  const paymentLinkId = String(body.razorpay_payment_link_id || "");
+  const referenceId = String(body.razorpay_payment_link_reference_id || "");
+  const linkStatus = String(body.razorpay_payment_link_status || "");
+  const paymentId = String(body.razorpay_payment_id || "");
+  const signature = String(body.razorpay_signature || "");
+
+  if (!paymentLinkId || !linkStatus || !paymentId || !signature) {
     json(res, 400, {
-      error: "razorpay_order_id, razorpay_payment_id, and razorpay_signature are required",
+      error: "Missing Razorpay payment-link callback fields",
     });
     return;
   }
@@ -175,9 +274,15 @@ async function verifyPayment(req, res) {
     return;
   }
 
-  const expected = expectedSignature(orderId, paymentId, keySecret);
-  if (expected !== signature) {
-    json(res, 400, { error: "Signature mismatch", paid: false });
+  const expected = expectedPaymentLinkSignature(
+    paymentLinkId,
+    referenceId,
+    linkStatus,
+    paymentId,
+    keySecret,
+  );
+  if (expected !== signature || linkStatus !== "paid") {
+    json(res, 400, { error: "Payment was not verified", paid: false });
     return;
   }
 
@@ -208,10 +313,10 @@ export async function handleRazorpayApi(req, res) {
     return true;
   }
 
-  if (path === "/api/create-order") {
-    await createOrder(req, res);
+  if (path === "/api/create-preorder") {
+    await createPreorder(req, res);
     return true;
   }
-  await verifyPayment(req, res);
+  await verifyPreorder(req, res);
   return true;
 }

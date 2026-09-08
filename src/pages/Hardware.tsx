@@ -1,33 +1,120 @@
+import { FormEvent, useState } from "react";
 import { Link } from "react-router-dom";
 import { APP_STORE_URL } from "../config";
 import { useHardwarePreorder } from "../hooks/useHardwarePreorder";
 import "./Pages.css";
 
-function ReserveButton({
+function ReserveForm({
   state,
-  onClick,
+  error,
+  returning,
+  onSubmit,
 }: {
   state: ReturnType<typeof useHardwarePreorder>["state"];
-  onClick: () => void;
+  error: string;
+  returning: boolean;
+  onSubmit: (fields: {
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+  }) => void;
 }) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const busy = state === "busy";
+
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault();
+    onSubmit({ name, email, phone, address });
+  }
+
+  if (state === "paid") {
+    return (
+      <p>
+        Thank you. Razorpay has your name, email, phone, and shipping address.
+        We&apos;ll email you before the first batch ships to confirm we can
+        deliver.
+      </p>
+    );
+  }
+
+  if (returning && state !== "error") {
+    return <p>Confirming payment…</p>;
+  }
+
   return (
-    <button
-      type="button"
-      className="hardware-cta"
-      onClick={onClick}
-      disabled={state === "busy" || state === "paid"}
-    >
-      {state === "busy"
-        ? "Opening checkout…"
-        : state === "paid"
-          ? "Reservation received"
+    <form className="hardware-form" onSubmit={handleSubmit}>
+      <label>
+        Full name
+        <input
+          name="name"
+          autoComplete="name"
+          required
+          minLength={2}
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+          disabled={busy}
+        />
+      </label>
+      <label>
+        Email
+        <input
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          disabled={busy}
+        />
+      </label>
+      <label>
+        Phone
+        <input
+          name="phone"
+          type="tel"
+          autoComplete="tel"
+          required
+          value={phone}
+          onChange={(event) => setPhone(event.target.value)}
+          disabled={busy}
+        />
+      </label>
+      <label>
+        Shipping address
+        <textarea
+          name="address"
+          autoComplete="street-address"
+          required
+          minLength={10}
+          rows={3}
+          placeholder="Street, city, state, PIN, country"
+          value={address}
+          onChange={(event) => setAddress(event.target.value)}
+          disabled={busy}
+        />
+      </label>
+      <button type="submit" className="hardware-cta" disabled={busy}>
+        {busy
+          ? returning
+            ? "Confirming payment…"
+            : "Opening Razorpay…"
           : "Reserve for ₹4,900"}
-    </button>
+      </button>
+      {error ? (
+        <p className="hardware-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+    </form>
   );
 }
 
 export function Hardware() {
-  const { state, error, start } = useHardwarePreorder();
+  const { state, error, start, returning } = useHardwarePreorder();
 
   return (
     <div className="doc-page">
@@ -52,23 +139,18 @@ export function Hardware() {
           </div>
         </figure>
 
-        <div className="hardware-buy">
+        <div className="hardware-buy" id="reserve">
           <p className="hardware-price">₹4,900</p>
           <p className="hardware-price-note">
             Reservation for one device from the first batch. Not a ship date.
+            Pay on Razorpay after you enter your details.
           </p>
-          <ReserveButton state={state} onClick={() => void start()} />
-          {error ? (
-            <p className="hardware-error" role="alert">
-              {error}
-            </p>
-          ) : null}
-          {state === "paid" ? (
-            <p>
-              Thank you. We&apos;ll email you when the first batch is ready to
-              ship, and again to collect your address.
-            </p>
-          ) : null}
+          <ReserveForm
+            state={state}
+            error={error}
+            returning={returning}
+            onSubmit={(fields) => void start(fields)}
+          />
         </div>
 
         <h2>What it does</h2>
@@ -176,20 +258,20 @@ export function Hardware() {
         </p>
         <ul>
           <li>
-            We will email you before shipping to confirm your address and that
-            we can deliver to your country.
+            Checkout collects your name, email, phone, and shipping address. We
+            will email you before shipping to confirm we can deliver to that
+            address.
           </li>
           <li>
             We are aiming for the first batch in late 2026. That is a target,
             not a promise.
           </li>
           <li>
-            If your unit has not shipped within <strong>12 months</strong> of
+            If your unit has not shipped within <strong>6 months</strong> of
             payment, you get a full refund.
           </li>
           <li>
-            If we cannot ship to your region, you get a full refund — we do not
-            collect a shipping address at checkout.
+            If we cannot ship to your region, you get a full refund.
           </li>
         </ul>
 
@@ -212,7 +294,7 @@ export function Hardware() {
           </li>
           <li>
             <strong>If we cannot deliver.</strong> If we cancel the batch, cannot
-            ship to you, or miss the 12-month window, you get a full refund.
+            ship to you, or miss the 6-month window, you get a full refund.
           </li>
           <li>
             <strong>After shipping.</strong> Once a unit has shipped, refunds
@@ -234,7 +316,8 @@ export function Hardware() {
             <strong>Privacy.</strong> Recordings live on the device until they
             sync through the Donna app. After sync, they follow the{" "}
             <Link to="/privacy">Donna privacy policy</Link>. Razorpay processes
-            payment details; we do not store your card number.
+            payment and stores the details you submit for this reservation; we
+            do not store your card number.
           </li>
         </ol>
 
@@ -259,15 +342,16 @@ export function Hardware() {
         <div className="support-card">
           <h2>Reserve a first-batch unit</h2>
           <p>
-            ₹4,900 today. We email you when it&apos;s ready to ship. Full refund
-            if we don&apos;t.
+            ₹4,900 today. Enter your shipping details, then pay on Razorpay.
+            Full refund if we don&apos;t ship.
           </p>
-          <ReserveButton state={state} onClick={() => void start()} />
-          {error ? (
-            <p className="hardware-error" role="alert">
-              {error}
-            </p>
-          ) : null}
+          {state === "paid" ? (
+            <p>Reservation received.</p>
+          ) : (
+            <a className="hardware-cta" href="#reserve">
+              Reserve for ₹4,900
+            </a>
+          )}
         </div>
       </article>
     </div>

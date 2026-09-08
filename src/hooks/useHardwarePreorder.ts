@@ -1,80 +1,83 @@
-import { useState } from "react";
-import { PREORDER_AMOUNT_PAISE, RAZORPAY_KEY_ID } from "../config";
-import { openRazorpayCheckout } from "../lib/razorpay";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 export type PreorderState = "idle" | "busy" | "paid" | "error";
 
 export function useHardwarePreorder() {
+  const [searchParams] = useSearchParams();
   const [state, setState] = useState<PreorderState>("idle");
   const [error, setError] = useState("");
 
-  async function start() {
+  useEffect(() => {
+    const paymentLinkId = searchParams.get("razorpay_payment_link_id");
+    const paymentId = searchParams.get("razorpay_payment_id");
+    const signature = searchParams.get("razorpay_signature");
+    const linkStatus = searchParams.get("razorpay_payment_link_status");
+    if (!paymentLinkId || !paymentId || !signature) {
+      return;
+    }
+
+    let cancelled = false;
+    setState("busy");
+    setError("");
+    void fetch("/api/verify-preorder", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        razorpay_payment_link_id: paymentLinkId,
+        razorpay_payment_link_reference_id:
+          searchParams.get("razorpay_payment_link_reference_id") || "",
+        razorpay_payment_link_status: linkStatus || "",
+        razorpay_payment_id: paymentId,
+        razorpay_signature: signature,
+      }),
+    })
+      .then(async (res) => {
+        const body = (await res.json()) as { success?: boolean; error?: string };
+        if (cancelled) return;
+        if (!res.ok || !body.success) {
+          throw new Error(body.error || "Payment was not verified");
+        }
+        setState("paid");
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Payment was not verified");
+        setState("error");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [searchParams]);
+
+  async function start(fields: {
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+  }) {
     setError("");
     setState("busy");
     try {
-      const orderRes = await fetch("/api/create-order", {
+      const res = await fetch("/api/create-preorder", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: PREORDER_AMOUNT_PAISE,
-          currency: "INR",
-          receipt: `donna-hw-${Date.now()}`,
-        }),
+        body: JSON.stringify(fields),
       });
-      const orderBody = (await orderRes.json()) as {
-        order_id?: string;
-        amount?: number;
-        currency?: string;
-        key_id?: string;
+      const body = (await res.json()) as {
+        checkout_url?: string;
         error?: string;
       };
-      if (!orderRes.ok || !orderBody.order_id) {
-        throw new Error(orderBody.error || "Could not start checkout");
+      if (!res.ok || !body.checkout_url) {
+        throw new Error(body.error || "Could not start reservation");
       }
-
-      const key = RAZORPAY_KEY_ID || orderBody.key_id;
-      if (!key) {
-        throw new Error("Razorpay is not configured");
-      }
-
-      await openRazorpayCheckout({
-        key,
-        orderId: orderBody.order_id,
-        amount: Number(orderBody.amount ?? PREORDER_AMOUNT_PAISE),
-        currency: orderBody.currency || "INR",
-        onDismiss: () => setState("idle"),
-        onFailed: (message) => {
-          setError(message);
-          setState("error");
-        },
-        onSuccess: async (response) => {
-          try {
-            const verifyRes = await fetch("/api/verify-payment", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(response),
-            });
-            const verifyBody = (await verifyRes.json()) as {
-              success?: boolean;
-              error?: string;
-            };
-            if (!verifyRes.ok || !verifyBody.success) {
-              throw new Error(verifyBody.error || "Payment verification failed");
-            }
-            setState("paid");
-          } catch (err) {
-            setError(
-              err instanceof Error ? err.message : "Payment verification failed",
-            );
-            setState("error");
-          }
-        },
-      });
+      window.location.assign(body.checkout_url);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not start checkout");
+      setError(err instanceof Error ? err.message : "Could not start reservation");
       setState("error");
     }
   }
 
-  return { state, error, start };
+  return { state, error, start, returning: Boolean(searchParams.get("razorpay_payment_id")) };
 }

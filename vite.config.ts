@@ -34,10 +34,11 @@ const apiProxyPrefixes = [
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "");
   for (const key of [
-    "RAZORPAY_KEY_ID",
-    "RAZORPAY_KEY_SECRET",
-    "RAZORPAY_PREORDER_AMOUNT_PAISE",
-    "RAZORPAY_PREORDER_CURRENCY",
+        "RAZORPAY_KEY_ID",
+        "RAZORPAY_KEY_SECRET",
+        "RAZORPAY_PREORDER_AMOUNT_PAISE",
+        "RAZORPAY_PREORDER_CURRENCY",
+        "PREORDER_CALLBACK_ORIGIN",
   ]) {
     if (env[key] && !process.env[key]) {
       process.env[key] = env[key];
