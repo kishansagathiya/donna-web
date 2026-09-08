@@ -275,69 +275,75 @@ export function Hardware() {
           </li>
         </ul>
 
-        <h2>Terms of purchase</h2>
-        <ol>
-          <li>
-            <strong>Price.</strong> ₹4,900 INR today reserves one first-batch
-            Donna Device. Payment is processed by Razorpay.
-          </li>
-          <li>
-            <strong>What you are buying.</strong> A hardware reservation, not
-            software, not a subscription, and not a guaranteed delivery date.
-          </li>
-          <li>
-            <strong>Cancellation.</strong> Email{" "}
-            <a href="mailto:kishansagathiya@gmail.com">
-              kishansagathiya@gmail.com
-            </a>{" "}
-            before we ship and we will refund the ₹4,900 in full.
-          </li>
-          <li>
-            <strong>If we cannot deliver.</strong> If we cancel the batch, cannot
-            ship to you, or miss the 6-month window, you get a full refund.
-          </li>
-          <li>
-            <strong>After shipping.</strong> Once a unit has shipped, refunds
-            follow standard defective-on-arrival handling. Contact us within 14
-            days of delivery if the device does not power on or cannot pair.
-          </li>
-          <li>
-            <strong>Early hardware.</strong> This is a first batch. Finish,
-            battery life, and enclosure may change slightly from the prototype
-            as we assemble units. Core behavior stays the same: hold to record,
-            sync to Donna on iPhone.
-          </li>
-          <li>
-            <strong>Requirements.</strong> An iPhone or iPad with the Donna app.
-            You are responsible for your own Apple account, network, and app
-            use.
-          </li>
-          <li>
-            <strong>Privacy.</strong> Recordings live on the device until they
-            sync through the Donna app. After sync, they follow the{" "}
-            <Link to="/privacy">Donna privacy policy</Link>. Razorpay processes
-            payment and stores the details you submit for this reservation; we
-            do not store your card number.
-          </li>
-        </ol>
+        <details className="hardware-fold">
+          <summary>Terms of purchase</summary>
+          <ol>
+            <li>
+              <strong>Price.</strong> ₹4,900 INR today reserves one first-batch
+              Donna Device. Payment is processed by Razorpay.
+            </li>
+            <li>
+              <strong>What you are buying.</strong> A hardware reservation, not
+              software, not a subscription, and not a guaranteed delivery date.
+            </li>
+            <li>
+              <strong>Cancellation.</strong> Email{" "}
+              <a href="mailto:kishansagathiya@gmail.com">
+                kishansagathiya@gmail.com
+              </a>{" "}
+              before we ship and we will refund the ₹4,900 in full.
+            </li>
+            <li>
+              <strong>If we cannot deliver.</strong> If we cancel the batch,
+              cannot ship to you, or miss the 6-month window, you get a full
+              refund.
+            </li>
+            <li>
+              <strong>After shipping.</strong> Once a unit has shipped, refunds
+              follow standard defective-on-arrival handling. Contact us within
+              14 days of delivery if the device does not power on or cannot
+              pair.
+            </li>
+            <li>
+              <strong>Early hardware.</strong> This is a first batch. Finish,
+              battery life, and enclosure may change slightly from the prototype
+              as we assemble units. Core behavior stays the same: hold to
+              record, sync to Donna on iPhone.
+            </li>
+            <li>
+              <strong>Requirements.</strong> An iPhone or iPad with the Donna
+              app. You are responsible for your own Apple account, network, and
+              app use.
+            </li>
+            <li>
+              <strong>Privacy.</strong> Recordings live on the device until they
+              sync through the Donna app. After sync, they follow the{" "}
+              <Link to="/privacy">Donna privacy policy</Link>. Razorpay processes
+              payment and stores the details you submit for this reservation; we
+              do not store your card number.
+            </li>
+          </ol>
+        </details>
 
-        <h2>FAQ</h2>
-        <h3>Does the device listen all the time?</h3>
-        <p>
-          No. It records only while you hold REC (or until the 5-minute cap).
-        </p>
-        <h3>Will it work without my phone?</h3>
-        <p>
-          It will record and store clips on its own. Transcription, memory, and
-          tasks happen after it syncs to the Donna iOS app.
-        </p>
-        <h3>Is Android supported?</h3>
-        <p>Not for pairing. iOS only for this batch.</p>
-        <h3>Is this the final retail price?</h3>
-        <p>
-          ₹4,900 is the first-batch reservation price. Later batches may cost
-          more. Your reservation price will not increase for this unit.
-        </p>
+        <details className="hardware-fold">
+          <summary>FAQ</summary>
+          <h3>Does the device listen all the time?</h3>
+          <p>
+            No. It records only while you hold REC (or until the 5-minute cap).
+          </p>
+          <h3>Will it work without my phone?</h3>
+          <p>
+            It will record and store clips on its own. Transcription, memory,
+            and tasks happen after it syncs to the Donna iOS app.
+          </p>
+          <h3>Is Android supported?</h3>
+          <p>Not for pairing. iOS only for this batch.</p>
+          <h3>Is this the final retail price?</h3>
+          <p>
+            ₹4,900 is the first-batch reservation price. Later batches may cost
+            more. Your reservation price will not increase for this unit.
+          </p>
+        </details>
 
         <div className="support-card">
           <h2>Reserve a first-batch unit</h2>
