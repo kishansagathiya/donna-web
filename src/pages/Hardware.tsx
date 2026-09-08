@@ -41,6 +41,17 @@ export function Hardware() {
           follow-ups without unlocking a screen.
         </p>
 
+        <figure className="hardware-video">
+          <div className="hardware-video-frame">
+            <iframe
+              src="https://www.youtube.com/embed/7bZaKViLs-s"
+              title="Meet Donna: A Simple Hardware Voice Recorder for iOS"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </div>
+        </figure>
+
         <div className="hardware-buy">
           <p className="hardware-price">₹4,900</p>
           <p className="hardware-price-note">

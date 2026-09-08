@@ -146,6 +146,28 @@
   font-weight: 500;
 }
 
+.hardware-video {
+  margin: 1.25rem 0 1.75rem;
+  display: flex;
+  justify-content: center;
+}
+
+.hardware-video-frame {
+  width: min(100%, 22rem);
+  aspect-ratio: 9 / 16;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  background: var(--bg-card);
+}
+
+.hardware-video-frame iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
 .hardware-buy {
   margin: 0 0 1.5rem;
   padding: 1.25rem 1.5rem;
