@@ -10,6 +10,15 @@ import { fileURLToPath } from "node:url";
 
 const MIN_AMOUNT_PAISE = 100;
 const API_PATHS = new Set(["/api/create-preorder", "/api/verify-preorder"]);
+const CALLBACK_PATHS = new Set(["/hardware/reserved", "/hardware/reserved/"]);
+const CALLBACK_FIELDS = [
+  "razorpay_payment_id",
+  "razorpay_order_id",
+  "razorpay_signature",
+  "razorpay_payment_link_id",
+  "razorpay_payment_link_reference_id",
+  "razorpay_payment_link_status",
+];
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 loadDotEnv();
@@ -45,24 +54,49 @@ function json(res, status, body) {
   res.end(payload);
 }
 
-function readBody(req) {
+function readRawBody(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
     req.on("data", (chunk) => chunks.push(chunk));
-    req.on("end", () => {
-      const raw = Buffer.concat(chunks).toString("utf8").trim();
-      if (!raw) {
-        resolve({});
-        return;
-      }
-      try {
-        resolve(JSON.parse(raw));
-      } catch {
-        reject(Object.assign(new Error("Invalid JSON"), { status: 400 }));
-      }
-    });
+    req.on("end", () => resolve(Buffer.concat(chunks).toString("utf8")));
     req.on("error", reject);
   });
+}
+
+function readBody(req) {
+  return readRawBody(req).then((raw) => {
+    const text = raw.trim();
+    if (!text) return {};
+    try {
+      return JSON.parse(text);
+    } catch {
+      throw Object.assign(new Error("Invalid JSON"), { status: 400 });
+    }
+  });
+}
+
+export function parseCallbackFields(raw, contentType) {
+  const text = String(raw || "").trim();
+  if (!text) return {};
+  if (String(contentType || "").includes("application/json")) {
+    try {
+      const parsed = JSON.parse(text);
+      return parsed && typeof parsed === "object" ? parsed : {};
+    } catch {
+      return {};
+    }
+  }
+  return Object.fromEntries(new URLSearchParams(text));
+}
+
+export function callbackRedirectLocation(fields) {
+  const params = new URLSearchParams();
+  for (const key of CALLBACK_FIELDS) {
+    const value = fields?.[key];
+    if (value) params.set(key, String(value));
+  }
+  const query = params.toString();
+  return query ? `/hardware/reserved?${query}` : "/hardware/reserved";
 }
 
 function credentials() {
@@ -346,11 +380,27 @@ async function verifyPreorder(req, res) {
   json(res, 200, { success: true, paid: true });
 }
 
+async function handleCallbackPost(req, res) {
+  const raw = await readRawBody(req);
+  const fields = parseCallbackFields(raw, req.headers["content-type"]);
+  res.writeHead(303, {
+    Location: callbackRedirectLocation(fields),
+    "Cache-Control": "no-store",
+  });
+  res.end();
+}
+
 /**
  * @returns {Promise<boolean>} true if the request was handled
  */
 export async function handleRazorpayApi(req, res) {
   const path = (req.url || "/").split("?")[0];
+
+  if (CALLBACK_PATHS.has(path) && req.method === "POST") {
+    await handleCallbackPost(req, res);
+    return true;
+  }
+
   if (!API_PATHS.has(path)) {
     return false;
   }

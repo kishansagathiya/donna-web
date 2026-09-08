@@ -1,10 +1,12 @@
 import { createHmac } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import {
+  callbackRedirectLocation,
   expectedOrderSignature,
   expectedPaymentLinkSignature,
   normalizePreorder,
   parseAllowedOrigin,
+  parseCallbackFields,
   resolvePreorderCallbackUrl,
 } from "../../scripts/razorpay-api.mjs";
 
@@ -75,5 +77,17 @@ describe("preorder callback URL", () => {
       "http://localhost:5173",
     );
     expect(parseAllowedOrigin("https://evil.example")).toBe("");
+  });
+});
+
+describe("Razorpay callback POST", () => {
+  it("turns form fields into a GET query on /hardware/reserved", () => {
+    const fields = parseCallbackFields(
+      "razorpay_payment_id=pay_1&razorpay_order_id=order_1&razorpay_signature=sig",
+      "application/x-www-form-urlencoded",
+    );
+    expect(callbackRedirectLocation(fields)).toBe(
+      "/hardware/reserved?razorpay_payment_id=pay_1&razorpay_order_id=order_1&razorpay_signature=sig",
+    );
   });
 });
