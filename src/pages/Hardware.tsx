@@ -1,5 +1,5 @@
 import { FormEvent, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { APP_STORE_URL } from "../config";
 import { useHardwarePreorder } from "../hooks/useHardwarePreorder";
 import "./Pages.css";
@@ -7,12 +7,10 @@ import "./Pages.css";
 function ReserveForm({
   state,
   error,
-  returning,
   onSubmit,
 }: {
   state: ReturnType<typeof useHardwarePreorder>["state"];
   error: string;
-  returning: boolean;
   onSubmit: (fields: {
     name: string;
     email: string;
@@ -29,20 +27,6 @@ function ReserveForm({
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     onSubmit({ name, email, phone, address });
-  }
-
-  if (state === "paid") {
-    return (
-      <p>
-        Thank you. Razorpay has your name, email, phone, and shipping address.
-        We&apos;ll email you before the first batch ships to confirm we can
-        deliver.
-      </p>
-    );
-  }
-
-  if (returning && state !== "error") {
-    return <p>Confirming payment…</p>;
   }
 
   return (
@@ -98,11 +82,7 @@ function ReserveForm({
         />
       </label>
       <button type="submit" className="hardware-cta" disabled={busy}>
-        {busy
-          ? returning
-            ? "Confirming payment…"
-            : "Opening Razorpay…"
-          : "Reserve for ₹4,900"}
+        {busy ? "Opening Razorpay…" : "Reserve for ₹4,900"}
       </button>
       {error ? (
         <p className="hardware-error" role="alert">
@@ -114,7 +94,16 @@ function ReserveForm({
 }
 
 export function Hardware() {
-  const { state, error, start, returning } = useHardwarePreorder();
+  const { state, error, start } = useHardwarePreorder();
+  const [searchParams] = useSearchParams();
+  if (searchParams.get("razorpay_payment_id")) {
+    return (
+      <Navigate
+        to={{ pathname: "/hardware/reserved", search: searchParams.toString() }}
+        replace
+      />
+    );
+  }
 
   return (
     <div className="doc-page">
@@ -148,7 +137,6 @@ export function Hardware() {
           <ReserveForm
             state={state}
             error={error}
-            returning={returning}
             onSubmit={(fields) => void start(fields)}
           />
         </div>

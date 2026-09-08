@@ -320,6 +320,10 @@ html[data-theme="eink"] .hardware-cta:hover:not(:disabled) {
   margin-top: 0;
 }
 
+.hardware-success .hardware-cta {
+  margin-top: 0.5rem;
+}
+
 .blog-index {
   padding-bottom: 3rem;
 }

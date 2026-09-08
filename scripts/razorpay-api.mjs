@@ -140,20 +140,56 @@ function noteChunks(address) {
   return notes;
 }
 
-function callbackOrigin(req) {
-  const configured = process.env.PREORDER_CALLBACK_ORIGIN?.trim();
-  if (configured) return configured.replace(/\/$/, "");
-  const origin = req.headers.origin;
-  if (typeof origin === "string" && /^https?:\/\//.test(origin)) {
-    return origin.replace(/\/$/, "");
+const CALLBACK_PATH = "/hardware/reserved";
+const PRODUCTION_ORIGIN = "https://donnadoesit.com";
+
+function hostAllowed(hostname) {
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "donnadoesit.com" ||
+    hostname === "www.donnadoesit.com" ||
+    hostname.endsWith(".up.railway.app")
+  );
+}
+
+export function parseAllowedOrigin(raw) {
+  if (typeof raw !== "string" || !raw.trim()) return "";
+  try {
+    const url = new URL(raw.trim());
+    if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+    if (!hostAllowed(url.hostname)) return "";
+    if (url.hostname === "donnadoesit.com" || url.hostname === "www.donnadoesit.com") {
+      return `https://${url.hostname}`;
+    }
+    return url.origin;
+  } catch {
+    return "";
   }
-  const host = req.headers.host;
-  const protoHeader = req.headers["x-forwarded-proto"];
-  const proto = typeof protoHeader === "string" ? protoHeader.split(",")[0] : "https";
-  if (typeof host === "string" && host) {
-    return `${proto}://${host}`;
+}
+
+export function resolvePreorderCallbackUrl(req, bodyOrigin) {
+  const configured = parseAllowedOrigin(process.env.PREORDER_CALLBACK_ORIGIN || "");
+  const fromBody = parseAllowedOrigin(bodyOrigin);
+  const fromHeader = parseAllowedOrigin(
+    typeof req?.headers?.origin === "string" ? req.headers.origin : "",
+  );
+  const origin = fromBody || fromHeader || configured;
+  if (origin) return `${origin}${CALLBACK_PATH}`;
+
+  const host = typeof req?.headers?.host === "string" ? req.headers.host : "";
+  const hostname = host.split(":")[0];
+  if (host && hostAllowed(hostname)) {
+    const protoHeader = req.headers["x-forwarded-proto"];
+    const proto =
+      hostname === "localhost" || hostname === "127.0.0.1"
+        ? "http"
+        : typeof protoHeader === "string"
+          ? protoHeader.split(",")[0]
+          : "https";
+    return `${proto}://${host}${CALLBACK_PATH}`;
   }
-  return "https://donnadoesit.com";
+  return `${PRODUCTION_ORIGIN}${CALLBACK_PATH}`;
 }
 
 function razorpayStatus(status) {
@@ -226,7 +262,7 @@ async function createPreorder(req, res) {
       notify: { sms: false, email: true },
       reminder_enable: false,
       notes: noteChunks(parsed.address),
-      callback_url: `${callbackOrigin(req)}/hardware`,
+      callback_url: resolvePreorderCallbackUrl(req, body.origin),
       callback_method: "get",
     },
   });

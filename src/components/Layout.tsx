@@ -5,7 +5,10 @@ import "./Layout.css";
 
 export function Layout() {
   const { pathname } = useLocation();
-  const isEink = pathname === "/" || pathname === "/hardware";
+  const isEink =
+    pathname === "/" ||
+    pathname === "/hardware" ||
+    pathname === "/hardware/reserved";
 
   return (
     <div className={isEink ? "layout layout--eink" : "layout"}>

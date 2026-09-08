@@ -14,6 +14,7 @@ import { Layout } from "./components/Layout";
 import { Landing } from "./pages/Landing";
 import { Privacy } from "./pages/Privacy";
 import { Hardware } from "./pages/Hardware";
+import { HardwareReserved } from "./pages/HardwareReserved";
 import { PrivateHosting } from "./pages/PrivateHosting";
 import { Pitch } from "./pages/Pitch";
 import { BlogPage } from "./pages/BlogPage";
@@ -75,6 +76,7 @@ function PageTitle() {
       "/app/reminders": "Reminders — Donna",
       "/privacy": "Privacy — Donna",
       "/hardware": "Donna Device — pre-order",
+      "/hardware/reserved": "Reservation confirmed — Donna",
       "/private": "Private — Donna",
       "/pitch": "Pitch — Donna",
       "/support": "Support — Donna",
@@ -105,6 +107,7 @@ export default function App() {
             <Route index element={<Landing />} />
             <Route path="privacy" element={<Privacy />} />
             <Route path="hardware" element={<Hardware />} />
+            <Route path="hardware/reserved" element={<HardwareReserved />} />
             <Route path="private" element={<PrivateHosting />} />
             <Route path="pitch" element={<Pitch />} />
             <Route path="blog" element={<BlogPage />} />

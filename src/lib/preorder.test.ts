@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   expectedPaymentLinkSignature,
   normalizePreorder,
+  parseAllowedOrigin,
+  resolvePreorderCallbackUrl,
 } from "../../scripts/razorpay-api.mjs";
 
 describe("normalizePreorder", () => {
@@ -43,5 +45,23 @@ describe("Razorpay payment-link signature", () => {
         "test_secret",
       ),
     ).toBe(expected);
+  });
+});
+
+describe("preorder callback URL", () => {
+  it("uses the checkout page origin", () => {
+    expect(
+      resolvePreorderCallbackUrl(
+        { headers: {} },
+        "https://donnadoesit.com",
+      ),
+    ).toBe("https://donnadoesit.com/hardware/reserved");
+  });
+
+  it("allows local dev and rejects random hosts", () => {
+    expect(parseAllowedOrigin("http://localhost:5173")).toBe(
+      "http://localhost:5173",
+    );
+    expect(parseAllowedOrigin("https://evil.example")).toBe("");
   });
 });
