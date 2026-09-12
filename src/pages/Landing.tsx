@@ -52,7 +52,7 @@ export function Landing() {
             Open on the web
           </Link>
           <Link to="/hardware" className="landing-secondary">
-            Pre-order hardware
+            Donna Device
           </Link>
         </div>
         <p className="landing-footnote">

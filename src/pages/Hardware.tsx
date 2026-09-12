@@ -1,100 +1,8 @@
-import { FormEvent, useState } from "react";
 import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { APP_STORE_URL } from "../config";
-import { useHardwarePreorder } from "../hooks/useHardwarePreorder";
 import "./Pages.css";
 
-function ReserveForm({
-  state,
-  error,
-  onSubmit,
-}: {
-  state: ReturnType<typeof useHardwarePreorder>["state"];
-  error: string;
-  onSubmit: (fields: {
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
-  }) => void;
-}) {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [address, setAddress] = useState("");
-  const busy = state === "busy";
-
-  function handleSubmit(event: FormEvent) {
-    event.preventDefault();
-    onSubmit({ name, email, phone, address });
-  }
-
-  return (
-    <form className="hardware-form" onSubmit={handleSubmit}>
-      <label>
-        Full name
-        <input
-          name="name"
-          autoComplete="name"
-          required
-          minLength={2}
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          disabled={busy}
-        />
-      </label>
-      <label>
-        Email
-        <input
-          name="email"
-          type="email"
-          autoComplete="email"
-          required
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          disabled={busy}
-        />
-      </label>
-      <label>
-        Phone
-        <input
-          name="phone"
-          type="tel"
-          autoComplete="tel"
-          required
-          value={phone}
-          onChange={(event) => setPhone(event.target.value)}
-          disabled={busy}
-        />
-      </label>
-      <label>
-        Shipping address
-        <textarea
-          name="address"
-          autoComplete="street-address"
-          required
-          minLength={10}
-          rows={3}
-          placeholder="Street, city, state, PIN, country"
-          value={address}
-          onChange={(event) => setAddress(event.target.value)}
-          disabled={busy}
-        />
-      </label>
-      <button type="submit" className="hardware-cta" disabled={busy}>
-        {busy ? "Opening Razorpay…" : "Reserve for ₹4,900"}
-      </button>
-      {error ? (
-        <p className="hardware-error" role="alert">
-          {error}
-        </p>
-      ) : null}
-    </form>
-  );
-}
-
 export function Hardware() {
-  const { state, error, start } = useHardwarePreorder();
   const [searchParams] = useSearchParams();
   if (searchParams.get("razorpay_payment_id")) {
     return (
@@ -128,18 +36,11 @@ export function Hardware() {
           </div>
         </figure>
 
-        <div className="hardware-buy" id="reserve">
+        <div className="hardware-buy">
           <p className="hardware-price">₹4,900</p>
           <p className="hardware-price-note">
-            Reservation for one device from the first batch. Not a ship date.
-            Pay on Razorpay after you enter your details. You&apos;ll come back
-            here when it succeeds.
+            First-batch reservation price for one device. Not a ship date.
           </p>
-          <ReserveForm
-            state={state}
-            error={error}
-            onSubmit={(fields) => void start(fields)}
-          />
         </div>
 
         <h2>What it does</h2>
@@ -247,8 +148,7 @@ export function Hardware() {
         </p>
         <ul>
           <li>
-            Checkout collects your name, email, phone, and shipping address. We
-            will email you before shipping to confirm we can deliver to that
+            We will email you before shipping to confirm we can deliver to your
             address.
           </li>
           <li>
@@ -335,18 +235,14 @@ export function Hardware() {
         </details>
 
         <div className="support-card">
-          <h2>Reserve a first-batch unit</h2>
+          <h2>First-batch reservations</h2>
           <p>
-            ₹4,900 today. Enter your shipping details, then pay on Razorpay.
-            Full refund if we don&apos;t ship.
+            ₹4,900 for one device. Full refund if we don&apos;t ship. Email{" "}
+            <a href="mailto:kishansagathiya@gmail.com">
+              kishansagathiya@gmail.com
+            </a>{" "}
+            to reserve a unit.
           </p>
-          {state === "paid" ? (
-            <p>Reservation received.</p>
-          ) : (
-            <a className="hardware-cta" href="#reserve">
-              Reserve for ₹4,900
-            </a>
-          )}
         </div>
       </article>
     </div>

@@ -75,7 +75,7 @@ function PageTitle() {
       "/app/schedules": "Schedules — Donna",
       "/app/reminders": "Reminders — Donna",
       "/privacy": "Privacy — Donna",
-      "/hardware": "Donna Device — pre-order",
+      "/hardware": "Donna Device",
       "/hardware/reserved": "Reservation confirmed — Donna",
       "/private": "Private — Donna",
       "/pitch": "Pitch — Donna",
