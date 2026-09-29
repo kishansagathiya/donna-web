@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { AppPageHeader } from "../components/ui/AppPageHeader";
 import {
   deleteAccount,
   downloadAccountExport,
@@ -28,6 +29,7 @@ function normalizePersona(persona: string): string {
 }
 
 export function ProfilePage() {
+  const navigate = useNavigate();
   const { session } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -187,9 +189,7 @@ export function ProfilePage() {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-y-auto">
-      <div className="border-b border-donna-border px-6 py-5 md:px-8">
-        <h1 className="text-xl font-semibold text-donna-text">Profile</h1>
-      </div>
+      <AppPageHeader title="Profile" onBack={() => navigate("/app/settings")} />
 
       <div className="flex-1 px-6 py-6 md:px-8">
         <div className="mb-8 flex items-center gap-4">

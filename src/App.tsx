@@ -32,6 +32,7 @@ import { SearchNotesPage } from "./pages/SearchContextPage";
 import { AddMemoryPage } from "./pages/AddMemoryPage";
 import { ExtractedMemoryPage } from "./pages/ExtractedMemoryPage";
 import { ProfilePage } from "./pages/ProfilePage";
+import { SettingsPage } from "./pages/SettingsPage";
 import { SkillsPage } from "./pages/SkillsPage";
 import { EmployeesPage } from "./pages/EmployeesPage";
 import { SchedulesPage } from "./pages/SchedulesPage";
@@ -68,6 +69,7 @@ function PageTitle() {
       "/app/actions": "Actions — Donna",
       "/app/today": "Today — Donna",
       "/app/search": "Memory — Donna",
+      "/app/settings": "Settings — Donna",
       "/app/profile": "Profile — Donna",
       "/app/desktop": "Desktop — Donna",
       "/app/skills": "Skills — Donna",
@@ -144,6 +146,7 @@ export default function App() {
               <Route path="app/today" element={<DailyTasksPage />} />
               <Route path="app/search" element={<ExtractedMemoryPage />} />
               <Route path="app/add" element={<AddMemoryPage />} />
+              <Route path="app/settings" element={<SettingsPage />} />
               <Route path="app/profile" element={<ProfilePage />} />
               <Route path="app/desktop" element={<DesktopDiagnosticsPage />} />
               <Route path="app/skills" element={<SkillsPage />} />

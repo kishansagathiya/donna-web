@@ -1,34 +1,11 @@
-import { NavLink, useNavigate } from "react-router-dom";
-import {
-  Briefcase,
-  Bell,
-  CalendarCheck,
-  CircleHelp,
-  Clock,
-  Database,
-  Inbox,
-  Laptop,
-  MessageSquare,
-  Mic,
-  Plus,
-  StickyNote,
-  User,
-} from "lucide-react";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { CircleHelp, MessageSquare, Plus, Settings } from "lucide-react";
 import { DonnaLogo } from "./DonnaLogo";
 import { cn } from "../lib/cn";
+import { isSettingsPath } from "../lib/settingsNav";
 
 const navItems = [
   { to: "/app", label: "Chat", icon: MessageSquare, end: true },
-  { to: "/app/voice", label: "Voice", icon: Mic, end: true },
-  { to: "/app/notes", label: "Notes", icon: StickyNote, end: false },
-  { to: "/app/employees", label: "Employees", icon: Briefcase, end: false },
-  { to: "/app/schedules", label: "Schedules", icon: Clock, end: false },
-  { to: "/app/actions", label: "Actions", icon: Inbox, end: false },
-  { to: "/app/reminders", label: "Reminders", icon: Bell, end: false },
-  { to: "/app/today", label: "Today", icon: CalendarCheck, end: false },
-  { to: "/app/search", label: "Memory", icon: Database, end: false },
-  { to: "/app/profile", label: "Profile", icon: User, end: false },
-  { to: "/app/desktop", label: "Desktop", icon: Laptop, end: false },
 ] as const;
 
 type Props = {
@@ -39,6 +16,8 @@ type Props = {
 
 export function Sidebar({ onNewChat, onNavigate, className }: Props) {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const settingsActive = isSettingsPath(pathname);
 
   function handleNewChat() {
     onNavigate?.();
@@ -111,7 +90,23 @@ export function Sidebar({ onNewChat, onNavigate, className }: Props) {
         })}
       </nav>
 
-      <div className="mt-2 border-t border-donna-border px-3 py-3">
+      <div className="mt-auto border-t border-donna-border px-3 py-3">
+        <NavLink
+          to="/app/settings"
+          onClick={onNavigate}
+          className={() =>
+            cn(
+              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors",
+              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-donna-primary-ring",
+              settingsActive
+                ? "bg-donna-primary-light text-donna-primary"
+                : "text-donna-muted hover:bg-donna-surface hover:text-donna-text",
+            )
+          }
+        >
+          <Settings className="h-5 w-5" strokeWidth={1.75} />
+          Settings
+        </NavLink>
         <NavLink
           to="/support"
           onClick={onNavigate}

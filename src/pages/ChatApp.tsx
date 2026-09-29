@@ -69,7 +69,7 @@ function UserAvatar({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      aria-label="Open profile"
+      aria-label="Open settings"
       className={cn(
         "flex h-9 w-9 items-center justify-center rounded-full bg-donna-primary-light text-sm font-semibold text-donna-primary",
         "transition-opacity hover:opacity-80",
@@ -336,7 +336,7 @@ export function ChatApp() {
                 <PanelRightOpen className="h-5 w-5" strokeWidth={1.75} />
               )}
             </IconButton>
-            <UserAvatar onClick={() => navigate("/app/profile")} />
+            <UserAvatar onClick={() => navigate("/app/settings")} />
           </div>
         </header>
 

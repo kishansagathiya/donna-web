@@ -133,7 +133,7 @@ export function SchedulesPage() {
     <div className="flex min-h-dvh flex-col bg-donna-bg">
       <AppPageHeader
         title="Schedules"
-        onBack={() => navigate("/app")}
+        onBack={() => navigate("/app/settings")}
         action={
           <Button onClick={openCreate} className="px-3 py-1.5 text-sm">
             <span className="inline-flex items-center gap-1">
