@@ -10,12 +10,13 @@ export function Privacy() {
     <div className="doc-page">
       <article className="doc">
         <h1>Privacy Policy</h1>
-        <p className="doc-updated">Last updated: September 8, 2026</p>
+        <p className="doc-updated">Last updated: September 28, 2026</p>
 
         <p>
           Donna (&ldquo;we,&rdquo; &ldquo;our,&rdquo; or &ldquo;us&rdquo;) is a
           voice-powered AI assistant. This policy explains how we handle
-          information when you use the Donna iOS app and this website.
+          information when you use the Donna iOS app, this website, and the
+          Donna Firefox add-on.
         </p>
 
         <h2>Information we collect</h2>
@@ -42,10 +43,26 @@ export function Privacy() {
           them in future conversations.
         </p>
         <p>
+          <strong>Firefox add-on.</strong> If you install the Donna Firefox
+          add-on and choose to fill a form, the add-on sends that page&apos;s
+          origin, title, and form field labels to our servers so Donna can
+          suggest values from your memory. It does not send values already on
+          the page, passwords, or payment fields. Nothing is written into the
+          page until you confirm. The add-on does not submit the form and does
+          not save the page into memory.
+        </p>
+        <p>
           <strong>Hardware pre-order.</strong> If you pre-order Donna hardware
           on this site, you submit your name, email, phone, and shipping
-          address. Those details are sent to Razorpay with your payment so we
-          can process the reservation and ship when the first batch is ready.
+          address. Those details are sent to Razorpay with your payment. We
+          email a reservation confirmation to the address you entered, and we
+          use it again when the first batch is ready to ship.
+        </p>
+        <p>
+          <strong>Subscriptions.</strong> If you subscribe to Donna Pro in the
+          iOS app, Apple processes the payment. We receive a subscription
+          identifier, the plan you chose, and whether it is active so we can
+          provide the service. We do not receive your card number.
         </p>
         <p>
           We do not collect your contacts or precise location.
@@ -58,9 +75,14 @@ export function Privacy() {
           <li>To deliver spoken replies through the app</li>
           <li>To store and recall content you add to memory</li>
           <li>
-            To process hardware reservations and email you when the device is
-            ready
+            To suggest form values from your memory when you use the Firefox
+            add-on
           </li>
+          <li>
+            To process hardware reservations, send a confirmation email, and
+            email you when the device is ready
+          </li>
+          <li>To provide Donna Pro while your App Store subscription is active</li>
           <li>To maintain, secure, and improve Donna</li>
         </ul>
         <p>
@@ -86,6 +108,13 @@ export function Privacy() {
           <li>
             <strong>Supabase</strong> — authentication, database, and file
             storage
+          </li>
+          <li>
+            <strong>Resend</strong> — reservation confirmation email
+          </li>
+          <li>
+            <strong>Apple</strong> — App Store subscription payments for Donna
+            Pro
           </li>
           <li>
             <strong>Razorpay</strong> — payment processing for hardware

@@ -39,6 +39,10 @@ export default defineConfig(({ mode }) => {
         "RAZORPAY_PREORDER_AMOUNT_PAISE",
         "RAZORPAY_PREORDER_CURRENCY",
         "PREORDER_CALLBACK_ORIGIN",
+        "RESEND_API_KEY",
+        "PREORDER_FROM_EMAIL",
+        "PREORDER_BCC_EMAIL",
+        "PREORDER_REPLY_TO",
   ]) {
     if (env[key] && !process.env[key]) {
       process.env[key] = env[key];

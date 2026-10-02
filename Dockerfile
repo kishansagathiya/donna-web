@@ -10,7 +10,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
-COPY scripts/serve.mjs scripts/razorpay-api.mjs ./scripts/
+COPY scripts/serve.mjs scripts/razorpay-api.mjs scripts/preorder-email.mjs ./scripts/
 COPY --from=build /app/dist ./dist
 EXPOSE 3000
 CMD ["npm", "start"]

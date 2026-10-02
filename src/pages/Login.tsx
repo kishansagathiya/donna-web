@@ -75,6 +75,10 @@ export function Login() {
             After sign-in, click Open Donna Desktop if the app does not come
             forward on its own.
           </p>
+        ) : new URLSearchParams(window.location.search).get("extension") === "1" ? (
+          <p className="max-w-xs text-sm text-donna-muted">
+            After you sign in, this tab closes and the Firefox add-on continues.
+          </p>
         ) : null}
       </div>
 
