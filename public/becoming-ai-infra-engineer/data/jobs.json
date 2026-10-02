@@ -1,0 +1,1961 @@
+{
+  "updated_at": "2026-10-01T18:07:19+00:00",
+  "source_status": {
+    "Y Combinator": "ok (13)",
+    "Accel": "ok (107)",
+    "General Catalyst": "ok (70)",
+    "Khosla Ventures": "ok (68)",
+    "Techstars": "ok (7)",
+    "Antler": "ok (2)",
+    "Entrepreneur First": "ok (5)",
+    "Plug and Play": "ok (3)",
+    "a16z": "ok (36)",
+    "Sequoia": "ok (3)",
+    "Bessemer": "ok (3)",
+    "Kleiner Perkins": "ok (17)",
+    "Battery": "ok (3)",
+    "StartX": "ok (2)",
+    "Lightspeed": "ok (8)",
+    "Initialized": "ok (0)",
+    "500 Global": "skipped: no public feed",
+    "Alchemist": "skipped: no public feed",
+    "a16z Speedrun": "skipped: no public feed",
+    "SOSV": "not fetched: No public portfolio jobs feed",
+    "AngelPad": "not fetched: No public portfolio jobs feed",
+    "Berkeley SkyDeck": "not fetched: No public portfolio jobs feed",
+    "Creative Destruction Lab": "not fetched: No public portfolio jobs feed",
+    "Betaworks": "not fetched: No public portfolio jobs feed",
+    "ERA": "not fetched: No public portfolio jobs feed",
+    "South Park Commons": "not fetched: No public portfolio jobs feed",
+    "HF0": "not fetched: No public portfolio jobs feed",
+    "Sequoia Arc": "not fetched: No public portfolio jobs feed",
+    "Neo": "not fetched: No public portfolio jobs feed",
+    "AI2 Incubator": "not fetched: No public portfolio jobs feed",
+    "Greylock": "not fetched: No public portfolio jobs feed",
+    "Index Ventures": "not fetched: No public portfolio jobs feed",
+    "NEA": "not fetched: No public portfolio jobs feed",
+    "First Round": "not fetched: Portfolio board requires a login"
+  },
+  "jobs": [
+    {
+      "id": "General Catalyst:88292271",
+      "title": "Machine Learning Infrastructure Engineer",
+      "company": "1001 AI",
+      "location": "London, UK",
+      "url": "https://careers.1001.ai/machine-learning-infrastructure-engineer",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:87197986",
+      "title": "AI Senior Software Engineer, ML Platform",
+      "company": "Aidoc",
+      "location": "Tel Aviv District, Israel, Tel Aviv-Yafo, Israel",
+      "url": "https://boards.greenhouse.io/aidocmedical/jobs/4874306101",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:87197990",
+      "title": "AI Staff Software Engineer, ML Platform",
+      "company": "Aidoc",
+      "location": "Tel Aviv District, Israel, Tel Aviv-Yafo, Israel",
+      "url": "https://boards.greenhouse.io/aidocmedical/jobs/4876560101",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "Accel:93688001",
+      "title": "Senior Site Reliability Engineer, AI Platform",
+      "company": "Algolia",
+      "location": "Paris, France",
+      "url": "https://boards.greenhouse.io/algolia/jobs/6200281004",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:93688002",
+      "title": "Site Reliability Engineer, AI Platform",
+      "company": "Algolia",
+      "location": "Paris, France",
+      "url": "https://boards.greenhouse.io/algolia/jobs/6200292004",
+      "source": "Accel"
+    },
+    {
+      "id": "a16z:ats:mn73p8pjdwspph6n1f6zy6v1z98e7j10",
+      "title": "Software Engineer, AI Infrastructure - LVM Inference & Evaluation",
+      "company": "Ambient.ai",
+      "location": "Redwood City, Redwood City, CA, United States",
+      "url": "https://jobs.ashbyhq.com/ambient.ai/e56b113b-69a1-4d38-8b9c-eb3460b9447e/application",
+      "source": "a16z"
+    },
+    {
+      "id": "Khosla Ventures:82128717",
+      "title": "Software Engineer, Agentic AI Infrastructure",
+      "company": "Anrok",
+      "location": "San Francisco, CA, USA, New York, NY, USA +1",
+      "url": "https://jobs.ashbyhq.com/anrok/a11b3600-9820-44af-ac8e-bdafe037f504",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "General Catalyst:82428325",
+      "title": "Senior Software Engineer - ML Infrastructure",
+      "company": "Applied Intuition",
+      "location": "Sunnyvale, CA, USA",
+      "url": "https://jobs.ashbyhq.com/applied/f80548fb-fe08-43a2-90e7-110f8873b09e",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "a16z:ats:mn7aw7dbr1v9v2bh903gh21md98d9nyt",
+      "title": "Software Engineer - ML Infrastructure",
+      "company": "Arena",
+      "location": "SF Bay Area, Bay Area, California, United States",
+      "url": "https://jobs.ashbyhq.com/arena/8a52db07-5ba9-4d64-a08f-1b1f6cd88c5a/application",
+      "source": "a16z"
+    },
+    {
+      "id": "Accel:78793354",
+      "title": "Senior Hardware Systems Engineer - AI Rack & Cluster Infrastructure",
+      "company": "Arista Networks",
+      "location": "Santa Clara, CA, USA",
+      "url": "https://jobs.smartrecruiters.com/AristaNetworks/744000126342309",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:91613485",
+      "title": "Senior Software Engineer, Inference",
+      "company": "AssemblyAI",
+      "location": "United Kingdom",
+      "url": "https://boards.greenhouse.io/assemblyai/jobs/4728958005",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:93210716",
+      "title": "Principal Machine Learning Systems Engineer (GenAI Products & Knowledge Innovations)",
+      "company": "Atlassian",
+      "location": "Remote",
+      "url": "https://www.atlassian.com/company/careers/details/26969",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:93210676",
+      "title": "Principal Machine Learning Systems Engineer, Search Platform",
+      "company": "Atlassian",
+      "location": "Bengaluru, Karnataka, India, Remote",
+      "url": "https://www.atlassian.com/company/careers/details/27053",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:93210669",
+      "title": "Senior Machine Learning Systems Engineer",
+      "company": "Atlassian",
+      "location": "Oregon, USA, Remote",
+      "url": "https://www.atlassian.com/company/careers/details/27038",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:93210684",
+      "title": "Senior Principal Machine Learning Systems Engineer, Search Platform",
+      "company": "Atlassian",
+      "location": "Seattle, WA, USA",
+      "url": "https://www.atlassian.com/company/careers/details/27089",
+      "source": "Accel"
+    },
+    {
+      "id": "Techstars:86917120",
+      "title": "Embedded Systems Engineer, On-Device Inference",
+      "company": "Between",
+      "location": "Memphis, TN, USA",
+      "url": "https://attentionlabs.ai/careers/embedded-systems-engineer",
+      "source": "Techstars"
+    },
+    {
+      "id": "General Catalyst:91627371",
+      "title": "Member of Technical Staff - Model Serving / API Backend Engineer",
+      "company": "Black Forest Labs",
+      "location": "San Francisco, CA, USA",
+      "url": "https://jobs.ashbyhq.com/black-forest-labs/78d05e87-8200-4916-b616-6d67ee677012",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "Khosla Ventures:94391190",
+      "title": "Sr Platform Engineer, ML Infrastructure",
+      "company": "Blue River Technology",
+      "location": "United States, Remote",
+      "url": "https://boards.greenhouse.io/bluerivertech/jobs/8223617",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "StartX:am9icG9zdDoJvN9CKZgv2OhADrj7RqvE",
+      "title": "Software Engineer, Applied AI Infra",
+      "company": "Bravebird",
+      "location": "SF/Remote",
+      "url": "https://jobs.gem.com/bravebird-ai/am9icG9zdDoJvN9CKZgv2OhADrj7RqvE?utm_source=jobs.startx.com",
+      "source": "StartX"
+    },
+    {
+      "id": "Sequoia:25b5dbc3-7550-47f8-b3a5-b8cd6953f7b6",
+      "title": "Staff Software Engineer - AI Platform",
+      "company": "CaptivateIQ",
+      "location": "Poland",
+      "url": "https://jobs.lever.co/captivateiq/25b5dbc3-7550-47f8-b3a5-b8cd6953f7b6?lever-source%5B%5D=jobs.sequoiacap.com",
+      "source": "Sequoia"
+    },
+    {
+      "id": "General Catalyst:43748308",
+      "title": "Inference Engineer",
+      "company": "Cartesia",
+      "location": "San Francisco, CA, USA",
+      "url": "https://jobs.ashbyhq.com/cartesia/bd9d6688-5486-470f-a273-20874a44f107",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "Y Combinator:95761",
+      "title": "Systems Engineer: Linux Kernel Test and Validation",
+      "company": "Cedana",
+      "location": "US / Remote (US)",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D4100120a-5da6-4458-aa38-af04244f27fe%26signup_job_id%3D95761&defaults%5Bemail%5D=search-cff9670d92dfcafa%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=28812",
+      "source": "Y Combinator"
+    },
+    {
+      "id": "General Catalyst:94895321",
+      "title": "Research Engineer - ML Infrastructure",
+      "company": "Chai Discovery",
+      "location": "San Francisco, CA, USA",
+      "url": "https://jobs.ashbyhq.com/chaidiscovery/dd8bf1b0-be34-42ba-94f7-76e6ebe204f6",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:62710353",
+      "title": "Software Engineer, Platform & Inference",
+      "company": "Chai Discovery",
+      "location": "San Francisco, CA, USA",
+      "url": "https://jobs.ashbyhq.com/chaidiscovery/49557cff-8121-4a6d-bfa3-83f2fabe080f",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "a16z:ats:mn72gs5fz93m04wf86kmwk35y98d8kg8",
+      "title": "Machine Learning Infrastructure Engineer",
+      "company": "Character.AI",
+      "location": "Redwood City, CA, Redwood City, California, United States",
+      "url": "https://jobs.ashbyhq.com/character/13006848-6a69-4467-9274-5d54e80b965d/application",
+      "source": "a16z"
+    },
+    {
+      "id": "Bessemer:be7a52ad-e2cc-49d6-a418-0504cf59ef79",
+      "title": "ML Systems Engineer",
+      "company": "ChipAgents",
+      "location": "San Jose, California, United States, Santa Barbara, California, United States +2",
+      "url": "https://jobs.ashbyhq.com/alpha-design-ai-inc/be7a52ad-e2cc-49d6-a418-0504cf59ef79?utm_source=jobs.bvp.com",
+      "source": "Bessemer"
+    },
+    {
+      "id": "Khosla Ventures:94372750",
+      "title": "Principal Software Engineer, Integration and Automation - AI Infrastructure",
+      "company": "Citus Data",
+      "location": "United States",
+      "url": "https://apply.careers.microsoft.com/careers/job/1970393557004835",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:90383422",
+      "title": "Solution Engineer - Cloud & AI Infrastructure",
+      "company": "Citus Data",
+      "location": "United States",
+      "url": "https://apply.careers.microsoft.com/careers/job/1970393556958394",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:93610380",
+      "title": "Sr Solution Engineer, Cloud & AI Infrastructure - CTJ - Top Secret",
+      "company": "Citus Data",
+      "location": "United States",
+      "url": "https://apply.careers.microsoft.com/careers/job/1970393556999949",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Accel:81266029",
+      "title": "Staff Software Engineer , Anywhere Cloud - AI Systems & Runtimes",
+      "company": "Cloudera",
+      "location": "San Jose, CA, USA",
+      "url": "https://cloudera.wd5.myworkdayjobs.com/External_Career/job/US-California-San-Jose/Staff-Software-Engineer---Anywhere-Cloud---AI-Systems---Runtimes_260367-2",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:71690092",
+      "title": "Staff System Engineer - AI Infrastructure",
+      "company": "Cloudera",
+      "location": "Singapore",
+      "url": "https://cloudera.wd5.myworkdayjobs.com/External_Career/job/Singapore--Singapore/Staff-Full-Stack-Engineer---Leading-Emergent-Engineering-Taskforce_251504",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:83158993",
+      "title": "Senior Software Engineer (Compiler & AI Tooling)",
+      "company": "Code Metal",
+      "location": "San Francisco, CA, USA, Remote +1",
+      "url": "https://jobs.ashbyhq.com/code-metal/fe3316c3-c5e2-44b3-af49-b920523a1709",
+      "source": "Accel"
+    },
+    {
+      "id": "Battery:b6f96827-ce14-44f4-98fa-b1b8640858b6",
+      "title": "Research Engineer, ML Infrastructure",
+      "company": "Cognition",
+      "location": "San Francisco, California, United States, San Francisco",
+      "url": "https://jobs.ashbyhq.com/cognition/b6f96827-ce14-44f4-98fa-b1b8640858b6?utm_source=jobs.battery.com",
+      "source": "Battery"
+    },
+    {
+      "id": "General Catalyst:86735532",
+      "title": "Research Engineer, ML Infrastructure",
+      "company": "Cognition Technologies",
+      "location": "San Francisco, CA, USA",
+      "url": "https://jobs.ashbyhq.com/cognition/b6f96827-ce14-44f4-98fa-b1b8640858b6",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "Khosla Ventures:94849460",
+      "title": "Senior Software Engineer, AI Platform",
+      "company": "Color",
+      "location": "South San Francisco, CA, USA",
+      "url": "https://app.careerpuck.com/job-board/color-health/job/95471eaa-cf5d-4225-9971-c8eef10d7af3",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Y Combinator:92445",
+      "title": "AI Systems Engineer",
+      "company": "Conductor Quantum",
+      "location": "San Francisco, CA, US",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D4100120a-5da6-4458-aa38-af04244f27fe%26signup_job_id%3D92445&defaults%5Bemail%5D=search-cff9670d92dfcafa%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=29754",
+      "source": "Y Combinator"
+    },
+    {
+      "id": "Accel:86980486",
+      "title": "Principal/Senior ML Platform Engineer (Cortex)",
+      "company": "Cortex by Palo Alto Networks",
+      "location": "",
+      "url": "https://jobs.paloaltonetworks.com/en/job/tel-aviv/principal-senior-ml-platform-engineer-cortex/47263/97386101136",
+      "source": "Accel"
+    },
+    {
+      "id": "a16z:ats:mn75mafke24qd68a1vay9aj5yd8d8j79",
+      "title": "GPU System Reliability Engineer Lead",
+      "company": "Cowboy Space Corporation",
+      "location": "San Carlos, California, San Carlos, California, United States",
+      "url": "https://jobs.ashbyhq.com/cowboyspace/e224aa3e-1756-456d-8f3a-dc8abe0c0b41/application",
+      "source": "a16z"
+    },
+    {
+      "id": "a16z:ats:mn71vkzxk5cmbmrkyrbnak9e418d86nw",
+      "title": "Senior Power Design Engineer \u2013 GPU Server Boards",
+      "company": "Cowboy Space Corporation",
+      "location": "San Carlos, California, San Carlos, California, United States",
+      "url": "https://jobs.ashbyhq.com/cowboyspace/996990dd-dbc9-419f-be7a-2511a43f4a0f/application",
+      "source": "a16z"
+    },
+    {
+      "id": "Accel:67107380",
+      "title": "Sr. Engineer - Data & ML Platform (Hybrid, IND)",
+      "company": "CrowdStrike",
+      "location": "Bengaluru, Karnataka, India",
+      "url": "https://crowdstrike.wd5.myworkdayjobs.com/crowdstrikecareers/job/India---Bangalore/Sr-Engineer---Data---ML-Platform--Hybrid--IND-_R26883",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:83110874",
+      "title": "Software Engineer, ML Infrastructure",
+      "company": "Cursor",
+      "location": "San Francisco, CA, USA, New York, NY, USA",
+      "url": "https://cursor.com/careers/software-engineer-ml-infrastructure",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:91722106",
+      "title": "Software Engineer, ML Platform",
+      "company": "Cursor",
+      "location": "San Francisco, CA, USA, New York, NY, USA",
+      "url": "https://cursor.com/careers/software-engineer-ml-platform",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:83110877",
+      "title": "Software Engineer, Model Routing & Inference",
+      "company": "Cursor",
+      "location": "San Francisco, CA, USA, New York, NY, USA",
+      "url": "https://cursor.com/careers/software-engineer-model-routing-inference",
+      "source": "Accel"
+    },
+    {
+      "id": "Y Combinator:79946",
+      "title": "Software Engineer, Machine Learning Infrastructure",
+      "company": "David AI",
+      "location": "San Francisco, CA, US",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D4100120a-5da6-4458-aa38-af04244f27fe%26signup_job_id%3D79946&defaults%5Bemail%5D=search-cff9670d92dfcafa%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=29759",
+      "source": "Y Combinator"
+    },
+    {
+      "id": "a16z:ats:mn7221x0n02x2jkkkf6j1k2jh98d8jhr",
+      "title": "Senior Software Engineer, AI Platform",
+      "company": "Decagon",
+      "location": "San Francisco, San Francisco, CA, United States +2",
+      "url": "https://jobs.ashbyhq.com/decagon/491d67c4-b877-4ddc-895a-496eed6777ed/application",
+      "source": "a16z"
+    },
+    {
+      "id": "Khosla Ventures:60521111",
+      "title": "Senior Member of Technical Staff: ML Systems and Infrastructure",
+      "company": "DevRev",
+      "location": "Bengaluru, Karnataka, India",
+      "url": "https://boards.greenhouse.io/devrev/jobs/5678778004",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:85110651",
+      "title": "Senior Software Engineer, Machine Learning Infrastructure - Generative AI",
+      "company": "DoorDash",
+      "location": "California, USA, San Francisco, CA, USA +5",
+      "url": "https://careersatdoordash.com/jobs/senior-software-engineer-machine-learning-infrastructure---generative-ai/8044246",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:91923684",
+      "title": "Software Engineer, Data and AI Platform",
+      "company": "DoorDash",
+      "location": "San Francisco, CA, USA, Ontario, Canada +1",
+      "url": "https://careersatdoordash.com/jobs/software-engineer-data-and-ai-platform/8171620",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:84716122",
+      "title": "Software Engineer, Machine Learning Infrastructure - Generative AI",
+      "company": "DoorDash",
+      "location": "California, USA, San Francisco, CA, USA +5",
+      "url": "https://careersatdoordash.com/jobs/software-engineer-machine-learning-infrastructure---generative-ai/8013249",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "a16z:ats:mn7ejjg86stjfxr3aqcaj44p6d8ehr8n",
+      "title": "Senior AI Platform Engineer",
+      "company": "Earnin",
+      "location": "Mountain View, US",
+      "url": "https://job-boards.greenhouse.io/earnin/jobs/8202930",
+      "source": "a16z"
+    },
+    {
+      "id": "a16z:ats:mn71004wzjv39kajq4q5stevs18d95xv",
+      "title": "Senior Platform Engineer (AI Focused)",
+      "company": "Earnin",
+      "location": "Bengaluru, India",
+      "url": "https://job-boards.greenhouse.io/earnin/jobs/7895708",
+      "source": "a16z"
+    },
+    {
+      "id": "a16z:ats:mn7f7nfrwvb4n5kqnbd921s50h8e6fq4",
+      "title": "HPC Infrastructure Engineer - GPU Clusters",
+      "company": "ElevenLabs",
+      "location": "United States",
+      "url": "https://jobs.ashbyhq.com/elevenlabs/120da2b3-d88b-4e3c-9b89-d19ff73db9d9/application",
+      "source": "a16z"
+    },
+    {
+      "id": "a16z:ats:mn718xmedxt05vsgh6x8sat4p58e7cc8",
+      "title": "Research Engineer - Inference",
+      "company": "ElevenLabs",
+      "location": "United Kingdom, United States +2",
+      "url": "https://jobs.ashbyhq.com/elevenlabs/2d7f9a7c-a9e6-4877-bb38-34e4d989054c/application",
+      "source": "a16z"
+    },
+    {
+      "id": "General Catalyst:87200108",
+      "title": "ML Systems & Performance Engineer",
+      "company": "Engram",
+      "location": "San Francisco, CA, USA",
+      "url": "https://jobs.ashbyhq.com/engram/614243e2-101d-4866-a2b5-6c5b756da2ad",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "Khosla Ventures:93802056",
+      "title": "AI Platform Engineer",
+      "company": "Even.com",
+      "location": "United States, Remote",
+      "url": "https://jobs.ashbyhq.com/oneapp/a85bb5aa-9683-4d67-84e5-5d3e4bacda59",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "a16z:ats:mn729ty4zj6whsjdfhc3x6bnzd8d9298",
+      "title": "Senior Software Engineer, AI Platform",
+      "company": "Everlaw",
+      "location": "Oakland, California, United States",
+      "url": "https://job-boards.greenhouse.io/everlaw/jobs/4679711006",
+      "source": "a16z"
+    },
+    {
+      "id": "Khosla Ventures:90577908",
+      "title": "Senior Staff Machine Learning Platform Engineer",
+      "company": "Faire",
+      "location": "United States, San Francisco, CA, USA +1",
+      "url": "https://boards.greenhouse.io/faire/jobs/8731172002",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:78088425",
+      "title": "Staff Machine Learning Platform Engineer",
+      "company": "Faire",
+      "location": "Toronto, ON, Canada, Kitchener, ON, Canada",
+      "url": "https://boards.greenhouse.io/faire/jobs/8542017002",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Bessemer:4684572005",
+      "title": "AI-Native Data Platform Engineer",
+      "company": "Farther",
+      "location": "Hybrid - New York, NY",
+      "url": "https://job-boards.greenhouse.io/fartherfinance/jobs/4684572005",
+      "source": "Bessemer"
+    },
+    {
+      "id": "Khosla Ventures:74788660",
+      "title": "AI-Native Data Platform Engineer",
+      "company": "Farther Finance",
+      "location": "New York, NY, USA",
+      "url": "https://boards.greenhouse.io/fartherfinance/jobs/4684572005",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Accel:92089119",
+      "title": "Photoshop Software Development Engineer - C++/GPU imaging",
+      "company": "Frame.io",
+      "location": "San Jose, CA, USA, San Francisco, CA, USA +3",
+      "url": "https://adobe.wd5.myworkdayjobs.com/external_experienced/job/San-Jose/Photoshop-Software-Development-Engineer---C---GPU-imaging_R171156",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:91349460",
+      "title": "Senior Applied Scientist / Engineer, Training & Inference",
+      "company": "Frame.io",
+      "location": "San Jose, CA, USA",
+      "url": "https://adobe.wd5.myworkdayjobs.com/external_experienced/job/San-Jose/Senior-Applied-Scientist---Engineer--Training---Inference_R170212",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:92207842",
+      "title": "Senior Machine Learning Engineer, AI Platform",
+      "company": "Frame.io",
+      "location": "San Jose, CA, USA",
+      "url": "https://adobe.wd5.myworkdayjobs.com/external_experienced/job/San-Jose/Senior-Machine-Learning-Engineer--AI-Platform_R171345",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:87707469",
+      "title": "Staff Engineer - GPU & Video Rendering",
+      "company": "Frame.io",
+      "location": "San Jose, CA, USA, San Francisco, CA, USA +1",
+      "url": "https://adobe.wd5.myworkdayjobs.com/external_experienced/job/Seattle/Sr-Software-Development-Engineer---Video-Rendering_R170215",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:85004603",
+      "title": "Staff Backend AI Platform Engineer",
+      "company": "Freshworks",
+      "location": "San Mateo, CA, USA",
+      "url": "https://jobs.smartrecruiters.com/Freshworks/744000135568933",
+      "source": "Accel"
+    },
+    {
+      "id": "Battery:39a3ea42-019b-4ee6-a6bd-eaa4498d145b",
+      "title": "Model Serving Engineer",
+      "company": "Fundamental",
+      "location": "United States, Europe",
+      "url": "https://jobs.ashbyhq.com/fundamental/39a3ea42-019b-4ee6-a6bd-eaa4498d145b?utm_source=jobs.battery.com",
+      "source": "Battery"
+    },
+    {
+      "id": "Accel:86913328",
+      "title": "AI Inference Engineer",
+      "company": "Fuse Energy",
+      "location": "London, UK",
+      "url": "https://apply.workable.com/fuseenergy/j/5E494FB5A4",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:86913332",
+      "title": "CUDA Engineer",
+      "company": "Fuse Energy",
+      "location": "London, UK",
+      "url": "https://apply.workable.com/fuseenergy/j/C0F3C2B4F1",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:86913330",
+      "title": "Founding GPU Engineer",
+      "company": "Fuse Energy",
+      "location": "London, UK",
+      "url": "https://apply.workable.com/fuseenergy/j/41EF45DDDF",
+      "source": "Accel"
+    },
+    {
+      "id": "General Catalyst:43050424",
+      "title": "Software Engineer, AI/ML Infrastructure",
+      "company": "Glean",
+      "location": "Mountain View, CA, USA",
+      "url": "https://boards.greenhouse.io/gleanwork/jobs/4501783005",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:89394069",
+      "title": "Software Engineer, ML Platform",
+      "company": "Gusto",
+      "location": "San Francisco, CA, USA, Remote +2",
+      "url": "https://boards.greenhouse.io/gusto/jobs/8073232",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "Accel:46405686",
+      "title": "Research Engineer, Model Inference & Serving - London",
+      "company": "H Company",
+      "location": "London, UK",
+      "url": "https://jobs.ashbyhq.com/hcompany/8ef0a8b6-40e1-40da-a337-4454ad39b66a",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:74424243",
+      "title": "Research Engineer, Model Inference & Serving - Paris",
+      "company": "H Company",
+      "location": "Paris, France",
+      "url": "https://jobs.ashbyhq.com/hcompany/554643f8-60cf-409b-899a-ba7761def97f",
+      "source": "Accel"
+    },
+    {
+      "id": "Entrepreneur First:91270448",
+      "title": "Member of Technical Staff - Geometry & AI systems",
+      "company": "Hanomi",
+      "location": "San Francisco, CA, USA",
+      "url": "https://www.hanomi.ai/careers/member-of-technical-staff",
+      "source": "Entrepreneur First"
+    },
+    {
+      "id": "Accel:90773213",
+      "title": "AI Research Engineer - GPU Simulation",
+      "company": "Helsing",
+      "location": "Berlin, Germany, Munich, Germany",
+      "url": "https://boards.greenhouse.io/helsing/jobs/4953387101",
+      "source": "Accel"
+    },
+    {
+      "id": "General Catalyst:47555183",
+      "title": "LLM Inference Engineer (Mid, Sr, Staff)",
+      "company": "Hippocractic AI",
+      "location": "Menlo Park, CA, USA",
+      "url": "https://jobs.ashbyhq.com/Hippocratic%20AI/eef8a721-23de-4c20-bff0-56088b39afa0",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "a16z:ats:mn7bswf76mys3pjh6jab0zkz498d8w46",
+      "title": "LLM Inference Engineer (Mid, Sr, Staff)",
+      "company": "Hippocratic AI",
+      "location": "Menlo Park, CA, Menlo Park, California, United States",
+      "url": "https://jobs.ashbyhq.com/Hippocratic%20AI/eef8a721-23de-4c20-bff0-56088b39afa0/application",
+      "source": "a16z"
+    },
+    {
+      "id": "Accel:91013202",
+      "title": "AI Tooling and Infrastructure Engineer",
+      "company": "Hpe Simplivity",
+      "location": "San Juan, Puerto Rico",
+      "url": "https://careers.hpe.com/us/en/job/1212251",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:93466408",
+      "title": "Principal Software Engineer, Inference",
+      "company": "Hpe Simplivity",
+      "location": "Colorado, USA, Texas, USA +3",
+      "url": "https://careers.hpe.com/us/en/job/1211357",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:93466403",
+      "title": "Senior Software Engineer, Inference",
+      "company": "Hpe Simplivity",
+      "location": "Colorado, USA, Texas, USA +3",
+      "url": "https://careers.hpe.com/us/en/job/1211356",
+      "source": "Accel"
+    },
+    {
+      "id": "a16z:ats:mn73wjtd9ppe1h11zm69029re98d9xs0",
+      "title": "Member of Technical Staff, AMD GPU Performance Engineering",
+      "company": "Inferact",
+      "location": "San Francisco, San Francisco, California, United States",
+      "url": "https://jobs.ashbyhq.com/inferact/1d87c80a-0e58-4745-a51f-8bd48bc73ca8/application",
+      "source": "a16z"
+    },
+    {
+      "id": "a16z:ats:mn7evxy1hw9n38gp3zv5ssbjwn8d854s",
+      "title": "Member of Technical Staff, Kernel Engineering",
+      "company": "Inferact",
+      "location": "Singapore, Singapore, Singapore, Singapore",
+      "url": "https://jobs.ashbyhq.com/inferact/9c5be5ae-2269-4061-82a1-4c9903c25355/application",
+      "source": "a16z"
+    },
+    {
+      "id": "General Catalyst:91614004",
+      "title": "AI Infrastructure Engineer",
+      "company": "Lacework",
+      "location": "New York, NY, USA",
+      "url": "https://edel.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_2001/job/23932",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:91410076",
+      "title": "Backend Engineer - ML Platform",
+      "company": "Lemonade",
+      "location": "Tel Aviv-Yafo, Israel",
+      "url": "https://makers.lemonade.com#dwsk343381bscft3ytqc74wxg&:~:text=Backend%20Engineer%20-%20ML%20Platform",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:81151108",
+      "title": "Senior Backend Engineer - ML Platform",
+      "company": "Lemonade",
+      "location": "Tel Aviv-Yafo, Israel",
+      "url": "https://makers.lemonade.com#aq3r80a3u6dz5vi8trv2fshhh&:~:text=Senior%20Backend%20Engineer%20-%20ML%20Platform",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:87897574",
+      "title": "Staff/Principal DevOps Engineer, AI Inference",
+      "company": "Lila Sciences",
+      "location": "Cambridge, MA, USA",
+      "url": "https://boards.greenhouse.io/lilasciences/jobs/4248032009",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:88000478",
+      "title": "Research Scientist / Engineer - Training Infrastructure",
+      "company": "Luma AI",
+      "location": "Redwood City, CA, USA",
+      "url": "https://jobs.ashbyhq.com/lumaai/d2ecd718-6ba4-42a4-a067-e5f8c4c8bb1d",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:88000519",
+      "title": "Software Engineer, Inference",
+      "company": "Luma AI",
+      "location": "Redwood City, CA, USA",
+      "url": "https://jobs.ashbyhq.com/lumaai/c4b9ff5f-40b2-40d4-9f6f-8b7aad9b8860",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "Y Combinator:83575",
+      "title": "Cloud Inference Engineer",
+      "company": "Luminal",
+      "location": "San Francisco, CA, US",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D4100120a-5da6-4458-aa38-af04244f27fe%26signup_job_id%3D83575&defaults%5Bemail%5D=search-cff9670d92dfcafa%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=30804",
+      "source": "Y Combinator"
+    },
+    {
+      "id": "Plug and Play:83640753",
+      "title": "ML Infrastructure Engineer",
+      "company": "Maven Robotics",
+      "location": "",
+      "url": "https://www.mavenrobotics.ai/join-us/20",
+      "source": "Plug and Play"
+    },
+    {
+      "id": "a16z:ats:mn73zv2mt9zvxb4afxxq6v15gx8d8r1y",
+      "title": "Training Infrastructure Engineer",
+      "company": "Mirelo AI",
+      "location": "Berlin, Berlin, Berlin, Germany +4",
+      "url": "https://jobs.ashbyhq.com/mirelo/992e82a6-ae11-4e26-ae88-0f5c442664ef/application",
+      "source": "a16z"
+    },
+    {
+      "id": "General Catalyst:90169076",
+      "title": "Applied AI Engineer, ML Infrastructure Engineer / Devops - EMEA",
+      "company": "Mistral AI",
+      "location": "Paris, France, Amsterdam, Netherlands +1",
+      "url": "https://jobs.ashbyhq.com/mistral.ai/0b0c3fab-5c79-43e7-b66c-de7fef7d28b7",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:92176185",
+      "title": "Research Engineer, ML Platform",
+      "company": "Mistral AI",
+      "location": "Palo Alto, CA, USA",
+      "url": "https://jobs.ashbyhq.com/mistral.ai/51c1df24-53f1-4ec9-9523-cd40c88e00cf",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:85311711",
+      "title": "Member of Technical Staff - Research, Inference",
+      "company": "Modal Labs",
+      "location": "San Francisco, CA, USA, New York, NY, USA",
+      "url": "https://jobs.ashbyhq.com/modal/73c97bbc-8e27-4c5d-b38b-90b3afdb0d93",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:89064149",
+      "title": "AI Inference Tools Engineer",
+      "company": "Modular",
+      "location": "Remote, United Kingdom",
+      "url": "https://www.modular.com/company/career-post?gh_jid=am9icG9zdDoUg3KeG1r33ZW0Ao7ePR0h",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:83282349",
+      "title": "Inference Optimization Engineer",
+      "company": "Modular",
+      "location": "United States, Canada +1",
+      "url": "https://www.modular.com/company/career-post?gh_jid=am9icG9zdDrb7o68jwVglvW4vP1xIe82",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:66269638",
+      "title": "Senior AI Kernel Engineer",
+      "company": "Modular",
+      "location": "United States, Canada +1",
+      "url": "https://www.modular.com/company/career-post?gh_jid=am9icG9zdDpTSwqoL-yL11N_jxR40Vhh",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "Accel:94760138",
+      "title": "ML Data Infrastructure Engineer",
+      "company": "Mopub",
+      "location": "Palo Alto, CA, USA",
+      "url": "https://boards.greenhouse.io/applovin/jobs/4716524006",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:68116808",
+      "title": "ML Infrastructure Engineer",
+      "company": "Mopub",
+      "location": "Palo Alto, CA, USA",
+      "url": "https://boards.greenhouse.io/applovin/jobs/4655740006",
+      "source": "Accel"
+    },
+    {
+      "id": "Khosla Ventures:60469729",
+      "title": "AI Platform Engineer",
+      "company": "Nabla Bio",
+      "location": "Boston, MA, USA",
+      "url": "https://jobs.gem.com/nabla-bio/am9icG9zdDoA8CiE8OU6Z5HZSl6XVtSD",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Accel:75759680",
+      "title": "Lead Software Systems Engineer - GPU Performance",
+      "company": "Nebius",
+      "location": "United States, Remote",
+      "url": "https://boards.greenhouse.io/nebius/jobs/4841418101",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:78959211",
+      "title": "ML Infrastructure Engineer",
+      "company": "Nebius",
+      "location": "United States, Amsterdam, Netherlands",
+      "url": "https://boards.greenhouse.io/nebius/jobs/4864833101",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:69916859",
+      "title": "Senior Ai Infrastructure Systems Engineer (R&D / GPU / AI)",
+      "company": "Nebius",
+      "location": "United States",
+      "url": "https://boards.greenhouse.io/nebius/jobs/4765401101",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:46419705",
+      "title": "Senior HPC Engineer, GPU Compute",
+      "company": "Nebius",
+      "location": "Berlin, Germany, Amsterdam, Netherlands +2",
+      "url": "https://boards.greenhouse.io/nebius/jobs/4383057101",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:94577019",
+      "title": "Senior Machine Learning Engineer, LLM Inference Optimization",
+      "company": "Nebius",
+      "location": "Z\u00fcrich, Switzerland",
+      "url": "https://boards.greenhouse.io/nebius/jobs/4986451101",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:51984268",
+      "title": "Senior Site Reliability Engineer \u2014 Token Factory (Inference Platform)",
+      "company": "Nebius",
+      "location": "Berlin, Germany, Amsterdam, Netherlands +2",
+      "url": "https://boards.greenhouse.io/nebius/jobs/4600919101",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:75759758",
+      "title": "Senior Systems Software Engineer, GPU Compute",
+      "company": "Nebius",
+      "location": "United States, Remote",
+      "url": "https://boards.greenhouse.io/nebius/jobs/4837283101",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:72413903",
+      "title": "Sr. Solutions Engineer (GPU Infrastructure)",
+      "company": "Nebius",
+      "location": "United States, Remote",
+      "url": "https://boards.greenhouse.io/nebius/jobs/4817418101",
+      "source": "Accel"
+    },
+    {
+      "id": "General Catalyst:61901314",
+      "title": "Senior Software Engineer, Model Serving",
+      "company": "Neon",
+      "location": "San Francisco, CA, USA",
+      "url": "https://www.databricks.com/company/careers/engineering/senior-software-engineer-model-serving-8211648002",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:72763621",
+      "title": "Staff Backend Software Engineer- (AI Platform)",
+      "company": "Neon",
+      "location": "San Francisco, CA, USA",
+      "url": "https://www.databricks.com/company/careers/engineering/staff-backend-software-engineer--ai-platform-8367019002",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:74833352",
+      "title": "Staff Software Engineer - AI Platform (NYC)",
+      "company": "Neon",
+      "location": "New York, NY, USA",
+      "url": "https://www.databricks.com/company/careers/engineering---pipeline/staff-software-engineer---ai-platform-nyc----8509536002",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:61901407",
+      "title": "Staff Software Engineer - GenAI inference",
+      "company": "Neon",
+      "location": "San Francisco, CA, USA",
+      "url": "https://www.databricks.com/company/careers/engineering---pipeline/staff-software-engineer---genai-inference-8202698002",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:61901406",
+      "title": "Staff Software Engineer - GenAI Performance and Kernel",
+      "company": "Neon",
+      "location": "San Francisco, CA, USA",
+      "url": "https://www.databricks.com/company/careers/engineering---pipeline/staff-software-engineer---genai-performance-and-kernel-8202700002",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:87512143",
+      "title": "Staff Software Engineer, Foundation Model Inference",
+      "company": "Neon",
+      "location": "San Francisco, CA, USA",
+      "url": "https://www.databricks.com/company/careers/engineering/staff-software-engineer-foundation-model-inference--8637143002",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:61901419",
+      "title": "Staff Software Engineer, Foundational Model Serving",
+      "company": "Neon",
+      "location": "San Francisco, CA, USA",
+      "url": "https://www.databricks.com/company/careers/engineering/staff-software-engineer-foundational-model-serving-8224683002",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:61901420",
+      "title": "Staff Software Engineer, Model Serving",
+      "company": "Neon",
+      "location": "San Francisco, CA, USA",
+      "url": "https://www.databricks.com/company/careers/engineering/staff-software-engineer-model-serving--8211647002",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "Antler:85719379",
+      "title": "Associate AI Systems Engineer",
+      "company": "Nestria",
+      "location": "Singapore",
+      "url": "https://www.nestria.ai/careers/ai-engineer-singapore",
+      "source": "Antler"
+    },
+    {
+      "id": "a16z:ats:mn78p01w6tjcbmv1q7xx3qw0g58ejasy",
+      "title": "Senior DevOps/Integration Engineer \u2013 AI Infrastructure Platform",
+      "company": "Netris",
+      "location": "Remote, US",
+      "url": "https://netris.io/jobs/senior-devops-integration-engineer/",
+      "source": "a16z"
+    },
+    {
+      "id": "Plug and Play:91339753",
+      "title": "QA Engineer (AI Systems)",
+      "company": "Nexxa.ai",
+      "location": "San Francisco, CA, USA",
+      "url": "https://jobs.ashbyhq.com/nexxa/e887b8f1-7545-48b5-9033-411cb958dca5",
+      "source": "Plug and Play"
+    },
+    {
+      "id": "Accel:91026129",
+      "title": "AI Tooling and Infrastructure Engineer",
+      "company": "Nimble Storage",
+      "location": "San Juan, Puerto Rico",
+      "url": "https://careers.hpe.com/us/en/job/1212251",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:93519743",
+      "title": "Principal Software Engineer, Inference",
+      "company": "Nimble Storage",
+      "location": "Colorado, USA, Texas, USA +3",
+      "url": "https://careers.hpe.com/us/en/job/1211357",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:93519726",
+      "title": "Senior Software Engineer, Inference",
+      "company": "Nimble Storage",
+      "location": "Colorado, USA, Texas, USA +3",
+      "url": "https://careers.hpe.com/us/en/job/1211356",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:81834708",
+      "title": "Member of Technical Staff \u2014 Model Optimization and Inference (Experienced)",
+      "company": "Nuance Labs",
+      "location": "Seattle, WA, USA",
+      "url": "https://boards.greenhouse.io/nuancelabs/jobs/4277592009",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:82540648",
+      "title": "Member of Technical Staff \u2014 Model Optimization and Inference (New Grad)",
+      "company": "Nuance Labs",
+      "location": "Seattle, WA, USA",
+      "url": "https://boards.greenhouse.io/nuancelabs/jobs/4283935009",
+      "source": "Accel"
+    },
+    {
+      "id": "Khosla Ventures:91585812",
+      "title": "AI Systems Engineer - EMEA",
+      "company": "Nutanix",
+      "location": "Paris, France",
+      "url": "https://jobs.jobvite.com/nutanix/job/ovXCAfwo",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "a16z:ats:mn79ckkkh6ecca5q7xsxbkz1118d8xr0",
+      "title": "Senior Software Engineer, Data & AI Platform",
+      "company": "Omada Health",
+      "location": "Remote, USA",
+      "url": "https://job-boards.greenhouse.io/omadahealth/jobs/8055515",
+      "source": "a16z"
+    },
+    {
+      "id": "Entrepreneur First:95384462",
+      "title": "Onboard Processing Software Engineer (GPU / Edge, Earth Observation)",
+      "company": "Open Cosmos",
+      "location": "Barcelona, Spain, Porto, Portugal +3",
+      "url": "https://careers.open-cosmos.com/jobs/8478374-onboard-processing-software-engineer-gpu-edge-earth-observation",
+      "source": "Entrepreneur First"
+    },
+    {
+      "id": "Accel:95439544",
+      "title": "Principal Core Infrastructure Engineer - AI Infrastructure",
+      "company": "OPOWER",
+      "location": "Nashville, TN, USA",
+      "url": "https://careers.oracle.com/en/sites/jobsearch/job/345386/?location=United+States&locationId=300000000149325",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:95439548",
+      "title": "Senior Core Infrastructure Engineer, AI Infrastructure",
+      "company": "OPOWER",
+      "location": "Nashville, TN, USA",
+      "url": "https://careers.oracle.com/en/sites/jobsearch/job/345398/?location=United+States&locationId=300000000149325",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:83782247",
+      "title": "Software Developer 5 , AI Infrastructure",
+      "company": "OPOWER",
+      "location": "Kenya, Seattle, WA, USA",
+      "url": "https://careers.oracle.com/en/sites/jobsearch/job/336129/?location=United+States&locationId=300000000149325",
+      "source": "Accel"
+    },
+    {
+      "id": "Entrepreneur First:88999581",
+      "title": "Machine Learning Platform Engineer",
+      "company": "Panakeia Technologies",
+      "location": "",
+      "url": "https://www.panakeia.ai/job-roles/ml-platform-engineer",
+      "source": "Entrepreneur First"
+    },
+    {
+      "id": "Entrepreneur First:85892087",
+      "title": "Sr Systems Engineer (AI Delivery)",
+      "company": "Passfort",
+      "location": "Charlotte, NC, USA",
+      "url": "https://www.linkedin.com/jobs/view/sr-systems-engineer-ai-delivery-at-moody-s-corporation-4435335316",
+      "source": "Entrepreneur First"
+    },
+    {
+      "id": "General Catalyst:72674641",
+      "title": "AI Infrastructure Engineer",
+      "company": "Percepta",
+      "location": "New York, NY, USA",
+      "url": "https://jobs.ashbyhq.com/percepta/c6f9f5f0-0e66-4f1d-9f8e-87ca4de2bdad",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "Lightspeed:d9180228-c113-4d5f-a4d6-793994e50b7c",
+      "title": "ML Systems Engineer",
+      "company": "Periodic Labs",
+      "location": "Menlo Park, California, United States, Menlo Park, CA",
+      "url": "https://jobs.ashbyhq.com/periodic-labs/d9180228-c113-4d5f-a4d6-793994e50b7c?utm_source=jobs.lsvp.com",
+      "source": "Lightspeed"
+    },
+    {
+      "id": "Accel:62302139",
+      "title": "Member of Technical Staff (AI Inference Engineer)",
+      "company": "Perplexity",
+      "location": "London, UK",
+      "url": "https://jobs.ashbyhq.com/Perplexity/e4777627-ff8f-4257-8612-3a016bb58592",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:73619669",
+      "title": "Member of Technical Staff (AI Infrastructure Engineer)",
+      "company": "Perplexity",
+      "location": "London, UK",
+      "url": "https://jobs.ashbyhq.com/Perplexity/60deb376-51b5-46c6-9e17-55377a5ef34e",
+      "source": "Accel"
+    },
+    {
+      "id": "Lightspeed:fb9e43d7-36b8-46c7-93cd-2b7504e30363",
+      "title": "ML Engineer, Inference & Optimization",
+      "company": "Pika",
+      "location": "Palo Alto, California, United States, Palo Alto HQ",
+      "url": "https://jobs.ashbyhq.com/pika/fb9e43d7-36b8-46c7-93cd-2b7504e30363?utm_source=jobs.lsvp.com",
+      "source": "Lightspeed"
+    },
+    {
+      "id": "Y Combinator:93808",
+      "title": "Founding Engineer -- AI Inference Stack",
+      "company": "Piris Labs",
+      "location": "San Francisco, CA, US",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D4100120a-5da6-4458-aa38-af04244f27fe%26signup_job_id%3D93808&defaults%5Bemail%5D=search-cff9670d92dfcafa%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=31114",
+      "source": "Y Combinator"
+    },
+    {
+      "id": "General Catalyst:90167617",
+      "title": "Research Engineer, ML Infrastructure",
+      "company": "Poke",
+      "location": "San Francisco, CA, USA",
+      "url": "https://jobs.ashbyhq.com/cognition/b6f96827-ce14-44f4-98fa-b1b8640858b6",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "Techstars:62616245",
+      "title": "Senior Machine Learning Platform/Ops Engineer",
+      "company": "Preply",
+      "location": "Barcelona, Spain",
+      "url": "https://jobs.ashbyhq.com/preply/6381f5bc-fc56-4015-855a-6be495310105",
+      "source": "Techstars"
+    },
+    {
+      "id": "Y Combinator:79499",
+      "title": "Software Engineer, Inference",
+      "company": "Pulse",
+      "location": "San Francisco",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D4100120a-5da6-4458-aa38-af04244f27fe%26signup_job_id%3D79499&defaults%5Bemail%5D=search-cff9670d92dfcafa%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=29699",
+      "source": "Y Combinator"
+    },
+    {
+      "id": "a16z:ats:mn7d5tx153k9q4tx7589k0694x8f3f9f",
+      "title": "Software Engineer New Grad, Machine Learning Platform - Quora (Remote)",
+      "company": "Quora",
+      "location": "Remote - Multiple Locations, United States +1",
+      "url": "https://jobs.ashbyhq.com/quora/cf34f80e-fe5c-454d-bc9a-4c59993ffda0/application",
+      "source": "a16z"
+    },
+    {
+      "id": "Accel:72902535",
+      "title": "Member of Technical Staff \u2014 Inference-Core Engine",
+      "company": "RadixArk",
+      "location": "Palo Alto, CA, USA",
+      "url": "https://boards.greenhouse.io/radixark/jobs/4134888009",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:72902537",
+      "title": "Member of Technical Staff \u2014 Inference-Kernel, Compiler & Communication",
+      "company": "RadixArk",
+      "location": "Palo Alto, CA, USA",
+      "url": "https://boards.greenhouse.io/radixark/jobs/4134913009",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:88622573",
+      "title": "Member of Technical Staff \u2014 Inference-Multi-Hardware",
+      "company": "RadixArk",
+      "location": "Palo Alto, CA, USA",
+      "url": "https://boards.greenhouse.io/radixark/jobs/4343666009",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:72902534",
+      "title": "Member of Technical Staff \u2014 Inference-Multimodal & Diffusion",
+      "company": "RadixArk",
+      "location": "Palo Alto, CA, USA",
+      "url": "https://boards.greenhouse.io/radixark/jobs/4134889009",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:72902538",
+      "title": "Member of Technical Staff \u2014 Inference-TPU",
+      "company": "RadixArk",
+      "location": "Palo Alto, CA, USA",
+      "url": "https://boards.greenhouse.io/radixark/jobs/4087890009",
+      "source": "Accel"
+    },
+    {
+      "id": "Lightspeed:6413538b-df19-40fc-8a1b-0873013a18a2",
+      "title": "Principal Software Engineer, AI Platform",
+      "company": "Redpanda Data",
+      "location": "San Francisco, California, United States, San Francisco, California - Hybrid",
+      "url": "https://jobs.ashbyhq.com/redpanda-data/6413538b-df19-40fc-8a1b-0873013a18a2?utm_source=jobs.lsvp.com",
+      "source": "Lightspeed"
+    },
+    {
+      "id": "Lightspeed:41a1833d-0195-4bf5-a712-4209da9d313f",
+      "title": "Senior Product Engineer, Out-of-Band Policy Engine, AI Platform",
+      "company": "Redpanda Data",
+      "location": "United States, US/Canada - Eastern Region +1",
+      "url": "https://jobs.ashbyhq.com/redpanda-data/41a1833d-0195-4bf5-a712-4209da9d313f?utm_source=jobs.lsvp.com",
+      "source": "Lightspeed"
+    },
+    {
+      "id": "Lightspeed:273a0941-d9be-4d56-949f-ec9c44f67af3",
+      "title": "Senior Software Engineer, AI Platform",
+      "company": "Redpanda Data",
+      "location": "Warsaw, Warszawa, Poland, Warsaw, Poland - Hybrid",
+      "url": "https://jobs.ashbyhq.com/redpanda-data/273a0941-d9be-4d56-949f-ec9c44f67af3?utm_source=jobs.lsvp.com",
+      "source": "Lightspeed"
+    },
+    {
+      "id": "Lightspeed:00853bbc-f633-42c9-b476-c38080875d02",
+      "title": "Staff Product Engineer, Agentic Identity & Governance, AI Platform",
+      "company": "Redpanda Data",
+      "location": "United States, US - Remote +2",
+      "url": "https://jobs.ashbyhq.com/redpanda-data/00853bbc-f633-42c9-b476-c38080875d02?utm_source=jobs.lsvp.com",
+      "source": "Lightspeed"
+    },
+    {
+      "id": "Y Combinator:71707",
+      "title": "LLM/ML Engineer (Inference)",
+      "company": "Reducto",
+      "location": "San Francisco, CA, US",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D4100120a-5da6-4458-aa38-af04244f27fe%26signup_job_id%3D71707&defaults%5Bemail%5D=search-cff9670d92dfcafa%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=29254",
+      "source": "Y Combinator"
+    },
+    {
+      "id": "a16z:ats:mn7f9mzj9tec0jzw7t5h868xzs8d9mm5",
+      "title": "Machine Learning Infra Engineer",
+      "company": "Reducto",
+      "location": "San Francisco Office, San Francisco, California, United States",
+      "url": "https://jobs.ashbyhq.com/reducto/df35cc55-1783-402d-b0d9-ca1352f50d0b/application",
+      "source": "a16z"
+    },
+    {
+      "id": "General Catalyst:87702152",
+      "title": "Kernel Engineer (Custom Silicon), Hardware",
+      "company": "River AI",
+      "location": "Palo Alto, CA, USA, Austin, TX, USA",
+      "url": "https://boards.greenhouse.io/riverai/jobs/4300352009",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:93095674",
+      "title": "Software Engineer, Distributed Training",
+      "company": "River AI",
+      "location": "Palo Alto, CA, USA",
+      "url": "https://boards.greenhouse.io/riverai/jobs/4402494009",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:93095676",
+      "title": "Software Engineer, GPU Kernels",
+      "company": "River AI",
+      "location": "Palo Alto, CA, USA",
+      "url": "https://boards.greenhouse.io/riverai/jobs/4402432009",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:93095678",
+      "title": "Software Engineer, Inference Systems",
+      "company": "River AI",
+      "location": "Palo Alto, CA, USA",
+      "url": "https://boards.greenhouse.io/riverai/jobs/4402451009",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:71945036",
+      "title": "Lead Machine Learning Engineer - ML Infrastructure",
+      "company": "Samsara",
+      "location": "Canada, Remote",
+      "url": "https://boards.greenhouse.io/samsara/jobs/7746586",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:90411753",
+      "title": "Member of Technical Staff, ML Inference Engineering",
+      "company": "Sanas",
+      "location": "Palo Alto, CA, USA",
+      "url": "https://ats.rippling.com/sanas/jobs/8c314a48-3328-4e77-ba4e-eee852673a58",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "Accel:88805725",
+      "title": "Staff Software Engineer, AI Platform",
+      "company": "Sapiom",
+      "location": "San Francisco, CA, USA",
+      "url": "https://jobs.ashbyhq.com/sapiom/6faa9682-7dab-4e34-b79f-c0ce732bb32f",
+      "source": "Accel"
+    },
+    {
+      "id": "Khosla Ventures:89399732",
+      "title": "Performance Engineer, Inference",
+      "company": "Sarvam AI",
+      "location": "Bengaluru, Karnataka, India, Chennai, Tamil Nadu, India",
+      "url": "https://jobs.ashbyhq.com/sarvam/7d2faba2-21a1-4a8a-aff5-f708a6959195",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:89399725",
+      "title": "Performance Engineer, Kernels",
+      "company": "Sarvam AI",
+      "location": "Bengaluru, Karnataka, India, Chennai, Tamil Nadu, India",
+      "url": "https://jobs.ashbyhq.com/sarvam/72783205-b637-4431-9a0e-676a8223b063",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:81715555",
+      "title": "Performance Engineer, On-Device Inference",
+      "company": "Sarvam AI",
+      "location": "Bengaluru, Karnataka, India",
+      "url": "https://jobs.ashbyhq.com/sarvam/6ad226cd-9400-41b6-9c64-db35b7d24516",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:84490733",
+      "title": "Platform Engineer - AI Infrastructure",
+      "company": "Sarvam AI",
+      "location": "Bengaluru, Karnataka, India, Chennai, Tamil Nadu, India",
+      "url": "https://jobs.ashbyhq.com/sarvam/fcb15601-6440-41f7-aa79-b9992057a4b2",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Accel:47077674",
+      "title": "ML Research Engineer, ML Systems",
+      "company": "Scale AI",
+      "location": "San Francisco, CA, USA, New York, NY, USA +1",
+      "url": "https://boards.greenhouse.io/scaleai/jobs/4534631005",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:34509342",
+      "title": "Software Engineer, Frontier AI Infrastructure",
+      "company": "Scale AI",
+      "location": "San Francisco, CA, USA, New York, NY, USA +1",
+      "url": "https://boards.greenhouse.io/scaleai/jobs/4363623005",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:89010549",
+      "title": "Senior AI Platform Engineer, Infrastructure Services",
+      "company": "SentinelOne",
+      "location": "United States, Remote",
+      "url": "https://boards.greenhouse.io/sentinellabs/jobs/7823236003",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:87931129",
+      "title": "Staff AI Platform Engineer",
+      "company": "SentinelOne",
+      "location": "United States, Remote",
+      "url": "https://boards.greenhouse.io/sentinellabs/jobs/7805775003",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:89010554",
+      "title": "Staff AI Platform Engineer, Infrastructure Services",
+      "company": "SentinelOne",
+      "location": "United States, Remote",
+      "url": "https://boards.greenhouse.io/sentinellabs/jobs/7823203003",
+      "source": "Accel"
+    },
+    {
+      "id": "a16z:ats:mn79jf0gr0m33pp4f8vsteqk3h8d8jmm",
+      "title": "ML Model Serving Engineer",
+      "company": "Sesame",
+      "location": "San Francisco, San Francisco, California, United States +4",
+      "url": "https://jobs.ashbyhq.com/sesame/35793528-2b5c-47b3-9422-eaced2b69f63/application",
+      "source": "a16z"
+    },
+    {
+      "id": "Y Combinator:107010",
+      "title": "Member of Technical Staff, GPU Compiler",
+      "company": "SF Tensor",
+      "location": "San Francisco",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D4100120a-5da6-4458-aa38-af04244f27fe%26signup_job_id%3D107010&defaults%5Bemail%5D=search-cff9670d92dfcafa%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=30891",
+      "source": "Y Combinator"
+    },
+    {
+      "id": "Y Combinator:107009",
+      "title": "Member of Technical Staff, GPU Kernels",
+      "company": "SF Tensor",
+      "location": "San Francisco",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D4100120a-5da6-4458-aa38-af04244f27fe%26signup_job_id%3D107009&defaults%5Bemail%5D=search-cff9670d92dfcafa%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=30891",
+      "source": "Y Combinator"
+    },
+    {
+      "id": "General Catalyst:91726380",
+      "title": "Software Engineer, ML Infrastructure, Content Retrieval Platform, Level 4",
+      "company": "Snap Inc.",
+      "location": "Palo Alto, CA, USA",
+      "url": "https://snapchat.wd1.myworkdayjobs.com/snap/job/Palo-Alto-California/Software-Engineer--ML-Infrastructure_R0046629-1",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:94369627",
+      "title": "Software Engineer, ML Infrastructure, Level 5",
+      "company": "Snap Inc.",
+      "location": "Palo Alto, CA, USA, Los Angeles, CA, USA +1",
+      "url": "https://snapchat.wd1.myworkdayjobs.com/snap/job/Palo-Alto-California/Software-Engineer--ML-Infrastructure--Level-5_R0046870-2",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:90060077",
+      "title": "Staff Machine Learning Engineer, Diffusion, Generative Modeling and Inference",
+      "company": "Snap Inc.",
+      "location": "Palo Alto, CA, USA, Bellevue, WA, USA +3",
+      "url": "https://snapchat.wd1.myworkdayjobs.com/snap/job/Los-Angeles-California/Staff-Machine-Learning-Engineer--Generative-AI-Modeling-and-Inference_R0046467",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "a16z:ats:mn74h2a514rwh6ws1816jrnj618d8737",
+      "title": "Software Engineer, ML Platform",
+      "company": "Sola",
+      "location": "New York City, New York City, New York, United States",
+      "url": "https://jobs.ashbyhq.com/sola/eecbf467-dc2a-44b2-a167-44299b688c5b/application",
+      "source": "a16z"
+    },
+    {
+      "id": "a16z:ats:mn779c36qy96ndjkfxrn6hgd158e64sx",
+      "title": "ML & Agentic Systems Engineer [IC4]",
+      "company": "Sourcegraph",
+      "location": "Remote",
+      "url": "https://job-boards.greenhouse.io/sourcegraph91/jobs/6185008004",
+      "source": "a16z"
+    },
+    {
+      "id": "Y Combinator:63491",
+      "title": "AI Infrastructure Engineer",
+      "company": "Spellbrush",
+      "location": "Tokyo, JP / San Francisco, CA, US / Remote (Tokyo, JP; San Francisco, CA, US)",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D4100120a-5da6-4458-aa38-af04244f27fe%26signup_job_id%3D63491&defaults%5Bemail%5D=search-cff9670d92dfcafa%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=1729",
+      "source": "Y Combinator"
+    },
+    {
+      "id": "Entrepreneur First:82556113",
+      "title": "ML Infrastructure Engineer",
+      "company": "Spore.Bio",
+      "location": "Paris",
+      "url": "https://careers.spore.bio/jobs/7896156-ml-infrastructure-engineer",
+      "source": "Entrepreneur First"
+    },
+    {
+      "id": "a16z:ats:mn74my5brnyrpym0jsaxn5gmwh8end3q",
+      "title": "AI Platform Engineer",
+      "company": "Starburst",
+      "location": "India",
+      "url": "https://job-boards.greenhouse.io/starburst/jobs/5416975008",
+      "source": "a16z"
+    },
+    {
+      "id": "Techstars:60755928",
+      "title": "Senior Full-stack Software Engineer - AI Platform Development",
+      "company": "Such Much AI",
+      "location": "Vilnius, Lithuania",
+      "url": "https://www.rfpx.com/job/full-stack-software-engineer",
+      "source": "Techstars"
+    },
+    {
+      "id": "Kleiner Perkins:am9icG9zdDrpQyqgWWwoMOGsDFbIAplv",
+      "title": "Software Engineer (AI Platform)",
+      "company": "Superblocks",
+      "location": "New York City (HQ)",
+      "url": "https://jobs.gem.com/superblocks/am9icG9zdDrpQyqgWWwoMOGsDFbIAplv?utm_source=jobs.kleinerperkins.com",
+      "source": "Kleiner Perkins"
+    },
+    {
+      "id": "Accel:73815252",
+      "title": "Principal ML Platform Engineer",
+      "company": "Synthesia",
+      "location": "Europe, Europe, Paris, France",
+      "url": "https://jobs.ashbyhq.com/synthesia/e9c63d3d-13cc-4049-ae0a-5fef402c595b",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:73793650",
+      "title": "Principal ML Platform Engineer Europe",
+      "company": "Synthesia",
+      "location": "Europe, Europe, Paris, France",
+      "url": "https://jobs.ashbyhq.com/synthesia/e9c63d3d-13cc-4049-ae0a-5fef402c595b?utm_source=careers_page",
+      "source": "Accel"
+    },
+    {
+      "id": "a16z:ats:mn72hbyeqt50begqvdv7vts4c58d867k",
+      "title": "AI Infrastructure Engineer",
+      "company": "Tessera Labs",
+      "location": "Remote in the U.S., Remote, United States +4",
+      "url": "https://jobs.ashbyhq.com/tessera-labs/c48696b2-b320-4a79-8b19-ebdb94575817/application",
+      "source": "a16z"
+    },
+    {
+      "id": "Accel:95425517",
+      "title": "Senior Machine Learning Engineer (ML Platform)",
+      "company": "Teya",
+      "location": "London, UK",
+      "url": "https://jobs.ashbyhq.com/teya/6bfb0a1b-a006-4527-806e-bbc0360f68f7",
+      "source": "Accel"
+    },
+    {
+      "id": "a16z:ats:mn7b3dtn6gy30v7qgwypzc5hhx8d9ykm",
+      "title": "Research Engineer, Infrastructure, Inference",
+      "company": "Thinking Machines Lab",
+      "location": "San Francisco, San Francisco, California, United States",
+      "url": "https://jobs.ashbyhq.com/ThinkingMachines/4087e0f6-4295-419a-ba02-08e95a74ceea/application",
+      "source": "a16z"
+    },
+    {
+      "id": "a16z:ats:mn760wenv94d6f1kgg10j8v1y58d89ch",
+      "title": "Research Engineer, Infrastructure, Kernels",
+      "company": "Thinking Machines Lab",
+      "location": "San Francisco, San Francisco, California, United States",
+      "url": "https://jobs.ashbyhq.com/ThinkingMachines/2d7a9e99-836a-475b-9ae3-b6b1df8baa6d/application",
+      "source": "a16z"
+    },
+    {
+      "id": "Khosla Ventures:62570977",
+      "title": "Kernel Engineer (Internship and Full-time)",
+      "company": "Tilde",
+      "location": "San Francisco, CA, USA",
+      "url": "https://jobs.ashbyhq.com/tilderesearch/bc4e4071-cf64-4460-8265-b1e5a603d6b8",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "General Catalyst:86234006",
+      "title": "AI infrastructure System Engineer Bangalore",
+      "company": "Together AI",
+      "location": "Bengaluru, Karnataka, India",
+      "url": "https://boards.greenhouse.io/togetherai/jobs/5180155007",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:78921292",
+      "title": "AI Infrastructure Systems Engineer",
+      "company": "Together AI",
+      "location": "San Francisco, CA, USA",
+      "url": "https://boards.greenhouse.io/togetherai/jobs/5138540007",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:49997396",
+      "title": "AI Infrastructure Systems Engineer (Amsterdam & London)",
+      "company": "Together AI",
+      "location": "Amsterdam, Netherlands",
+      "url": "https://boards.greenhouse.io/togetherai/jobs/4555544007",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:77877285",
+      "title": "Forward Deployed Engineer (Inference & Post-Training)",
+      "company": "Together AI",
+      "location": "San Francisco, CA, USA",
+      "url": "https://boards.greenhouse.io/togetherai/jobs/5131941007",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:88835787",
+      "title": "Forward Deployed Engineer (Inference & Post-Training) - Mandarin Speaking",
+      "company": "Together AI",
+      "location": "Singapore",
+      "url": "https://boards.greenhouse.io/togetherai/jobs/5199993007",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:90599711",
+      "title": "Junior/Senior or Staff Software Engineer, Inference / Compute Infrastructure Engineering",
+      "company": "Together AI",
+      "location": "India",
+      "url": "https://boards.greenhouse.io/togetherai/jobs/5213325007",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:90599707",
+      "title": "Junior/Senior/Staff Software Engineer, Inference / Compute Infrastructure Engineering",
+      "company": "Together AI",
+      "location": "Amsterdam, Netherlands",
+      "url": "https://boards.greenhouse.io/togetherai/jobs/5213322007",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:37518834",
+      "title": "Machine Learning Engineer - Inference",
+      "company": "Together AI",
+      "location": "San Francisco, CA, USA",
+      "url": "https://boards.greenhouse.io/togetherai/jobs/4385540007",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:54568785",
+      "title": "Platform Engineer, Model Shaping",
+      "company": "Together AI",
+      "location": "San Francisco, CA, USA",
+      "url": "https://boards.greenhouse.io/togetherai/jobs/4790243007",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:85456600",
+      "title": "Research Engineer, Post-Training Inference",
+      "company": "Together AI",
+      "location": "San Francisco, CA, USA",
+      "url": "https://boards.greenhouse.io/togetherai/jobs/5179372007",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:57163310",
+      "title": "Senior Backend Engineer, Inference Platform",
+      "company": "Together AI",
+      "location": "San Francisco, CA, USA",
+      "url": "https://boards.greenhouse.io/togetherai/jobs/4835763007",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:92846200",
+      "title": "Staff Engineer, Distributed Storage and HPC & AI Infrastructure",
+      "company": "Together AI",
+      "location": "Bengaluru, Karnataka, India",
+      "url": "https://boards.greenhouse.io/togetherai/jobs/5226095007",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "Kleiner Perkins:5186628007",
+      "title": "Staff Software Engineer, Inference / Compute Infrastructure Engineering",
+      "company": "Together AI",
+      "location": "San Francisco",
+      "url": "https://job-boards.greenhouse.io/togetherai/jobs/5186628007",
+      "source": "Kleiner Perkins"
+    },
+    {
+      "id": "General Catalyst:90599710",
+      "title": "Staff Software Engineer, Inference / Compute Infrastructure Engineering London or Amsterdam",
+      "company": "Together AI",
+      "location": "Amsterdam, Netherlands, London, UK",
+      "url": "https://boards.greenhouse.io/togetherai/jobs/5214645007",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:93734802",
+      "title": "Systems Research Engineer Intern - GPU Programming (Summer 2027)",
+      "company": "Together AI",
+      "location": "San Francisco, CA, USA",
+      "url": "https://boards.greenhouse.io/togetherai/jobs/5238460007",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:93734803",
+      "title": "Systems Research Engineer Intern - GPU Programming (Winter 2027)",
+      "company": "Together AI",
+      "location": "San Francisco, CA, USA",
+      "url": "https://boards.greenhouse.io/togetherai/jobs/5238411007",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:36895004",
+      "title": "Systems Research Engineer, GPU Programming",
+      "company": "Together AI",
+      "location": "San Francisco, CA, USA",
+      "url": "https://boards.greenhouse.io/togetherai/jobs/4188119007",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "a16z:ats:mn721a3bka6e5wazr1xrded2gn8e6mgb",
+      "title": "AI Context & Data Infrastructure Engineer",
+      "company": "Town",
+      "location": "San Francisco, San Francisco, California, United States",
+      "url": "https://jobs.ashbyhq.com/town/22bf2150-0373-4c2d-bd44-167843f11f74/application",
+      "source": "a16z"
+    },
+    {
+      "id": "Accel:83069776",
+      "title": "Senior Platform Engineer, AI",
+      "company": "True Anomaly",
+      "location": "Laguna Beach, CA, USA",
+      "url": "https://boards.greenhouse.io/trueanomalyinc/jobs/5166543007",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:83069779",
+      "title": "Staff Platform Engineer, AI",
+      "company": "True Anomaly",
+      "location": "Laguna Beach, CA, USA",
+      "url": "https://boards.greenhouse.io/trueanomalyinc/jobs/5166545007",
+      "source": "Accel"
+    },
+    {
+      "id": "Khosla Ventures:91411346",
+      "title": "Senior Software Engineer - Machine Learning Platform",
+      "company": "Upstart",
+      "location": "United States, Remote",
+      "url": "https://boards.greenhouse.io/upstart/jobs/8161883",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Accel:86882176",
+      "title": "IT Infrastructure Engineer - AI",
+      "company": "UserTesting",
+      "location": "United Kingdom",
+      "url": "https://usertesting.wd12.myworkdayjobs.com/UserTesting/job/United-Kingdom/IT-Infrastructure-Engineer---AI_R-101223",
+      "source": "Accel"
+    },
+    {
+      "id": "Antler:93786469",
+      "title": "Senior AI/ML Data Scientist or Engineer - LLM Fine-Tuning, Evaluation & Inference",
+      "company": "Vamstar",
+      "location": "India",
+      "url": "https://in.linkedin.com/jobs/view/senior-ai-ml-data-scientist-or-engineer-llm-fine-tuning-evaluation-inference-at-vamstar-4469270444",
+      "source": "Antler"
+    },
+    {
+      "id": "General Catalyst:81256206",
+      "title": "Staff Software Engineer , Anywhere Cloud - AI Systems & Runtimes",
+      "company": "Verta",
+      "location": "San Jose, CA, USA",
+      "url": "https://cloudera.wd5.myworkdayjobs.com/External_Career/job/US-California-San-Jose/Staff-Software-Engineer---Anywhere-Cloud---AI-Systems---Runtimes_260367-2",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "General Catalyst:71670750",
+      "title": "Staff System Engineer - AI Infrastructure",
+      "company": "Verta",
+      "location": "Singapore",
+      "url": "https://cloudera.wd5.myworkdayjobs.com/External_Career/job/Singapore--Singapore/Staff-Full-Stack-Engineer---Leading-Emergent-Engineering-Taskforce_251504",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "Khosla Ventures:93798583",
+      "title": "Member of Technical Staff - Foundation Model Architecture & AI Infrastructure",
+      "company": "Vinci4D.ai",
+      "location": "Palo Alto, CA, USA",
+      "url": "https://jobs.ashbyhq.com/vinci/099e95ec-89f0-4657-9f08-b9f5d6bdf4ce",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Accel:71493066",
+      "title": "Lead Site Reliability Engineer, ML Platform",
+      "company": "Vinted",
+      "location": "Lithuania",
+      "url": "https://careers.vinted.com/jobs/j/4807737101",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:71292600",
+      "title": "Senior Site Reliability Engineer, ML Platform",
+      "company": "Vinted",
+      "location": "Lithuania",
+      "url": "https://careers.vinted.com/jobs/j/4774500101",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:68782330",
+      "title": "Site Reliability Engineer, ML Platform",
+      "company": "Vinted",
+      "location": "Lithuania",
+      "url": "https://careers.vinted.com/jobs/j/4773261101",
+      "source": "Accel"
+    },
+    {
+      "id": "Khosla Ventures:77701730",
+      "title": "Senior Site Reliability Engineer, AI Inference",
+      "company": "Volterra",
+      "location": "Dublin, Ireland",
+      "url": "https://ffive.wd5.myworkdayjobs.com/f5jobs/job/Dublin/Senior-Site-Reliability-Engineer--AI-Inference_RP1037302",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:74952271",
+      "title": "SIte Reliability Engineer, AI Inference",
+      "company": "Volterra",
+      "location": "Dublin, Ireland",
+      "url": "https://ffive.wd5.myworkdayjobs.com/f5jobs/job/Dublin/AI-Inference-Engineer_RP1037299",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:91517825",
+      "title": "SRE, AI Inference Engineer",
+      "company": "Volterra",
+      "location": "San Jose, CA, USA, Seattle, WA, USA",
+      "url": "https://ffive.wd5.myworkdayjobs.com/f5jobs/job/San-Jose/AI-Inference-Engineer_RP1038660",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:86662859",
+      "title": "Machine Learning Infrastructure Engineer",
+      "company": "WindBorne Systems",
+      "location": "Atlanta, GA, USA",
+      "url": "https://jobs.ashbyhq.com/windborne-systems/79678539-14fa-4896-a622-31705e9d362e",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:95405195",
+      "title": "Software Engineer, Machine Learning Systems",
+      "company": "WindBorne Systems",
+      "location": "Atlanta, GA, USA",
+      "url": "https://jobs.ashbyhq.com/windborne-systems/50ac770b-9733-4bf6-844d-ee40f39525c5",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "General Catalyst:73876228",
+      "title": "Research Engineer, ML Infrastructure",
+      "company": "Windsurf",
+      "location": "San Francisco, CA, USA",
+      "url": "https://jobs.ashbyhq.com/cognition/b6f96827-ce14-44f4-98fa-b1b8640858b6",
+      "source": "General Catalyst"
+    },
+    {
+      "id": "a16z:ats:mn76s1frfmcnfnwevmejpkvxyn8emkh6",
+      "title": "Performance Engineer (Inference, Training & GPU)",
+      "company": "World Labs",
+      "location": "San Francisco, San Francisco, California, United States",
+      "url": "https://jobs.ashbyhq.com/worldlabs/207875a2-d8d9-4b9c-ba9f-a19358c07575/application",
+      "source": "a16z"
+    },
+    {
+      "id": "Accel:85407576",
+      "title": "Senior Engineer - ML Systems (AI Products)",
+      "company": "Xero",
+      "location": "Melbourne, VIC, Australia, Sydney, NSW, Australia +2",
+      "url": "https://jobs.ashbyhq.com/xero/45663119-ef1a-43a3-ba10-86a5a9837556",
+      "source": "Accel"
+    },
+    {
+      "id": "Khosla Ventures:92558295",
+      "title": "Cloud & AI Infrastructure Solution Engineer",
+      "company": "Yammer",
+      "location": "Sydney, NSW, Australia",
+      "url": "https://apply.careers.microsoft.com/careers/job/1970393556990252",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:89275520",
+      "title": "Principal AI Network Hardware Systems Engineer",
+      "company": "Yammer",
+      "location": "United States, California, USA +6",
+      "url": "https://apply.careers.microsoft.com/careers/job/1970393556958205",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:90275402",
+      "title": "Principal AI Platform Engineer - AI Experiences, Copilot Engineering",
+      "company": "Yammer",
+      "location": "Mountain View, CA, USA",
+      "url": "https://apply.careers.microsoft.com/careers/job/1970393556961594",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:90275610",
+      "title": "Principal Software Engineer - AI Infrastructure Engineering Systems",
+      "company": "Yammer",
+      "location": "Mountain View, CA, USA",
+      "url": "https://apply.careers.microsoft.com/careers/job/1970393556962258",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:94467154",
+      "title": "Principal Software Engineer, Integration and Automation - AI Infrastructure",
+      "company": "Yammer",
+      "location": "United States",
+      "url": "https://apply.careers.microsoft.com/careers/job/1970393557004835",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:93397264",
+      "title": "Senior and/or Principal Software Engineer- AI Infrastructure",
+      "company": "Yammer",
+      "location": "United States",
+      "url": "https://apply.careers.microsoft.com/careers/job/1970393556999275",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:93397285",
+      "title": "Senior and/or Principal Software Engineer- LLM Serving Performance",
+      "company": "Yammer",
+      "location": "Redmond, WA, USA",
+      "url": "https://apply.careers.microsoft.com/careers/job/1970393556998542",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:95066358",
+      "title": "Senior Solution Engineer - Cloud & AI Infrastructure",
+      "company": "Yammer",
+      "location": "Delaware, USA",
+      "url": "https://apply.careers.microsoft.com/careers/job/1970393557006538",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:94726493",
+      "title": "Software Engineer II - AI Infrastructure",
+      "company": "Yammer",
+      "location": "Redmond, WA, USA",
+      "url": "https://apply.careers.microsoft.com/careers/job/1970393557007526",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:90379099",
+      "title": "Solution Engineer - Cloud & AI Infrastructure",
+      "company": "Yammer",
+      "location": "United States",
+      "url": "https://apply.careers.microsoft.com/careers/job/1970393556958394",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Khosla Ventures:93592097",
+      "title": "Sr Solution Engineer, Cloud & AI Infrastructure - CTJ - Top Secret",
+      "company": "Yammer",
+      "location": "United States",
+      "url": "https://apply.careers.microsoft.com/careers/job/1970393556999949",
+      "source": "Khosla Ventures"
+    },
+    {
+      "id": "Y Combinator:87435",
+      "title": "AI/ML Infrastructure Engineer",
+      "company": "Zensors",
+      "location": "San Francisco, CA, US",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D4100120a-5da6-4458-aa38-af04244f27fe%26signup_job_id%3D87435&defaults%5Bemail%5D=search-cff9670d92dfcafa%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=24476",
+      "source": "Y Combinator"
+    },
+    {
+      "id": "Techstars:92750552",
+      "title": "ML Infrastructure Engineer",
+      "company": "Zipline",
+      "location": "South San Francisco, CA, USA",
+      "url": "https://boards.greenhouse.io/flyzipline/jobs/7989516003",
+      "source": "Techstars"
+    },
+    {
+      "id": "Khosla Ventures:82888287",
+      "title": "Staff Platform Engineer, AI Enablement",
+      "company": "Zocdoc",
+      "location": "New York, NY, USA",
+      "url": "https://boards.greenhouse.io/zocdoc/jobs/7994223",
+      "source": "Khosla Ventures"
+    }
+  ]
+}

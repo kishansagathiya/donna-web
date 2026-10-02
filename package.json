@@ -10,6 +10,7 @@
     "start": "node scripts/serve.mjs",
     "sync:pitch": "cp ../pitch.md src/content/pitch.md",
     "sync:cafe": "node scripts/sync-cafe.mjs",
+    "sync:infra": "node scripts/sync-infra.mjs",
     "test": "vitest run"
   },
   "dependencies": {

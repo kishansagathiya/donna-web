@@ -1,0 +1,60 @@
+{
+  "queries": [
+    "inference",
+    "GPU",
+    "CUDA",
+    "ROCm",
+    "kernel",
+    "quantization",
+    "kv cache",
+    "ML platform",
+    "ML infrastructure",
+    "AI infrastructure",
+    "ML systems",
+    "training infrastructure",
+    "model serving",
+    "tensorrt",
+    "vllm",
+    "triton"
+  ],
+  "yc": {
+    "name": "Y Combinator"
+  },
+  "boards": [
+    {"name": "Accel", "url": "https://jobs.accel.com/jobs", "kind": "getro"},
+    {"name": "General Catalyst", "url": "https://jobs.generalcatalyst.com/jobs", "kind": "getro"},
+    {"name": "Khosla Ventures", "url": "https://jobs.khoslaventures.com/jobs", "kind": "getro"},
+    {"name": "Techstars", "url": "https://jobs.techstars.com/jobs", "kind": "getro"},
+    {"name": "Antler", "url": "https://careers.antler.co/jobs", "kind": "getro"},
+    {"name": "Entrepreneur First", "url": "https://portfolio.joinef.com/jobs", "kind": "getro"},
+    {"name": "Plug and Play", "url": "https://jobs.pnptc.com/jobs", "kind": "getro"},
+    {"name": "a16z", "url": "https://jobs.a16z.com/jobs", "kind": "portfolio"},
+    {"name": "Sequoia", "url": "https://jobs.sequoiacap.com/jobs", "kind": "consider"},
+    {"name": "Bessemer", "url": "https://jobs.bvp.com/jobs", "kind": "consider"},
+    {"name": "Kleiner Perkins", "url": "https://jobs.kleinerperkins.com/jobs", "kind": "consider"},
+    {"name": "Battery", "url": "https://jobs.battery.com/jobs", "kind": "consider"},
+    {"name": "StartX", "url": "https://jobs.startx.com/jobs", "kind": "consider"},
+    {"name": "Lightspeed", "url": "https://jobs.lsvp.com/jobs", "kind": "consider"},
+    {"name": "Initialized", "url": "https://jobs.initialized.com/jobs", "kind": "consider"},
+    {"name": "500 Global", "url": "https://jobs.500.co/jobs", "kind": "auto"},
+    {"name": "Alchemist", "url": "https://www.alchemistaccelerator.com/jobs", "kind": "auto"},
+    {"name": "a16z Speedrun", "url": "https://speedrun.a16z.com/", "kind": "auto"}
+  ],
+  "not_fetched": [
+    {"name": "SOSV", "reason": "No public portfolio jobs feed"},
+    {"name": "AngelPad", "reason": "No public portfolio jobs feed"},
+    {"name": "Berkeley SkyDeck", "reason": "No public portfolio jobs feed"},
+    {"name": "Creative Destruction Lab", "reason": "No public portfolio jobs feed"},
+    {"name": "Betaworks", "reason": "No public portfolio jobs feed"},
+    {"name": "ERA", "reason": "No public portfolio jobs feed"},
+    {"name": "South Park Commons", "reason": "No public portfolio jobs feed"},
+    {"name": "HF0", "reason": "No public portfolio jobs feed"},
+    {"name": "Sequoia Arc", "reason": "No public portfolio jobs feed"},
+    {"name": "Neo", "reason": "No public portfolio jobs feed"},
+    {"name": "AI2 Incubator", "reason": "No public portfolio jobs feed"},
+    {"name": "Greylock", "reason": "No public portfolio jobs feed"},
+    {"name": "Index Ventures", "reason": "No public portfolio jobs feed"},
+    {"name": "NEA", "reason": "No public portfolio jobs feed"},
+    {"name": "First Round", "reason": "Portfolio board requires a login"}
+  ]
+}

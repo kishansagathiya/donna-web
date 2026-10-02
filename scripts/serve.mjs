@@ -6,9 +6,10 @@
  * hashed JS/CSS lets CDNs cache a broken response and black-screen the app
  * after deploys when an old index.html still points at a removed file.
  *
- * /cafe is a separately synced static microsite (Next export) — serve its
- * files (and directory indexes) and never fall back to the SPA for missing
- * cafe assets.
+ * /cafe and /becoming-ai-infra-engineer are synced static sites. Serve their
+ * files (and directory indexes) and never fall back to the SPA for a missing
+ * file under those paths. A directory URL without a trailing slash redirects
+ * so relative links in those sites resolve inside the directory.
  */
 import { createServer } from "node:http";
 import { readFile, stat } from "node:fs/promises";
@@ -18,6 +19,7 @@ import { handleRazorpayApi } from "./razorpay-api.mjs";
 
 const distRoot = join(fileURLToPath(new URL("..", import.meta.url)), "dist");
 const port = Number(process.env.PORT || 3000);
+const STATIC_SITES = ["/cafe/", "/becoming-ai-infra-engineer/"];
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -96,7 +98,31 @@ const server = createServer(async (req, res) => {
     }
 
     const urlPath = req.url || "/";
-    let rel = decodeURIComponent(urlPath.split("?")[0] || "/");
+    const queryIndex = urlPath.indexOf("?");
+    const query = queryIndex === -1 ? "" : urlPath.slice(queryIndex);
+    const pathname = decodeURIComponent(
+      (queryIndex === -1 ? urlPath : urlPath.slice(0, queryIndex)) || "/",
+    );
+    if (pathname !== "/" && !pathname.endsWith("/") && !pathname.split("/").pop().includes(".")) {
+      const indexPath = safeJoin(distRoot, `${pathname}/index.html`);
+      if (indexPath) {
+        try {
+          const indexInfo = await stat(indexPath);
+          if (indexInfo.isFile()) {
+            res.writeHead(308, {
+              Location: `${pathname}/${query}`,
+              "Cache-Control": "no-cache",
+            });
+            res.end();
+            return;
+          }
+        } catch {
+          // not a directory index
+        }
+      }
+    }
+
+    let rel = pathname;
     if (rel === "/") rel = "/index.html";
 
     // Directory index: /cafe or /cafe/ → /cafe/index.html
@@ -136,24 +162,10 @@ const server = createServer(async (req, res) => {
       // fall through
     }
 
-    // /cafe without trailing slash when cafe/ is a directory
-    if (!rel.endsWith(".html") && !rel.includes(".")) {
-      const indexRel = `${rel}/index.html`;
-      const indexPath = safeJoin(distRoot, indexRel);
-      if (indexPath) {
-        try {
-          const indexInfo = await stat(indexPath);
-          if (indexInfo.isFile()) {
-            await sendFile(res, indexPath, indexRel);
-            return;
-          }
-        } catch {
-          // fall through
-        }
-      }
-    }
-
-    if (rel.startsWith("/assets/") || rel.startsWith("/cafe/")) {
+    if (
+      rel.startsWith("/assets/") ||
+      STATIC_SITES.some((prefix) => rel.startsWith(prefix) || rel + "/" === prefix)
+    ) {
       sendNotFound(res);
       return;
     }

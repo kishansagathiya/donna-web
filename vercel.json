@@ -37,9 +37,16 @@
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/becoming-ai-infra-engineer",
+      "destination": "/becoming-ai-infra-engineer/",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     {
-      "source": "/((?!assets/|cafe/).*)",
+      "source": "/((?!assets/|cafe/|becoming-ai-infra-engineer/).*)",
       "destination": "/index.html"
     }
   ]
