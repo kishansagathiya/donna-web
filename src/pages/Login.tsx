@@ -8,11 +8,19 @@ import { TextInput } from "../components/ui/TextInput";
 import { PRIVACY_POLICY_URL } from "../config";
 import { isDonnaDesktop } from "../lib/desktop";
 import { cn } from "../lib/cn";
+import { isDocumentNavigationPath, peekLoginNext } from "../lib/loginNext";
 import {
   isDesktopBrowserHandoff,
   rememberDesktopHandoff,
   signInWithPassword,
 } from "../services/auth";
+
+function isCourseJobBoardLogin(): boolean {
+  const next = new URLSearchParams(window.location.search).get("next");
+  if (next && isDocumentNavigationPath(next)) return true;
+  const stored = peekLoginNext();
+  return stored != null && isDocumentNavigationPath(stored);
+}
 
 export function Login() {
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +86,11 @@ export function Login() {
         ) : new URLSearchParams(window.location.search).get("extension") === "1" ? (
           <p className="max-w-xs text-sm text-donna-muted">
             After you sign in, this tab closes and the Firefox add-on continues.
+          </p>
+        ) : isCourseJobBoardLogin() ? (
+          <p className="max-w-xs text-sm text-donna-muted">
+            Sign in to see every AI infrastructure role. You’ll come back to
+            the job board.
           </p>
         ) : null}
       </div>

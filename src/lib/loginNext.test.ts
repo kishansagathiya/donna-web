@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import {
+  isDocumentNavigationPath,
   isSafeNextPath,
+  peekLoginNext,
   rememberLoginNext,
   resolvePostLoginPath,
   takeLoginNext,
@@ -10,6 +12,13 @@ describe("isSafeNextPath", () => {
   it("allows internal paths", () => {
     expect(isSafeNextPath("/blog/custom-coding-harnesses")).toBe(true);
     expect(isSafeNextPath("/app")).toBe(true);
+  });
+
+  it("treats the course job board as a document navigation", () => {
+    expect(isDocumentNavigationPath("/becoming-ai-infra-engineer/")).toBe(true);
+    expect(isDocumentNavigationPath("/becoming-ai-infra-engineer/#jobs")).toBe(true);
+    expect(isDocumentNavigationPath("/app")).toBe(false);
+    expect(isDocumentNavigationPath("/becoming-ai-infra-engineer-other")).toBe(false);
   });
 
   it("rejects open redirects", () => {
@@ -27,7 +36,9 @@ describe("login next storage", () => {
 
   it("remembers and consumes a safe path", () => {
     rememberLoginNext("/blog/foo");
+    expect(peekLoginNext()).toBe("/blog/foo");
     expect(takeLoginNext()).toBe("/blog/foo");
+    expect(peekLoginNext()).toBeNull();
     expect(takeLoginNext()).toBeNull();
   });
 

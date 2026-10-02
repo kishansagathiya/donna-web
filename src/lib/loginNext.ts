@@ -1,5 +1,7 @@
 const LOGIN_NEXT_KEY = "donna.login_next.v1";
 
+const DOCUMENT_NEXT_PREFIX = "/becoming-ai-infra-engineer";
+
 export function isSafeNextPath(path: string): boolean {
   return (
     path.startsWith("/") &&
@@ -9,12 +11,30 @@ export function isSafeNextPath(path: string): boolean {
   );
 }
 
+/** Static pages outside the React app need a full document load after login. */
+export function isDocumentNavigationPath(path: string): boolean {
+  const pathOnly = path.split(/[?#]/)[0];
+  return (
+    pathOnly === DOCUMENT_NEXT_PREFIX ||
+    pathOnly.startsWith(`${DOCUMENT_NEXT_PREFIX}/`)
+  );
+}
+
 export function rememberLoginNext(path: string | null | undefined): void {
   if (!path || !isSafeNextPath(path)) return;
   try {
     sessionStorage.setItem(LOGIN_NEXT_KEY, path);
   } catch {
     // Ignore quota / private-mode failures; the query param still works.
+  }
+}
+
+export function peekLoginNext(): string | null {
+  try {
+    const stored = sessionStorage.getItem(LOGIN_NEXT_KEY);
+    return stored && isSafeNextPath(stored) ? stored : null;
+  } catch {
+    return null;
   }
 }
 

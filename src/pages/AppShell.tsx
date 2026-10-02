@@ -1,7 +1,11 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Navigate, Outlet, useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { rememberLoginNext, resolvePostLoginPath } from "../lib/loginNext";
+import {
+  isDocumentNavigationPath,
+  rememberLoginNext,
+  resolvePostLoginPath,
+} from "../lib/loginNext";
 import { hasAiDataConsent } from "../services/privacyConsent";
 import {
   isDesktopBrowserHandoff,
@@ -121,11 +125,24 @@ export function LoginShell() {
   const [params] = useSearchParams();
   const nextParam = params.get("next");
   const desktopHandoff = isDesktopBrowserHandoff();
+  const postLoginPath = useRef<string | null>(null);
 
   useEffect(() => {
     rememberDesktopHandoff();
     rememberLoginNext(nextParam);
   }, [nextParam]);
+
+  if (!loading && isAuthenticated && !desktopHandoff && postLoginPath.current == null) {
+    postLoginPath.current = resolvePostLoginPath(nextParam, hasAiDataConsent());
+  }
+
+  const destination = postLoginPath.current;
+  const hardNavigate = destination != null && isDocumentNavigationPath(destination);
+
+  useEffect(() => {
+    if (!hardNavigate || !destination) return;
+    window.location.replace(destination);
+  }, [hardNavigate, destination]);
 
   if (loading) {
     return <LoadingScreen />;
@@ -139,13 +156,12 @@ export function LoginShell() {
     );
   }
 
-  if (isAuthenticated) {
-    return (
-      <Navigate
-        to={resolvePostLoginPath(nextParam, hasAiDataConsent())}
-        replace
-      />
-    );
+  if (hardNavigate) {
+    return <LoadingScreen />;
+  }
+
+  if (destination) {
+    return <Navigate to={destination} replace />;
   }
 
   return (

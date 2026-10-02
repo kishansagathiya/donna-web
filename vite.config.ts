@@ -54,6 +54,21 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
       {
+        name: "static-course-index",
+        configureServer(server) {
+          server.middlewares.use((req, _res, next) => {
+            const raw = req.url ?? "";
+            const queryIndex = raw.indexOf("?");
+            const path = queryIndex === -1 ? raw : raw.slice(0, queryIndex);
+            const query = queryIndex === -1 ? "" : raw.slice(queryIndex);
+            if (path === "/becoming-ai-infra-engineer" || path === "/becoming-ai-infra-engineer/") {
+              req.url = `/becoming-ai-infra-engineer/index.html${query}`;
+            }
+            next();
+          });
+        },
+      },
+      {
         name: "razorpay-api",
         configureServer(server) {
           server.middlewares.use(async (req, res, next) => {
