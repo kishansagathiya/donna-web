@@ -17,9 +17,6 @@ const destDir = join(webRoot, "public", "becoming-ai-infra-engineer");
 
 const entries = [
   "index.html",
-  "course.html",
-  "course.css",
-  "course.js",
   "jobs.js",
   "styles.css",
   "assets",
