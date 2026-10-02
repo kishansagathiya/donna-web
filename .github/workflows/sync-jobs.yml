@@ -1,0 +1,46 @@
+name: Sync jobs
+
+# scripts/job-board is the fetcher from becoming-ai-infra-engineer/scripts.
+# Railway deploys this repo, so the committed jobs.json is what the site serves.
+
+on:
+  schedule:
+    # 13:17 UTC every day. GitHub may start the run a few minutes late.
+    - cron: "17 13 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-jobs
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check the job filter
+        run: python3 -m unittest scripts/job-board/test_filter.py
+      - name: Fetch job listings
+        run: |
+          board=$(mktemp -d)
+          mkdir -p "$board/scripts" "$board/data"
+          cp scripts/job-board/*.py "$board/scripts/"
+          cp public/becoming-ai-infra-engineer/data/sources.json "$board/data/"
+          cp public/becoming-ai-infra-engineer/data/jobs.json "$board/data/"
+          python3 "$board/scripts/sync_jobs.py"
+          cp "$board/data/jobs.json" public/becoming-ai-infra-engineer/data/jobs.json
+      - name: Commit job list when it changed
+        run: |
+          git add public/becoming-ai-infra-engineer/data/jobs.json
+          if git diff --cached --quiet; then
+            echo "No job changes"
+            exit 0
+          fi
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Update the AI infrastructure job board"
+          git push
