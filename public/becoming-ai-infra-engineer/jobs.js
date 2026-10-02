@@ -24,13 +24,11 @@
     });
   }
 
-  function renderGate(hiddenCount) {
+  function renderGate() {
     var gate = document.createElement("div");
     gate.className = "job-gate";
     var copy = document.createElement("p");
-    copy.textContent = hiddenCount === 1
-      ? "Sign in to see 1 more role."
-      : "Sign in to see " + hiddenCount + " more roles.";
+    copy.textContent = "Sign in to see more roles.";
     var link = document.createElement("a");
     link.className = "btn btn-primary";
     link.href = loginHref();
@@ -73,15 +71,14 @@
       row.append(title, company, location, source);
       table.appendChild(row);
     });
-    if (hidden) renderGate(hidden);
+    if (hidden) renderGate();
   }
 
   function status(shown) {
     var count = jobs.length === 1 ? "1 role" : jobs.length + " roles";
     var searching = input.value.trim();
     if (!unlocked && shown > FREE_LIMIT) {
-      var matched = searching ? shown + " matches" : count;
-      meta.textContent = FREE_LIMIT + " of " + matched + " · Sign in to see the rest";
+      meta.textContent = updated ? "Updated " + updated : "";
       return;
     }
     if (searching) {
