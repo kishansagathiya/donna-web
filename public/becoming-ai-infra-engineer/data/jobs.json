@@ -1,10 +1,10 @@
 {
-  "updated_at": "2026-10-02T18:29:28+00:00",
+  "updated_at": "2026-10-03T17:21:19+00:00",
   "source_status": {
-    "Y Combinator": "ok (13)",
-    "Accel": "ok (90)",
+    "Y Combinator": "ok (14)",
+    "Accel": "ok (94)",
     "General Catalyst": "ok (68)",
-    "Khosla Ventures": "ok (56)",
+    "Khosla Ventures": "ok (52)",
     "Techstars": "ok (7)",
     "Antler": "ok (2)",
     "Entrepreneur First": "ok (4)",
@@ -210,7 +210,7 @@
       "title": "Systems Engineer: Linux Kernel Test and Validation",
       "company": "Cedana",
       "location": "US / Remote (US)",
-      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D1cbb0040-e35b-4dc9-b4d6-eb5bcefc4fff%26signup_job_id%3D95761&defaults%5Bemail%5D=search-39474c96bb154926%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=28812",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D8a8c6c84-8196-43f6-aa3c-1198054c7441%26signup_job_id%3D95761&defaults%5Bemail%5D=search-fde66f23e8041d72%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=28812",
       "source": "Y Combinator"
     },
     {
@@ -259,14 +259,6 @@
       "company": "Citus Data",
       "location": "United States",
       "url": "https://apply.careers.microsoft.com/careers/job/1970393556958394",
-      "source": "Khosla Ventures"
-    },
-    {
-      "id": "Khosla Ventures:93610380",
-      "title": "Sr Solution Engineer, Cloud & AI Infrastructure - CTJ - Top Secret",
-      "company": "Citus Data",
-      "location": "United States",
-      "url": "https://apply.careers.microsoft.com/careers/job/1970393556999949",
       "source": "Khosla Ventures"
     },
     {
@@ -322,7 +314,7 @@
       "title": "AI Systems Engineer",
       "company": "Conductor Quantum",
       "location": "San Francisco, CA, US",
-      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D1cbb0040-e35b-4dc9-b4d6-eb5bcefc4fff%26signup_job_id%3D92445&defaults%5Bemail%5D=search-39474c96bb154926%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=29754",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D8a8c6c84-8196-43f6-aa3c-1198054c7441%26signup_job_id%3D92445&defaults%5Bemail%5D=search-fde66f23e8041d72%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=29754",
       "source": "Y Combinator"
     },
     {
@@ -386,7 +378,7 @@
       "title": "Software Engineer, Machine Learning Infrastructure",
       "company": "David AI",
       "location": "San Francisco, CA, US",
-      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D1cbb0040-e35b-4dc9-b4d6-eb5bcefc4fff%26signup_job_id%3D79946&defaults%5Bemail%5D=search-39474c96bb154926%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=29759",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D8a8c6c84-8196-43f6-aa3c-1198054c7441%26signup_job_id%3D79946&defaults%5Bemail%5D=search-fde66f23e8041d72%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=29759",
       "source": "Y Combinator"
     },
     {
@@ -754,7 +746,15 @@
       "title": "Cloud Inference Engineer",
       "company": "Luminal",
       "location": "San Francisco, CA, US",
-      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D1cbb0040-e35b-4dc9-b4d6-eb5bcefc4fff%26signup_job_id%3D83575&defaults%5Bemail%5D=search-39474c96bb154926%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=30804",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D8a8c6c84-8196-43f6-aa3c-1198054c7441%26signup_job_id%3D83575&defaults%5Bemail%5D=search-fde66f23e8041d72%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=30804",
+      "source": "Y Combinator"
+    },
+    {
+      "id": "Y Combinator:114030",
+      "title": "ML Infrastructure Engineer",
+      "company": "Mach9",
+      "location": "San Francisco",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D8a8c6c84-8196-43f6-aa3c-1198054c7441%26signup_job_id%3D114030&defaults%5Bemail%5D=search-fde66f23e8041d72%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=24551",
       "source": "Y Combinator"
     },
     {
@@ -878,11 +878,11 @@
       "source": "Accel"
     },
     {
-      "id": "Accel:94577019",
+      "id": "Accel:94577022",
       "title": "Senior Machine Learning Engineer, LLM Inference Optimization",
       "company": "Nebius",
-      "location": "Z\u00fcrich, Switzerland",
-      "url": "https://boards.greenhouse.io/nebius/jobs/4986451101",
+      "location": "London, UK",
+      "url": "https://boards.greenhouse.io/nebius/jobs/4984012101",
       "source": "Accel"
     },
     {
@@ -1046,6 +1046,14 @@
       "source": "a16z"
     },
     {
+      "id": "Accel:83520965",
+      "title": "GPU/CPU Systems Engineer",
+      "company": "OPOWER",
+      "location": "Kenya, Seattle, WA, USA",
+      "url": "https://careers.oracle.com/en/sites/jobsearch/job/337608/?location=United+States&locationId=300000000149325",
+      "source": "Accel"
+    },
+    {
       "id": "Accel:95439543",
       "title": "Principal Core Infrastructure Engineer - AI Infrastructure",
       "company": "OPOWER",
@@ -1054,11 +1062,35 @@
       "source": "Accel"
     },
     {
+      "id": "Accel:84857743",
+      "title": "Principal Software Developer, AI Infrastructure",
+      "company": "OPOWER",
+      "location": "Austin, TX, USA, Kenya",
+      "url": "https://careers.oracle.com/en/sites/jobsearch/job/334288/?location=United+States&locationId=300000000149325",
+      "source": "Accel"
+    },
+    {
       "id": "Accel:95439548",
       "title": "Senior Core Infrastructure Engineer, AI Infrastructure",
       "company": "OPOWER",
       "location": "Nashville, TN, USA",
       "url": "https://careers.oracle.com/en/sites/jobsearch/job/345398/?location=United+States&locationId=300000000149325",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:83782247",
+      "title": "Software Developer 5 , AI Infrastructure",
+      "company": "OPOWER",
+      "location": "Kenya, Seattle, WA, USA",
+      "url": "https://careers.oracle.com/en/sites/jobsearch/job/336129/?location=United+States&locationId=300000000149325",
+      "source": "Accel"
+    },
+    {
+      "id": "Accel:82438579",
+      "title": "Software Engineer, Core Infrastructure (AI Infrastructure)",
+      "company": "OPOWER",
+      "location": "Austin, TX, USA, Kenya",
+      "url": "https://careers.oracle.com/en/sites/jobsearch/job/333513/?location=United+States&locationId=300000000149325",
       "source": "Accel"
     },
     {
@@ -1122,7 +1154,7 @@
       "title": "Founding Engineer -- AI Inference Stack",
       "company": "Piris Labs",
       "location": "San Francisco, CA, US",
-      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D1cbb0040-e35b-4dc9-b4d6-eb5bcefc4fff%26signup_job_id%3D93808&defaults%5Bemail%5D=search-39474c96bb154926%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=31114",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D8a8c6c84-8196-43f6-aa3c-1198054c7441%26signup_job_id%3D93808&defaults%5Bemail%5D=search-fde66f23e8041d72%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=31114",
       "source": "Y Combinator"
     },
     {
@@ -1146,7 +1178,7 @@
       "title": "Software Engineer, Inference",
       "company": "Pulse",
       "location": "San Francisco",
-      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D1cbb0040-e35b-4dc9-b4d6-eb5bcefc4fff%26signup_job_id%3D79499&defaults%5Bemail%5D=search-39474c96bb154926%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=29699",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D8a8c6c84-8196-43f6-aa3c-1198054c7441%26signup_job_id%3D79499&defaults%5Bemail%5D=search-fde66f23e8041d72%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=29699",
       "source": "Y Combinator"
     },
     {
@@ -1234,7 +1266,7 @@
       "title": "LLM/ML Engineer (Inference)",
       "company": "Reducto",
       "location": "San Francisco, CA, US",
-      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D1cbb0040-e35b-4dc9-b4d6-eb5bcefc4fff%26signup_job_id%3D71707&defaults%5Bemail%5D=search-39474c96bb154926%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=29254",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D8a8c6c84-8196-43f6-aa3c-1198054c7441%26signup_job_id%3D71707&defaults%5Bemail%5D=search-fde66f23e8041d72%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=29254",
       "source": "Y Combinator"
     },
     {
@@ -1386,7 +1418,7 @@
       "title": "Member of Technical Staff, GPU Compiler",
       "company": "SF Tensor",
       "location": "San Francisco",
-      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D1cbb0040-e35b-4dc9-b4d6-eb5bcefc4fff%26signup_job_id%3D107010&defaults%5Bemail%5D=search-39474c96bb154926%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=30891",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D8a8c6c84-8196-43f6-aa3c-1198054c7441%26signup_job_id%3D107010&defaults%5Bemail%5D=search-fde66f23e8041d72%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=30891",
       "source": "Y Combinator"
     },
     {
@@ -1394,7 +1426,7 @@
       "title": "Member of Technical Staff, GPU Kernels",
       "company": "SF Tensor",
       "location": "San Francisco",
-      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D1cbb0040-e35b-4dc9-b4d6-eb5bcefc4fff%26signup_job_id%3D107009&defaults%5Bemail%5D=search-39474c96bb154926%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=30891",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D8a8c6c84-8196-43f6-aa3c-1198054c7441%26signup_job_id%3D107009&defaults%5Bemail%5D=search-fde66f23e8041d72%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=30891",
       "source": "Y Combinator"
     },
     {
@@ -1442,7 +1474,7 @@
       "title": "AI Infrastructure Engineer",
       "company": "Spellbrush",
       "location": "Tokyo, JP / San Francisco, CA, US / Remote (Tokyo, JP; San Francisco, CA, US)",
-      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D1cbb0040-e35b-4dc9-b4d6-eb5bcefc4fff%26signup_job_id%3D63491&defaults%5Bemail%5D=search-39474c96bb154926%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=1729",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D8a8c6c84-8196-43f6-aa3c-1198054c7441%26signup_job_id%3D63491&defaults%5Bemail%5D=search-fde66f23e8041d72%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=1729",
       "source": "Y Combinator"
     },
     {
@@ -1926,19 +1958,11 @@
       "source": "Khosla Ventures"
     },
     {
-      "id": "Khosla Ventures:93592097",
-      "title": "Sr Solution Engineer, Cloud & AI Infrastructure - CTJ - Top Secret",
-      "company": "Yammer",
-      "location": "United States",
-      "url": "https://apply.careers.microsoft.com/careers/job/1970393556999949",
-      "source": "Khosla Ventures"
-    },
-    {
       "id": "Y Combinator:87435",
       "title": "AI/ML Infrastructure Engineer",
       "company": "Zensors",
       "location": "San Francisco, CA, US",
-      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D1cbb0040-e35b-4dc9-b4d6-eb5bcefc4fff%26signup_job_id%3D87435&defaults%5Bemail%5D=search-39474c96bb154926%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=24476",
+      "url": "https://account.ycombinator.com/authenticate?continue=https%3A%2F%2Fwww.workatastartup.com%2Fapplication%3Fcode%3D8a8c6c84-8196-43f6-aa3c-1198054c7441%26signup_job_id%3D87435&defaults%5Bemail%5D=search-fde66f23e8041d72%40placeholder.workatastartup.com&defaults%5Bfirst_name%5D&defaults%5Blast_name%5D&defaults%5BsignUpActive%5D=true&defaults%5Bwaas_company%5D=24476",
       "source": "Y Combinator"
     },
     {
